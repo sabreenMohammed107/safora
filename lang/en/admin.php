@@ -158,6 +158,23 @@ return [
         'no_subscription' => 'No subscription yet.',
         'no_activity' => 'No activity.',
         'sector_inherited' => 'Inherited from the category',
+        'sectors' => [
+            'products_in_list' => ':count product in the client’s list|:count products in the client’s list',
+            'product_count' => ':count product|:count products',
+            'legend' => [
+                'category' => 'Inherited from the category',
+                'granted' => 'Granted by admin',
+                'added' => 'Added by the client from the portal',
+            ],
+            'grant_placeholder' => '— Grant an extra sector —',
+            'grant' => 'Grant',
+            'revoke' => 'Revoke sector :name',
+            'confirm_revoke' => 'Revoke “:name”? Its products will be removed from the client’s list.',
+            'flash' => [
+                'granted' => 'Sector “:name” granted.',
+                'revoked' => '{0} Sector “:name” revoked.|{1} Sector “:name” revoked (1 product removed from the client’s list).|[2,*] Sector “:name” revoked (:count products removed from the client’s list).',
+            ],
+        ],
         'sector_source' => [
             'granted' => 'granted',
             'added' => 'added',

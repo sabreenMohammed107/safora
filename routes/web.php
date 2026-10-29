@@ -21,10 +21,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('login', [Admin\Auth\SessionController::class, 'store'])->name('login.store');
     });
 
-    Route::middleware(['auth:admin', 'admin.active'])->group(function () {
+    Route::middleware(['auth:admin', 'admin.active', 'auth.session', 'password.change:admin'])->group(function () {
         Route::post('logout', [Admin\Auth\SessionController::class, 'destroy'])->name('logout');
 
         Route::get('/', Admin\DashboardController::class)->name('dashboard');
+
+        Route::get('profile', [Admin\ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('profile', [Admin\ProfileController::class, 'update'])->name('profile.update');
+        Route::put('profile/password', [Admin\ProfileController::class, 'updatePassword'])->name('profile.password');
 
         Route::middleware('can:clients.view')->group(function () {
             Route::get('clients', [Admin\ClientController::class, 'index'])->name('clients.index');
@@ -50,8 +54,34 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->middleware('can:clients.impersonate')
             ->name('clients.impersonate');
 
+        Route::middleware('can:clients.accounts')->scopeBindings()->group(function () {
+            Route::get('clients/{client}/branches/create', [Admin\ClientBranchController::class, 'create'])->name('clients.branches.create');
+            Route::post('clients/{client}/branches', [Admin\ClientBranchController::class, 'store'])->name('clients.branches.store');
+            Route::get('clients/{client}/branches/{branch}/edit', [Admin\ClientBranchController::class, 'edit'])->name('clients.branches.edit');
+            Route::put('clients/{client}/branches/{branch}', [Admin\ClientBranchController::class, 'update'])->name('clients.branches.update');
+
+            Route::get('clients/{client}/users/create', [Admin\ClientUserController::class, 'create'])->name('clients.users.create');
+            Route::post('clients/{client}/users', [Admin\ClientUserController::class, 'store'])->name('clients.users.store');
+            Route::get('clients/{client}/users/{user}/edit', [Admin\ClientUserController::class, 'edit'])->name('clients.users.edit');
+            Route::put('clients/{client}/users/{user}', [Admin\ClientUserController::class, 'update'])->name('clients.users.update');
+            Route::post('clients/{client}/users/{user}/password', [Admin\ClientUserController::class, 'resetPassword'])->name('clients.users.password');
+        });
+
+        Route::middleware('can:clients.sectors')->group(function () {
+            Route::post('clients/{client}/sectors', [Admin\ClientSectorController::class, 'store'])->name('clients.sectors.store');
+            Route::delete('clients/{client}/sectors/{sector}', [Admin\ClientSectorController::class, 'destroy'])->name('clients.sectors.destroy');
+        });
+
         Route::resource('staff', Admin\StaffController::class)->except(['show', 'destroy'])->parameters(['staff' => 'staff']);
+        Route::post('staff/{staff}/password', [Admin\StaffController::class, 'resetPassword'])->name('staff.password');
         Route::resource('roles', Admin\RoleController::class)->except(['index', 'show']);
+
+        Route::middleware('can:haccp.manage')->prefix('haccp')->name('haccp.')->group(function () {
+            Route::get('programs', [Admin\HaccpProgramController::class, 'index'])->name('programs.index');
+            Route::post('programs', [Admin\HaccpProgramController::class, 'store'])->name('programs.store');
+            Route::put('programs/{program:code}', [Admin\HaccpProgramController::class, 'update'])->name('programs.update');
+            Route::delete('programs/{program:code}', [Admin\HaccpProgramController::class, 'destroy'])->name('programs.destroy');
+        });
     });
 });
 
@@ -70,13 +100,25 @@ Route::prefix('portal')->name('portal.')->group(function () {
         Route::post('register', [Portal\RegistrationController::class, 'store'])->name('register.store');
     });
 
-    Route::middleware('auth:client')->group(function () {
+    Route::middleware(['auth:client', 'auth.session', 'password.change:client'])->group(function () {
         Route::post('logout', [Portal\Auth\SessionController::class, 'destroy'])->name('logout');
         Route::get('blocked', Portal\BlockedController::class)->name('blocked');
 
         Route::middleware('portal.access')->group(function () {
             Route::get('/', Portal\HomeController::class)->name('home');
             Route::put('branch', [Portal\BranchController::class, 'update'])->name('branch.update');
+
+            Route::get('account', [Portal\AccountController::class, 'edit'])->name('account.edit');
+            Route::put('account', [Portal\AccountController::class, 'update'])->name('account.update');
+            Route::put('account/password', [Portal\AccountController::class, 'updatePassword'])->name('account.password');
+
+            Route::middleware('can:branches.manage')->group(function () {
+                Route::get('branches', [Portal\CompanyBranchController::class, 'index'])->name('branches.index');
+                Route::get('branches/create', [Portal\CompanyBranchController::class, 'create'])->name('branches.create');
+                Route::post('branches', [Portal\CompanyBranchController::class, 'store'])->name('branches.store');
+                Route::get('branches/{companyBranch}/edit', [Portal\CompanyBranchController::class, 'edit'])->name('branches.edit');
+                Route::put('branches/{companyBranch}', [Portal\CompanyBranchController::class, 'update'])->name('branches.update');
+            });
 
             Route::get('team', Portal\TeamController::class)->name('team.index');
 

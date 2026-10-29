@@ -19,6 +19,8 @@ return [
             'suspend' => 'Suspend and reactivate clients',
             'impersonate' => 'Log in as a client',
             'documents' => 'Download client documents',
+            'accounts' => 'Manage client branches, users and passwords',
+            'sectors' => 'Grant and revoke client food sectors',
         ],
         'plans' => ['manage' => 'Manage plans and pricing'],
         'categories' => ['manage' => 'Manage sector categories'],

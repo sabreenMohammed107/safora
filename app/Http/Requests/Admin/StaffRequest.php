@@ -13,7 +13,8 @@ use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Validator;
 
 /**
- * Create or update a SAFORA staff account.
+ * Create or update a SAFORA staff account. A password left empty on create is generated;
+ * passwords set here are temporary (changed at next sign-in) unless staff edit themselves.
  * Rules: a non-super admin needs a role; only a super admin may grant or revoke super admin;
  * nobody may deactivate or demote themselves; at least one active super admin must remain.
  */
@@ -40,7 +41,7 @@ class StaffRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'title' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('admins', 'email')->ignore($staff)],
-            'password' => [$staff ? 'nullable' : 'required', 'confirmed', Password::defaults()],
+            'password' => ['nullable', 'confirmed', Password::defaults()],
             'locale' => ['required', Rule::in(array_keys(config('safora.locales')))],
             'is_super_admin' => ['boolean'],
             'admin_role_id' => [Rule::requiredIf(! $this->wantsSuperAdmin()), 'nullable', Rule::exists('admin_roles', 'id')],
@@ -88,8 +89,12 @@ class StaffRequest extends FormRequest
             ...$this->safe()->only(['name', 'title', 'email', 'locale']),
             'admin_role_id' => $this->wantsSuperAdmin() ? null : $this->integer('admin_role_id'),
             'active' => $this->boolean('active'),
-            ...($this->filled('password') ? ['password' => $this->string('password')->value()] : []),
         ];
+    }
+
+    public function newPassword(): ?string
+    {
+        return $this->filled('password') ? $this->string('password')->value() : null;
     }
 
     private function staff(): ?Admin

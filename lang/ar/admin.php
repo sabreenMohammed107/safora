@@ -158,6 +158,23 @@ return [
         'no_subscription' => 'لم يُحدَّد اشتراك بعد.',
         'no_activity' => 'لا يوجد نشاط.',
         'sector_inherited' => 'موروث من التصنيف',
+        'sectors' => [
+            'products_in_list' => ':count منتج في قائمة العميل',
+            'product_count' => ':count منتج',
+            'legend' => [
+                'category' => 'موروث من التصنيف',
+                'granted' => 'منحه الأدمن',
+                'added' => 'أضافه العميل من بوابته',
+            ],
+            'grant_placeholder' => '— منح قطاع إضافي —',
+            'grant' => 'منح',
+            'revoke' => 'سحب قطاع :name',
+            'confirm_revoke' => 'سحب قطاع «:name»؟ ستُزال منتجاته من قائمة العميل.',
+            'flash' => [
+                'granted' => 'تم منح القطاع «:name».',
+                'revoked' => '{0} تم سحب القطاع «:name».|[1,*] تم سحب القطاع «:name» (وإزالة :count منتج من قائمة العميل).',
+            ],
+        ],
         'sector_source' => [
             'granted' => 'ممنوح',
             'added' => 'مضاف',

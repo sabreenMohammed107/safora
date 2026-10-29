@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             SectorSeeder::class,
             SectorCategorySeeder::class,
             ProductSeeder::class,
+            HaccpProgramSeeder::class,
             AdminSeeder::class,
         ]);
 

@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureAdminIsActive;
 use App\Http\Middleware\EnsurePortalAccess;
+use App\Http\Middleware\RequirePasswordChange;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'portal.access' => EnsurePortalAccess::class,
             'admin.active' => EnsureAdminIsActive::class,
+            'password.change' => RequirePasswordChange::class,
         ]);
 
         $middleware->redirectGuestsTo(fn (Request $request): string => $request->is('admin', 'admin/*')

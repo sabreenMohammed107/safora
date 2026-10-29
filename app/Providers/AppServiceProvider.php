@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Enums\AdminPermission;
 use App\Enums\ClientPermission;
 use App\Models\Admin;
+use App\Models\ClientBranch;
 use App\Models\ClientRole;
 use App\Models\ClientUser;
 use App\Services\PortalSession;
@@ -73,6 +74,10 @@ class AppServiceProvider extends ServiceProvider
             ->findOrFail($value));
 
         Route::bind('teamMember', fn (string $value): ClientUser => ClientUser::query()
+            ->where('client_id', $tenantClientId())
+            ->findOrFail($value));
+
+        Route::bind('companyBranch', fn (string $value): ClientBranch => ClientBranch::query()
             ->where('client_id', $tenantClientId())
             ->findOrFail($value));
     }

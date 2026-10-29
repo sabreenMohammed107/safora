@@ -16,6 +16,8 @@ enum AdminPermission: string
     case ClientsSuspend = 'clients.suspend';
     case ClientsImpersonate = 'clients.impersonate';
     case ClientsDocuments = 'clients.documents';
+    case ClientsAccounts = 'clients.accounts';
+    case ClientsSectors = 'clients.sectors';
 
     case PlansManage = 'plans.manage';
     case CategoriesManage = 'categories.manage';
@@ -29,7 +31,8 @@ enum AdminPermission: string
     public function group(): string
     {
         return match ($this) {
-            self::ClientsView, self::ClientsApprove, self::ClientsSuspend, self::ClientsImpersonate, self::ClientsDocuments => 'clients',
+            self::ClientsView, self::ClientsApprove, self::ClientsSuspend, self::ClientsImpersonate,
+            self::ClientsDocuments, self::ClientsAccounts, self::ClientsSectors => 'clients',
             self::PlansManage, self::CategoriesManage => 'catalog',
             self::HaccpManage, self::IsoManage => 'content',
             self::StaffManage, self::RolesManage => 'administration',

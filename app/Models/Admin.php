@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\AdminPermission;
+use App\Models\Concerns\ManagesPasswords;
 use Database\Factories\AdminFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -16,15 +17,15 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 /**
  * SAFORA staff account, authenticated through the "admin" guard. A super admin holds every
- * permission; other staff hold the permissions of their admin role. `is_super_admin` is not
- * mass assignable — it is only changed explicitly by another super admin.
+ * permission; other staff hold the permissions of their admin role. `is_super_admin`, `password`
+ * flags and `must_change_password` are changed explicitly, never mass assigned from a form.
  */
 #[Fillable(['name', 'title', 'email', 'password', 'locale', 'admin_role_id', 'active'])]
 #[Hidden(['password', 'remember_token'])]
 class Admin extends Authenticatable
 {
     /** @use HasFactory<AdminFactory> */
-    use HasFactory;
+    use HasFactory, ManagesPasswords;
 
     /**
      * Get the attributes that should be cast.
@@ -38,6 +39,7 @@ class Admin extends Authenticatable
             'last_login_at' => 'datetime',
             'is_super_admin' => 'boolean',
             'active' => 'boolean',
+            'must_change_password' => 'boolean',
         ];
     }
 

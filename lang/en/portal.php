@@ -69,6 +69,7 @@ return [
         'iso_items' => 'ISO items',
         'product_requests' => 'Product requests',
         'team' => 'Team & roles',
+        'branches' => 'Branches',
         'account' => 'My account',
     ],
 

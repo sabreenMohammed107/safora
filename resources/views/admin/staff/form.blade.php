@@ -32,9 +32,9 @@
             @error('email')<p class="fld-error">{{ $message }}</p>@enderror
         </label>
         <label class="block">
-            <span class="lbl">{{ __('common.fields.password') }} {{ $editing ? '' : '*' }}</span>
-            <input name="password" type="password" @if (! $editing) required @endif dir="ltr" autocomplete="new-password" class="fld font-mono">
-            @if ($editing)<p class="mt-1 text-[11px] text-ink/50">{{ __('common.password_keep_hint') }}</p>@endif
+            <span class="lbl">{{ __('common.fields.password') }}</span>
+            <input name="password" type="password" dir="ltr" autocomplete="new-password" class="fld font-mono">
+            <p class="mt-1 text-[11px] text-ink/50">{{ $editing ? __('accounts.password.admin_edit_hint') : __('accounts.password.generate_hint') }}</p>
             @error('password')<p class="fld-error">{{ $message }}</p>@enderror
         </label>
         <label class="block">

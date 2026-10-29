@@ -13,4 +13,12 @@ return [
     'role_created' => 'Created role “:name”',
     'role_updated' => 'Updated role “:name”',
     'role_deleted' => 'Deleted role “:name”',
+    'branch_created' => 'Added branch “:name”',
+    'branch_updated' => 'Updated branch “:name”',
+    'branch_activated' => 'Activated branch “:name”',
+    'branch_deactivated' => 'Deactivated branch “:name”',
+    'password_reset' => 'Temporary password issued for “:name”',
+    'sector_granted' => 'Granted extra sector: :name',
+    'sector_revoked' => 'Revoked extra sector: :name',
+    'sector_revoked_with_products' => 'Revoked extra sector: :name (:count products removed from the list)',
 ];

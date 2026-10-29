@@ -30,10 +30,21 @@
                 </a>
 
                 <div class="pt-3 mt-2 border-t border-ink-border">
-                    <span class="nav-link" aria-disabled="true"><i class="fa-solid fa-shield-heart w-5"></i> {{ __('admin.nav.haccp_center') }} {!! $soon !!}</span>
+                    @can('haccp.manage')
+                        <a href="{{ route('admin.haccp.programs.index') }}" class="nav-link" @if (request()->routeIs('admin.haccp.*')) aria-current="page" @endif>
+                            <i class="fa-solid fa-shield-heart w-5 text-brand"></i> {{ __('admin.nav.haccp_center') }}
+                        </a>
+                    @else
+                        <span class="nav-link" aria-disabled="true"><i class="fa-solid fa-shield-heart w-5"></i> {{ __('admin.nav.haccp_center') }}</span>
+                    @endcan
                     <div class="ps-8 me-3 mt-1 space-y-0.5 border-s border-white/10 text-[13px]">
-                        @foreach (['prp' => 'fa-layer-group', 'haccp_forms' => 'fa-table-list', 'haccp_plans' => 'fa-file-lines', 'traceability' => 'fa-route', 'critical_limits' => 'fa-temperature-half', 'control_points' => 'fa-crosshairs'] as $key => $icon)
-                            <span class="flex items-center gap-2 px-3 py-1.5 text-white/35 cursor-not-allowed"><i class="fa-solid {{ $icon }} w-4 text-xs"></i> {{ __('admin.nav.'.$key) }}</span>
+                        @can('haccp.manage')
+                            <a href="{{ route('admin.haccp.programs.index') }}" @class(['flex items-center gap-2 px-3 py-1.5 rounded-lg transition', 'bg-white/[0.08] text-white' => request()->routeIs('admin.haccp.programs.*'), 'text-white/65 hover:bg-white/[0.06] hover:text-white' => ! request()->routeIs('admin.haccp.programs.*')])>
+                                <i class="fa-solid fa-layer-group w-4 text-xs"></i> {{ __('admin.nav.prp') }} <span class="text-white/30 text-[10px] font-mono">PRPs</span>
+                            </a>
+                        @endcan
+                        @foreach (['haccp_forms' => 'fa-table-list', 'haccp_plans' => 'fa-file-lines', 'traceability' => 'fa-route', 'critical_limits' => 'fa-temperature-half', 'control_points' => 'fa-crosshairs'] as $key => $icon)
+                            <span class="flex items-center gap-2 px-3 py-1.5 text-white/35 cursor-not-allowed"><i class="fa-solid {{ $icon }} w-4 text-xs"></i> {{ __('admin.nav.'.$key) }} <span class="ms-auto text-[9.5px]">{{ __('common.soon') }}</span></span>
                         @endforeach
                     </div>
                 </div>
@@ -65,11 +76,13 @@
             </nav>
 
             <div class="p-4 border-t border-ink-border flex items-center gap-3">
-                <span class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-sm font-bold">{{ mb_substr(auth('admin')->user()->name, 0, 1) }}</span>
-                <div class="min-w-0 flex-1">
-                    <p class="text-[13px] font-bold truncate">{{ auth('admin')->user()->name }}</p>
-                    <p class="text-[11px] text-ink-mist truncate">{{ auth('admin')->user()->title ?? __('admin.role') }}</p>
-                </div>
+                <a href="{{ route('admin.profile.edit') }}" class="flex items-center gap-3 min-w-0 flex-1 rounded-lg hover:bg-white/[0.06] -m-1 p-1" title="{{ __('accounts.profile.title') }}">
+                    <span class="w-9 h-9 shrink-0 rounded-full bg-white/10 flex items-center justify-center text-sm font-bold">{{ mb_substr(auth('admin')->user()->name, 0, 1) }}</span>
+                    <span class="min-w-0">
+                        <span class="block text-[13px] font-bold truncate">{{ auth('admin')->user()->name }}</span>
+                        <span class="block text-[11px] text-ink-mist truncate">{{ auth('admin')->user()->title ?? __('admin.role') }}</span>
+                    </span>
+                </a>
                 <form method="POST" action="{{ route('admin.logout') }}">
                     @csrf
                     <button type="submit" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/15 text-white/80" title="{{ __('common.sign_out') }}" aria-label="{{ __('common.sign_out') }}">
@@ -109,6 +122,7 @@
                 @endif
 
                 <x-flash />
+                <x-credentials-card />
 
                 {{ $slot }}
             </main>

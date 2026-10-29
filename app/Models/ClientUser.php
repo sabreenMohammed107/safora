@@ -8,6 +8,7 @@ use App\Enums\ClientPermission;
 use App\Enums\ClientStatus;
 use App\Enums\ClientUserRole;
 use App\Enums\PortalBlock;
+use App\Models\Concerns\ManagesPasswords;
 use Database\Factories\ClientUserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -26,7 +27,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class ClientUser extends Authenticatable
 {
     /** @use HasFactory<ClientUserFactory> */
-    use HasFactory;
+    use HasFactory, ManagesPasswords;
 
     /**
      * Get the attributes that should be cast.
@@ -38,6 +39,7 @@ class ClientUser extends Authenticatable
         return [
             'role' => ClientUserRole::class,
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
             'active' => 'boolean',
             'last_login_at' => 'datetime',
         ];

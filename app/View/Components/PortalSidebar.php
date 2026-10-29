@@ -71,12 +71,17 @@ class PortalSidebar extends Component
             ],
         ];
 
+        $gate = Gate::forUser($portal->user());
+
         $this->bottom = [
             $item('product_requests', 'fa-inbox'),
-            ...(Gate::forUser($portal->user())->any([ClientPermission::UsersManage->value, ClientPermission::RolesManage->value])
+            ...($gate->allows(ClientPermission::BranchesManage->value)
+                ? [$item('branches', 'fa-store', route: 'portal.branches.index')]
+                : []),
+            ...($gate->any([ClientPermission::UsersManage->value, ClientPermission::RolesManage->value])
                 ? [$item('team', 'fa-users-gear', route: 'portal.team.index')]
                 : []),
-            $item('account', 'fa-user-gear'),
+            $item('account', 'fa-user-gear', route: 'portal.account.edit'),
         ];
     }
 

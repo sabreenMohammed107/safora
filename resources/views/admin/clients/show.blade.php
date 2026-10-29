@@ -139,9 +139,14 @@
             <section class="card">
                 <header class="px-5 py-4 border-b border-black/5 flex items-center justify-between">
                     <h2 class="font-extrabold">{{ __('admin.clients.sections.branches') }} <span class="font-mono text-xs text-ink/50">{{ $activeBranches }}/{{ $client->branches->count() }}</span></h2>
-                    @if ($subscription && $activeBranches > $subscription->plan->included_branches)
-                        <span class="text-[11.5px] font-bold text-amber-deep"><i class="fa-solid fa-circle-info"></i> {{ __('admin.clients.extra_branch_note', ['count' => $activeBranches - $subscription->plan->included_branches]) }}</span>
-                    @endif
+                    <div class="flex flex-wrap items-center gap-3">
+                        @if ($subscription && $activeBranches > $subscription->plan->included_branches)
+                            <span class="text-[11.5px] font-bold text-amber-deep"><i class="fa-solid fa-circle-info"></i> {{ __('admin.clients.extra_branch_note', ['count' => $activeBranches - $subscription->plan->included_branches]) }}</span>
+                        @endif
+                        @can('clients.accounts')
+                            <a href="{{ route('admin.clients.branches.create', $client) }}" class="btn-ghost"><i class="fa-solid fa-plus"></i> {{ __('accounts.branch.new') }}</a>
+                        @endcan
+                    </div>
                 </header>
                 <div class="overflow-x-auto">
                     <table class="w-full text-[13px]">
@@ -151,6 +156,7 @@
                             <th class="px-4 py-2 text-start">{{ __('admin.clients.columns.manager') }}</th>
                             <th class="px-4 py-2 text-start">{{ __('admin.clients.columns.users') }}</th>
                             <th class="px-4 py-2 text-start">{{ __('admin.clients.columns.status') }}</th>
+                            <th class="px-4 py-2"></th>
                         </tr></thead>
                         <tbody>
                             @forelse ($client->branches as $branch)
@@ -162,9 +168,14 @@
                                     <td class="px-4 py-2.5">
                                         <span @class(['pill', 'bg-emerald-soft text-emerald-deep' => $branch->active, 'bg-canvas text-ink/55' => ! $branch->active])>{{ $branch->active ? __('common.active') : __('common.inactive') }}</span>
                                     </td>
+                                    <td class="px-4 py-2.5 text-end">
+                                        @can('clients.accounts')
+                                            <a href="{{ route('admin.clients.branches.edit', [$client, $branch]) }}" class="btn-ghost">{{ __('common.edit') }}</a>
+                                        @endcan
+                                    </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="5" class="px-4 py-6 text-center text-ink/55">{{ __('admin.clients.no_branches') }}</td></tr>
+                                <tr><td colspan="6" class="px-4 py-6 text-center text-ink/55">{{ __('admin.clients.no_branches') }}</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -173,7 +184,12 @@
 
             {{-- ───── Users ───── --}}
             <section class="card">
-                <header class="px-5 py-4 border-b border-black/5"><h2 class="font-extrabold">{{ __('admin.clients.sections.users') }} <span class="font-mono text-xs text-ink/50">{{ $client->users->count() }}</span></h2></header>
+                <header class="px-5 py-4 border-b border-black/5 flex items-center justify-between">
+                    <h2 class="font-extrabold">{{ __('admin.clients.sections.users') }} <span class="font-mono text-xs text-ink/50">{{ $client->users->count() }}</span></h2>
+                    @can('clients.accounts')
+                        <a href="{{ route('admin.clients.users.create', $client) }}" class="btn-ghost"><i class="fa-solid fa-user-plus"></i> {{ __('portal.team.new_member') }}</a>
+                    @endcan
+                </header>
                 <div class="overflow-x-auto">
                     <table class="w-full text-[13px]">
                         <thead><tr class="text-[11px] font-extrabold text-ink/60 bg-canvas/60">
@@ -182,6 +198,7 @@
                             <th class="px-4 py-2 text-start">{{ __('admin.clients.columns.branch') }}</th>
                             <th class="px-4 py-2 text-start">{{ __('admin.clients.columns.last_login') }}</th>
                             <th class="px-4 py-2 text-start">{{ __('admin.clients.columns.status') }}</th>
+                            <th class="px-4 py-2"></th>
                         </tr></thead>
                         <tbody>
                             @foreach ($client->users as $user)
@@ -192,6 +209,19 @@
                                     <td class="px-4 py-2.5 text-[12px] text-ink/65 whitespace-nowrap">{{ $user->last_login_at?->diffForHumans() ?? '—' }}</td>
                                     <td class="px-4 py-2.5">
                                         <span @class(['pill', 'bg-emerald-soft text-emerald-deep' => $user->active, 'bg-canvas text-ink/55' => ! $user->active])>{{ $user->active ? __('common.active') : __('common.inactive') }}</span>
+                                        @if ($user->must_change_password)
+                                            <span class="pill bg-amber-soft text-amber-deep mt-1" title="{{ __('accounts.password.pending_change') }}"><i class="fa-solid fa-key text-[9px]"></i> {{ __('accounts.password.temporary') }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2.5 text-end whitespace-nowrap">
+                                        @can('clients.accounts')
+                                            <a href="{{ route('admin.clients.users.edit', [$client, $user]) }}" class="btn-ghost px-2.5!" title="{{ __('common.edit') }}" aria-label="{{ __('common.edit') }}"><i class="fa-solid fa-pen"></i></a>
+                                            <form method="POST" action="{{ route('admin.clients.users.password', [$client, $user]) }}" class="inline"
+                                                  onsubmit="return confirm(@js(__('accounts.password.confirm_reset', ['name' => $user->name])))">
+                                                @csrf
+                                                <button type="submit" class="btn-ghost px-2.5!" title="{{ __('accounts.password.reset') }}" aria-label="{{ __('accounts.password.reset') }}"><i class="fa-solid fa-key"></i></button>
+                                            </form>
+                                        @endcan
                                     </td>
                                 </tr>
                             @endforeach
@@ -250,14 +280,54 @@
 
             {{-- ───── Sectors ───── --}}
             <section class="card">
-                <header class="px-5 py-4 border-b border-black/5"><h2 class="font-extrabold">{{ __('admin.clients.sections.sectors') }}</h2></header>
-                <div class="p-5 flex flex-wrap gap-1.5">
-                    @foreach ($client->category?->sectors ?? [] as $sector)
-                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-canvas text-[12px] font-bold" title="{{ __('admin.clients.sector_inherited') }}"><i class="fa-solid fa-lock text-[9px] text-ink/45"></i>{{ $sector->name }}</span>
-                    @endforeach
-                    @foreach ($client->extraSectors as $sector)
-                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-teal-soft text-teal-deep text-[12px] font-bold">{{ $sector->name }} <span class="text-[9.5px]">· {{ __('admin.clients.sector_source.'.$sector->pivot->source->value) }}</span></span>
-                    @endforeach
+                <header class="px-5 py-4 border-b border-black/5">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <h2 class="font-extrabold">{{ __('admin.clients.sections.sectors') }} <span class="font-mono text-xs text-ink/50">({{ $allowedSectorCount }})</span></h2>
+                        <span class="text-[11.5px] text-ink/60">{{ trans_choice('admin.clients.sectors.products_in_list', $clientProductCount, ['count' => $clientProductCount]) }}</span>
+                    </div>
+                    <p class="text-[11.5px] text-ink/65 mt-1">
+                        <i class="fa-solid fa-lock text-[9px]"></i> {{ __('admin.clients.sectors.legend.category') }}
+                        · <span class="text-teal-deep font-bold">+ {{ __('admin.clients.sectors.legend.granted') }}</span>
+                        · <span class="text-brand-deep font-bold">{{ __('admin.clients.sectors.legend.added') }}</span>
+                    </p>
+                </header>
+                <div class="p-5 space-y-3">
+                    <div class="flex flex-wrap gap-1.5">
+                        @foreach ($client->category?->sectors ?? [] as $sector)
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-canvas text-[12px] font-bold" title="{{ __('admin.clients.sector_inherited') }}"><i class="fa-solid fa-lock text-[9px] text-ink/45"></i>{{ $sector->name }}</span>
+                        @endforeach
+                        @foreach ($client->extraSectors as $sector)
+                            @php($granted = $sector->pivot->source === \App\Enums\SectorSource::Granted)
+                            <span @class(['inline-flex items-center gap-1 px-2 py-1 rounded-md text-[12px] font-bold', 'bg-teal-soft text-teal-deep' => $granted, 'bg-brand-soft text-brand-deep' => ! $granted])
+                                  title="{{ __('admin.clients.sectors.legend.'.$sector->pivot->source->value) }}">
+                                <i class="fa-solid {{ $granted ? 'fa-plus' : 'fa-user' }} text-[9px]"></i>{{ $sector->name }}
+                                @can('clients.sectors')
+                                    <form method="POST" action="{{ route('admin.clients.sectors.destroy', [$client, $sector]) }}" class="inline"
+                                          onsubmit="return confirm(@js(__('admin.clients.sectors.confirm_revoke', ['name' => $sector->name])))">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="ms-0.5 opacity-60 hover:opacity-100" aria-label="{{ __('admin.clients.sectors.revoke', ['name' => $sector->name]) }}"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                                    </form>
+                                @endcan
+                            </span>
+                        @endforeach
+                    </div>
+
+                    @can('clients.sectors')
+                        @if ($grantableSectors->isNotEmpty())
+                            <form method="POST" action="{{ route('admin.clients.sectors.store', $client) }}" class="flex gap-2" x-data="{ pick: '' }">
+                                @csrf
+                                <select name="sector_id" x-model="pick" class="fld mt-0! flex-1" aria-label="{{ __('admin.clients.sectors.grant_placeholder') }}">
+                                    <option value="">{{ __('admin.clients.sectors.grant_placeholder') }}</option>
+                                    @foreach ($grantableSectors as $sector)
+                                        <option value="{{ $sector->id }}">{{ $sector->name }} ({{ trans_choice('admin.clients.sectors.product_count', $sector->products_count, ['count' => $sector->products_count]) }})</option>
+                                    @endforeach
+                                </select>
+                                <button type="submit" :disabled="!pick" class="px-4 rounded-lg bg-teal text-white text-[12px] font-bold disabled:opacity-40">{{ __('admin.clients.sectors.grant') }}</button>
+                            </form>
+                            @error('sector_id')<p class="fld-error">{{ $message }}</p>@enderror
+                        @endif
+                    @endcan
                 </div>
             </section>
 

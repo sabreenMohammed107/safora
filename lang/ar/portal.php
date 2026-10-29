@@ -69,6 +69,7 @@ return [
         'iso_items' => 'بنود ISO',
         'product_requests' => 'طلبات المنتجات',
         'team' => 'الفريق والأدوار',
+        'branches' => 'الفروع',
         'account' => 'حسابي',
     ],
 

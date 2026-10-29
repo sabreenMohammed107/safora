@@ -191,7 +191,7 @@ class PortalTeamTest extends TestCase
             ->put(route('portal.team.members.update', $this->owner), $this->memberPayload([
                 'name' => $this->owner->name, 'email' => $this->owner->email, 'password' => '', 'password_confirmation' => '',
             ]))
-            ->assertSessionHasErrors(['role', 'active']);
+            ->assertSessionHasErrors(['active' => __('portal.team.errors.self_lockout')]);
 
         $this->assertTrue($this->owner->fresh()->isOwner());
     }

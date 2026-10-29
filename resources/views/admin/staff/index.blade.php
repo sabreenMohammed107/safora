@@ -45,10 +45,20 @@
                             <td class="px-4 py-2.5 text-[12px] text-ink/65 whitespace-nowrap">{{ $member->last_login_at?->diffForHumans() ?? '—' }}</td>
                             <td class="px-4 py-2.5">
                                 <span @class(['pill', 'bg-emerald-soft text-emerald-deep' => $member->active, 'bg-canvas text-ink/55' => ! $member->active])>{{ $member->active ? __('common.active') : __('common.inactive') }}</span>
+                                @if ($member->must_change_password)
+                                    <span class="pill bg-amber-soft text-amber-deep" title="{{ __('accounts.password.pending_change') }}"><i class="fa-solid fa-key text-[9px]"></i> {{ __('accounts.password.temporary') }}</span>
+                                @endif
                             </td>
-                            <td class="px-4 py-2.5 text-end">
+                            <td class="px-4 py-2.5 text-end whitespace-nowrap">
                                 @can('update', $member)
                                     <a href="{{ route('admin.staff.edit', $member) }}" class="btn-ghost">{{ __('common.edit') }}</a>
+                                    @unless ($member->is(auth('admin')->user()))
+                                        <form method="POST" action="{{ route('admin.staff.password', $member) }}" class="inline"
+                                              onsubmit="return confirm(@js(__('accounts.password.confirm_reset', ['name' => $member->name])))">
+                                            @csrf
+                                            <button type="submit" class="btn-ghost" title="{{ __('accounts.password.reset') }}" aria-label="{{ __('accounts.password.reset') }}"><i class="fa-solid fa-key"></i></button>
+                                        </form>
+                                    @endunless
                                 @endcan
                             </td>
                         </tr>

@@ -75,6 +75,16 @@ class PricingService
         );
     }
 
+    /**
+     * How much one more active branch adds to the subscription total (halalas, VAT and discount
+     * included) — zero while the plan's included branches are not used up.
+     */
+    public function additionalBranchCost(Subscription $subscription, int $activeBranches): int
+    {
+        return $this->quoteSubscription($subscription, $activeBranches + 1)->total
+            - $this->quoteSubscription($subscription, $activeBranches)->total;
+    }
+
     private function toHalalas(string|int|float|null $amount): int
     {
         return (int) round((float) $amount * 100);

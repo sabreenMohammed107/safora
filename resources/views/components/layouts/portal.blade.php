@@ -31,6 +31,7 @@
 
             <main class="flex-1 p-5 lg:p-7 space-y-5">
                 <x-flash />
+                <x-credentials-card />
                 {{ $slot }}
             </main>
         </div>

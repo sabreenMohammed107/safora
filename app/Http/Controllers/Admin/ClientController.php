@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\Plan;
 use App\Models\SectorCategory;
+use App\Services\ClientSectorService;
 use App\Services\PricingService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -17,7 +18,10 @@ use Illuminate\View\View;
 
 class ClientController extends Controller
 {
-    public function __construct(private readonly PricingService $pricing) {}
+    public function __construct(
+        private readonly PricingService $pricing,
+        private readonly ClientSectorService $sectors,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -70,6 +74,9 @@ class ClientController extends Controller
             'quote' => $client->subscription ? $this->pricing->quoteSubscription($client->subscription, $activeBranches) : null,
             'plans' => Plan::query()->active()->orderBy('price_monthly')->get(),
             'cycles' => BillingCycle::cases(),
+            'allowedSectorCount' => $client->allowedSectors()->count(),
+            'grantableSectors' => $this->sectors->grantable($client),
+            'clientProductCount' => $this->sectors->productCount($client),
         ]);
     }
 }

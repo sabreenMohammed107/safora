@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Portal\TeamMemberRequest;
 use App\Models\ClientRole;
 use App\Models\ClientUser;
+use App\Services\ClientAccountService;
 use App\Services\PortalSession;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
@@ -20,7 +21,10 @@ use Illuminate\View\View;
  */
 class TeamMemberController extends Controller
 {
-    public function __construct(private readonly PortalSession $portal) {}
+    public function __construct(
+        private readonly PortalSession $portal,
+        private readonly ClientAccountService $accounts,
+    ) {}
 
     public function create(): View
     {
@@ -33,10 +37,7 @@ class TeamMemberController extends Controller
     {
         Gate::authorize('create', ClientUser::class);
 
-        $client = $this->portal->user()->client;
-        $member = $client->users()->create([...$request->memberData(), 'locale' => app()->getLocale()]);
-
-        $client->logActivity('team_member_created', ['name' => $member->name], $this->portal->user());
+        $member = $this->accounts->createUser($this->portal->user()->client, $request->memberData(), $this->portal->user());
 
         return redirect()->route('portal.team.index')->with('status', __('portal.team.flash.member_created', ['name' => $member->name]));
     }
@@ -52,9 +53,10 @@ class TeamMemberController extends Controller
     {
         Gate::authorize('update', $teamMember);
 
-        $teamMember->update($request->memberData());
+        $this->accounts->updateUser($teamMember, $request->memberData(), $this->portal->user());
 
-        $teamMember->client->logActivity('team_member_updated', ['name' => $teamMember->name], $this->portal->user());
+        // Keeps this session valid after changing one's own password (auth.session re-reads this instance).
+        $request->user('client')->refresh();
 
         return redirect()->route('portal.team.index')->with('status', __('portal.team.flash.member_updated', ['name' => $teamMember->name]));
     }
