@@ -1,0 +1,4431 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إدارة التتبع والاستدعاء | SAFORA</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 47'%3E%3Crect width='35' height='35' rx='8' fill='%23F02B18'/%3E%3Crect x='13' y='12' width='35' height='35' rx='8' fill='%23FD8118' fill-opacity='.92'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Montserrat:wght@700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { cairo: ['Cairo','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+      colors: {
+        ink: { DEFAULT:'#071A2A', elev:'#0E2A40', border:'#1A3A55', soft:'#11304A', mist:'#9FB2BF' },
+        canvas: '#F3F5F8',
+        brand: { DEFAULT:'#FD8118', deep:'#B8560A', soft:'#FFF1E3', red:'#F02B18', cream:'#F6F2E8' },
+        emerald: { DEFAULT:'#0FA968', deep:'#066B41', soft:'#E4F6ED' },
+        rose: { DEFAULT:'#E11D48', deep:'#9F1239', soft:'#FDECEF' },
+        amber: { DEFAULT:'#C58B00', deep:'#7A5700', soft:'#FBF3D6' },
+        teal: { DEFAULT:'#0E86B4', deep:'#0A5F80', soft:'#E2F2F9' },
+      },
+      boxShadow: { card: '0 1px 2px rgba(7,26,42,0.06), 0 8px 24px -12px rgba(7,26,42,0.12)' }
+    }
+  }
+}
+</script>
+<style>
+  body{ font-family:'Cairo',sans-serif; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+  .wordmark{ font-family:'Montserrat','Cairo',sans-serif; font-weight:800; letter-spacing:.015em; }
+  ::selection{ background:#FFE2C4; color:#071A2A; }
+  ::-webkit-scrollbar{ width:8px; height:8px; } ::-webkit-scrollbar-thumb{ background:#D3DAE3; border-radius:99px; }
+  [x-cloak]{ display:none !important; }
+  .prod-chip.active{ background:#071A2A; border-color:#071A2A; }
+  .prod-chip.active .prod-code{ color:#FF9F4A; }
+  .prod-chip.active .prod-name{ color:#fff; }
+  .sec-tab.active{ background:#FD8118; color:#071A2A; }
+  .sec-tab.active i{ color:#fff; }
+  table.plan-table{ width:100%; border-collapse:separate; border-spacing:0; }
+  table.plan-table th{ background:#F3F5F8; font-size:11px; font-weight:800; color:rgba(7,26,42,.55); text-align:right; padding:9px 10px; border-bottom:1px solid rgba(0,0,0,.06); white-space:nowrap; }
+  table.plan-table td{ font-size:12.5px; padding:9px 10px; border-bottom:1px solid rgba(0,0,0,.05); vertical-align:top; color:rgba(7,26,42,.8); line-height:1.6; }
+  table.plan-table tr:hover td{ background:#FAFCFA; }
+  .badge{ display:inline-flex; align-items:center; padding:2px 8px; border-radius:999px; font-size:10.5px; font-weight:800; white-space:nowrap; }
+</style>
+</head>
+<body class="bg-canvas text-ink font-cairo antialiased" x-data="traceabilityApp()">
+
+<!-- Top strip -->
+<header class="flex items-center gap-3 px-5 py-3 bg-ink text-white sticky top-0 z-20">
+  <a href="1_Dashboard.html" class="flex items-center gap-2 shrink-0" aria-label="SAFORA">
+    <svg class="w-7 h-7" viewBox="0 0 48 47" aria-hidden="true"><defs><clipPath id="sfMarkTop"><rect width="35" height="35" rx="8"/></clipPath></defs><rect width="35" height="35" rx="8" fill="#F02B18"/><rect x="13" y="12" width="35" height="35" rx="8" fill="#E17F1A"/><rect x="13" y="12" width="35" height="35" rx="8" fill="#FD8118" clip-path="url(#sfMarkTop)"/></svg>
+    <span dir="ltr" class="wordmark text-[17px] text-brand-cream hidden sm:inline">SAFORA</span>
+  </a>
+  <span class="w-px h-5 bg-white/15 hidden sm:block"></span>
+  <a href="0_HACCPCenter.html" class="text-white/50 hover:text-white text-sm"><i class="fa-solid fa-arrow-right ms-1"></i> مركز قيادة الهاسب</a>
+  <span class="text-white/20">/</span>
+  <h1 class="font-bold text-sm">إدارة التتبع والاستدعاء</h1>
+  <span x-show="activeProduct" class="mono text-[11px] text-white/40 ms-1" x-text="activeProduct?.code"></span>
+
+  <div class="ms-auto flex items-center gap-2">
+    <span class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10 text-[11px] font-bold text-white/70">
+      <i class="fa-solid fa-boxes-stacked text-teal"></i> <span x-text="traceProducts.length + ' منتج مسجّل'"></span>
+    </span>
+    <template x-if="activeProduct">
+      <div class="flex items-center gap-2">
+        <button x-show="!editMode" @click="startEdit()" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition">
+          <i class="fa-solid fa-pen"></i> تعديل بيانات التتبع
+        </button>
+        <button x-show="editMode" x-cloak @click="cancelEdit()" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition">
+          <i class="fa-solid fa-rotate-left"></i> إلغاء التعديل
+        </button>
+        <button x-show="editMode" x-cloak @click="saveEdit()" class="px-4 py-2 rounded-lg bg-amber hover:bg-amber-deep text-white text-xs font-bold transition">
+          <i class="fa-solid fa-check"></i> حفظ التغييرات
+        </button>
+      </div>
+    </template>
+    <button @click="addProductOpen=true" :disabled="editMode" class="px-4 py-2 rounded-lg bg-brand text-ink hover:bg-brand-deep hover:text-white text-xs font-bold transition disabled:opacity-30 disabled:cursor-not-allowed"><i class="fa-solid fa-plus"></i> إضافة منتج جديد</button>
+  </div>
+</header>
+
+<main class="p-5 lg:p-7 space-y-5">
+
+  <!-- Page header -->
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p class="mono text-[11px] text-teal font-semibold tracking-widest">TRACEABILITY &amp; RECALL · ISO 22000:2018</p>
+      <h1 class="text-2xl lg:text-[26px] font-extrabold tracking-tight mt-1">إدارة التتبع ونظام الاستدعاء</h1>
+      <p class="text-sm text-ink/45 mt-1">11 نموذجاً تشغيلياً (TR-F01 إلى TR-F11) لكل منتج — بدون أي بيانات مسبقة، كل الحقول تُدخل وتُخصص من الصفر لكل منتج على حدة</p>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <template x-if="traceProducts.length === 0">
+    <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card p-10 text-center">
+      <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-soft flex items-center justify-center mb-4">
+        <i class="fa-solid fa-route text-brand-deep text-2xl"></i>
+      </div>
+      <h2 class="text-xl font-extrabold">لا توجد منتجات بعد</h2>
+      <p class="text-ink/50 mt-2 max-w-md mx-auto leading-relaxed text-sm">
+        لا توجد أي قوالب أو بيانات مسبقة مرتبطة بأي منتج. أضف منتجاً جديداً، ثم أدخل بيانات سلسلة الإمداد والتشغيلات
+        والتوزيع وخطوات الاستدعاء الخاصة به بنفسك من وضع "تعديل بيانات التتبع".
+      </p>
+      <button @click="addProductOpen=true" class="mt-5 px-5 py-2.5 rounded-lg bg-ink text-white text-sm font-bold hover:bg-ink-elev transition">
+        <i class="fa-solid fa-plus"></i> إضافة أول منتج
+      </button>
+    </div>
+  </template>
+
+  <template x-if="activeProduct">
+  <div class="space-y-5">
+
+  <!-- Product switcher -->
+  <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <p class="text-xs font-extrabold text-ink/60">منتجات التتبع والاستدعاء</p>
+      <span x-show="editMode" x-cloak class="text-[10px] font-bold text-amber-deep bg-amber-soft px-2 py-0.5 rounded-full"><i class="fa-solid fa-lock text-[9px]"></i> مقفل أثناء التعديل</span>
+      <span class="ms-auto mono text-[11px] text-teal-deep font-bold" x-text="traceProducts.length + ' منتج مسجل'"></span>
+    </div>
+    <div class="flex gap-2 overflow-x-auto pb-1" :class="editMode && 'opacity-50 pointer-events-none select-none'">
+      <template x-for="p in traceProducts" :key="p.id">
+        <button @click="activeProductId = p.id; activeSection='tr01'"
+                :disabled="editMode"
+                :class="activeProductId===p.id && 'active'"
+                class="prod-chip shrink-0 flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-black/10 bg-canvas text-right transition group">
+          <span class="w-8 h-8 rounded-lg bg-emerald-soft text-emerald flex items-center justify-center text-sm shrink-0"><i class="fa-solid fa-box"></i></span>
+          <span>
+            <span class="prod-code block mono text-[10px] font-bold text-teal-deep" x-text="p.code || 'بدون كود'"></span>
+            <span class="prod-name block text-xs font-semibold whitespace-nowrap max-w-[150px] truncate" x-text="p.name"></span>
+          </span>
+          <i @click.stop="!editMode && confirmDeleteProduct(p.id)" class="fa-solid fa-xmark text-[11px] text-ink/25 hover:text-rose ms-1"></i>
+        </button>
+      </template>
+    </div>
+  </div>
+
+  <!-- Active product header card -->
+  <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card overflow-hidden">
+    <div class="grid grid-cols-1 xl:grid-cols-3">
+      <div class="xl:col-span-2 p-6 border-b xl:border-b-0 xl:border-l border-black/[0.06]">
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+          <span class="w-11 h-11 rounded-xl bg-emerald-soft text-emerald flex items-center justify-center text-lg">
+            <i class="fa-solid fa-box"></i>
+          </span>
+          <div>
+            <p class="mono text-[11px] text-teal-deep font-bold tracking-widest" x-text="activeProduct.code || 'بدون كود'"></p>
+            <h2 class="text-xl font-extrabold" x-text="activeProduct.name"></h2>
+          </div>
+          <span class="ms-auto sm:ms-3 px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-soft text-teal-deep" x-text="activeProduct.category || 'منتج'"></span>
+        </div>
+        <p class="text-sm text-ink/60 leading-relaxed" x-text="activeProduct.notes || 'لا توجد ملاحظات عامة مضافة على هذا المنتج بعد.'"></p>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
+          <div class="px-3 py-2.5 rounded-lg bg-canvas">
+            <p class="text-[10px] font-bold text-ink/40 mb-0.5">أُضيف بتاريخ</p>
+            <p class="text-sm font-bold mono" x-text="new Date(activeProduct.createdAt).toLocaleDateString('ar-EG')"></p>
+          </div>
+          <div class="px-3 py-2.5 rounded-lg bg-canvas">
+            <p class="text-[10px] font-bold text-ink/40 mb-0.5">نسبة الجاهزية</p>
+            <p class="text-sm font-bold" :class="readinessPct()>=80?'text-emerald':'text-amber-deep'" x-text="readinessPct() + '%'"></p>
+          </div>
+          <div class="px-3 py-2.5 rounded-lg bg-canvas">
+            <p class="text-[10px] font-bold text-ink/40 mb-0.5">CAPA مفتوحة</p>
+            <p class="text-sm font-bold text-rose" x-text="openCapaCount()"></p>
+          </div>
+          <div class="px-3 py-2.5 rounded-lg bg-canvas">
+            <p class="text-[10px] font-bold text-ink/40 mb-0.5">وقائع استدعاء مسجّلة</p>
+            <p class="text-sm font-bold" x-text="activeProduct.records.tr03.length"></p>
+          </div>
+        </div>
+      </div>
+      <div class="p-6 flex flex-col justify-center gap-3">
+        <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-canvas">
+          <span class="text-xs font-semibold text-ink/60"><i class="fa-solid fa-diagram-project text-teal w-4"></i> تشغيلات موردين (خلفي)</span>
+          <span class="mono font-extrabold text-sm" x-text="activeProduct.records.tr01.length"></span>
+        </div>
+        <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-canvas">
+          <span class="text-xs font-semibold text-ink/60"><i class="fa-solid fa-truck-fast text-teal w-4"></i> سجلات توزيع (أمامي)</span>
+          <span class="mono font-extrabold text-sm" x-text="activeProduct.records.tr02.length"></span>
+        </div>
+        <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-canvas">
+          <span class="text-xs font-semibold text-ink/60"><i class="fa-solid fa-vial-circle-check text-amber w-4"></i> اختبارات استدعاء وهمي</span>
+          <span class="mono font-extrabold text-sm" x-text="activeProduct.records.tr09.length"></span>
+        </div>
+        <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-canvas">
+          <span class="text-xs font-semibold text-ink/60"><i class="fa-solid fa-envelope text-rose w-4"></i> خطابات إخطار عملاء</span>
+          <span class="mono font-extrabold text-sm" x-text="activeProduct.records.tr10.length"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section tabs + content -->
+  <div class="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-5">
+    <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card p-3 h-fit lg:sticky lg:top-20 space-y-1">
+      <p class="px-2 py-1 text-[10px] font-extrabold text-ink/35 tracking-widest">نماذج التتبع والاستدعاء · 11 نموذجاً</p>
+      <template x-for="key in tabOrder" :key="key">
+        <button @click="activeSection=key" :class="activeSection===key && 'active'"
+                class="sec-tab w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-ink/70 hover:bg-canvas text-[13px] font-semibold transition text-right">
+          <i :class="tabDefs[key].icon" class="w-4 text-xs"></i> <span x-text="tabDefs[key].label"></span>
+        </button>
+      </template>
+    </div>
+
+    <!-- content -->
+    <div class="bg-white rounded-2xl shadow-card p-5 lg:p-6 min-h-[420px] border-2 transition-colors" :class="editMode ? 'border-amber/50' : 'border-black/[0.06]'">
+      <div x-show="editMode" x-cloak class="flex flex-wrap items-center gap-2.5 mb-5 px-3.5 py-2.5 rounded-lg bg-amber-soft border border-amber/20 text-amber-deep text-xs font-bold">
+        <i class="fa-solid fa-pen-to-square"></i> وضع التعديل نشط لبيانات «<span x-text="activeProduct.name"></span>» فقط — أضف أو عدّل أي صف مباشرة، ثم اضغط "حفظ التغييرات" لاعتمادها أو "إلغاء التعديل" للتراجع عنها.
+      </div>
+
+      <template x-for="key in tabOrder" :key="key">
+        <div x-show="activeSection===key">
+          <div class="space-y-4">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="text-lg font-extrabold" x-text="tabDefs[key].label"></h3>
+              <span class="badge bg-teal-soft text-teal-deep" x-text="tabDefs[key].code + ' · خاص بالمنتج'"></span>
+            </div>
+            <p class="text-xs text-ink/50" x-text="tabDefs[key].desc"></p>
+
+            <!-- TABLE MODE -->
+            <template x-if="tabDefs[key].mode==='table'">
+              <div>
+                <template x-if="activeProduct.records[key].length===0">
+                  <div class="text-center py-12 border border-dashed border-black/10 rounded-xl text-ink/35 text-sm">
+                    لا توجد سجلات بعد. <span x-show="editMode">اضغط "إضافة صف" أدناه.</span><span x-show="!editMode">فعّل وضع "تعديل بيانات التتبع" لإضافة أول سجل.</span>
+                  </div>
+                </template>
+                <div class="overflow-x-auto rounded-xl border border-black/[0.06]" x-show="activeProduct.records[key].length">
+                  <table class="plan-table">
+                    <thead>
+                      <tr>
+                        <template x-for="f in tabDefs[key].fields" :key="f.key"><th x-text="f.label"></th></template>
+                        <th x-show="editMode"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <template x-for="(row,i) in activeProduct.records[key]" :key="row._id">
+                        <tr>
+                          <template x-for="f in tabDefs[key].fields" :key="f.key">
+                            <td :class="f.type==='textarea' ? 'min-w-[200px]' : ''">
+                              <template x-if="!editMode">
+                                <span x-text="row[f.key] || '—'" :class="!row[f.key] && 'text-ink/30'"></span>
+                              </template>
+                              <template x-if="editMode">
+                                <div>
+                                  <template x-if="f.type==='select'">
+                                    <select x-model="row[f.key]" class="bg-white border border-black/10 rounded-md px-1.5 py-1 outline-none">
+                                      <option value=""></option>
+                                      <template x-for="o in f.options" :key="o"><option :value="o" x-text="o"></option></template>
+                                    </select>
+                                  </template>
+                                  <template x-if="f.type==='textarea'">
+                                    <textarea x-model="row[f.key]" rows="1" class="w-full resize-none bg-white border border-black/10 rounded-md px-1.5 py-1 outline-none"></textarea>
+                                  </template>
+                                  <template x-if="!['select','textarea'].includes(f.type)">
+                                    <input x-model="row[f.key]" :type="f.type" class="w-full bg-white border border-black/10 rounded-md px-1.5 py-1 outline-none">
+                                  </template>
+                                </div>
+                              </template>
+                            </td>
+                          </template>
+                          <td x-show="editMode" x-cloak><button @click="activeProduct.records[key].splice(i,1)" class="text-rose/50 hover:text-rose"><i class="fa-solid fa-trash text-xs"></i></button></td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                </div>
+                <button x-show="editMode" x-cloak @click="addRow(key)" class="text-xs font-bold text-brand-deep hover:text-ink mt-3"><i class="fa-solid fa-plus"></i> إضافة صف</button>
+
+                <!-- Balance summary: TR-F06 only -->
+                <template x-if="key==='tr06' && activeProduct.records.tr06.length">
+                  <div class="mt-4 rounded-xl border border-black/[0.06] overflow-hidden">
+                    <div class="px-4 py-2.5 bg-canvas text-[11px] font-bold text-ink/55">مؤشرات التحقق من الموازنة الكمية (محسوبة تلقائياً حسب نوع كل بند)</div>
+                    <div class="flex items-center justify-between px-4 py-2.5 border-b border-black/[0.05]">
+                      <span class="text-ink/50 text-[13px]">فرق الإنتاج مقابل (المخزون + الموزع)</span>
+                      <span class="font-bold text-[13px]" :class="balance().diff1===0 ? 'text-emerald' : 'text-rose'" x-text="balance().diff1 + (balance().diff1===0 ? ' — متوازن' : ' — غير متوازن')"></span>
+                    </div>
+                    <div class="flex items-center justify-between px-4 py-2.5">
+                      <span class="text-ink/50 text-[13px]">فرق الموزع مقابل (المسترجع/الموقوف + وصل للمستهلك)</span>
+                      <span class="font-bold text-[13px]" :class="balance().diff2===0 ? 'text-emerald' : 'text-rose'" x-text="balance().diff2 + (balance().diff2===0 ? ' — متوازن' : ' — غير متوازن')"></span>
+                    </div>
+                  </div>
+                </template>
+
+                <!-- Readiness gauge: TR-F11 only -->
+                <template x-if="key==='tr11' && activeProduct.records.tr11.length">
+                  <div class="mt-4 flex items-center gap-3 px-4 py-3 rounded-xl border border-black/[0.06] bg-canvas/60">
+                    <i class="fa-solid fa-gauge-high" :class="readinessPct()>=80?'text-emerald':'text-amber'"></i>
+                    <span class="text-[13px] text-ink/60">نسبة الجاهزية المحسوبة من إجابات "نعم" في القائمة:</span>
+                    <span class="font-black text-lg ms-auto" :class="readinessPct()>=80?'text-emerald':'text-amber'" x-text="readinessPct()+'%'"></span>
+                  </div>
+                </template>
+              </div>
+            </template>
+
+            <!-- CARD MODE: TR-F09 mock recall tests / TR-F10 notification letters -->
+            <template x-if="tabDefs[key].mode==='cards'">
+              <div>
+                <template x-if="activeProduct.records[key].length===0">
+                  <div class="text-center py-12 border border-dashed border-black/10 rounded-xl text-ink/35 text-sm">
+                    لا توجد سجلات بعد. <span x-show="editMode">اضغط "إضافة سجل" أدناه.</span><span x-show="!editMode">فعّل وضع "تعديل بيانات التتبع" لإضافة أول سجل.</span>
+                  </div>
+                </template>
+                <div class="space-y-3">
+                  <template x-for="(row,i) in activeProduct.records[key]" :key="row._id">
+                    <div class="rounded-xl border border-black/[0.06] overflow-hidden">
+                      <div class="flex items-center gap-2 px-4 py-3 bg-canvas border-b border-black/[0.06]">
+                        <span class="badge bg-teal text-white" x-text="tabDefs[key].code + '-' + (i+1)"></span>
+                        <span class="ms-auto flex gap-2" x-show="tabDefs[key].hasPreview">
+                          <button @click="openPreview(row)" class="text-[11px] font-bold text-teal-deep hover:text-teal"><i class="fa-regular fa-eye"></i> معاينة الخطاب</button>
+                        </span>
+                        <button x-show="editMode" x-cloak @click="activeProduct.records[key].splice(i,1)" class="text-rose/50 hover:text-rose"><i class="fa-solid fa-trash text-xs"></i></button>
+                      </div>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 p-4">
+                        <template x-for="f in tabDefs[key].fields" :key="f.key">
+                          <div :class="f.full ? 'md:col-span-2' : ''">
+                            <p class="text-[10px] font-extrabold text-ink/40 mb-1.5" x-text="f.label"></p>
+
+                            <!-- View mode: plain text, right-aligned, no native control chrome -->
+                            <template x-if="!editMode">
+                              <p class="text-[13px] font-semibold text-ink/80 leading-relaxed" :class="!row[f.key] && 'text-ink/30 font-normal'" x-text="row[f.key] || '—'"></p>
+                            </template>
+
+                            <!-- Edit mode: real form controls -->
+                            <template x-if="editMode">
+                              <div>
+                                <template x-if="f.type==='select'">
+                                  <select x-model="row[f.key]" class="w-full text-xs text-ink/70 bg-white border border-black/10 rounded-md px-2 py-1.5 outline-none">
+                                    <option value=""></option>
+                                    <template x-for="o in f.options" :key="o"><option :value="o" x-text="o"></option></template>
+                                  </select>
+                                </template>
+                                <template x-if="f.type==='textarea'">
+                                  <textarea x-model="row[f.key]" rows="2" class="w-full text-xs text-ink/70 leading-relaxed resize-none bg-white border border-black/10 rounded-md px-2 py-1.5 outline-none"></textarea>
+                                </template>
+                                <template x-if="!['select','textarea'].includes(f.type)">
+                                  <input x-model="row[f.key]" :type="f.type" class="w-full text-xs text-ink/70 bg-white border border-black/10 rounded-md px-2 py-1.5 outline-none">
+                                </template>
+                              </div>
+                            </template>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+
+                <button x-show="editMode" x-cloak @click="addRow(key)" class="text-xs font-bold text-brand-deep hover:text-ink mt-3"><i class="fa-solid fa-plus"></i> إضافة سجل</button>
+              </div>
+            </template>
+
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  </div>
+  </template>
+</main>
+
+<!-- Add product modal -->
+<div x-show="addProductOpen" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @keydown.escape.window="addProductOpen=false">
+  <div @click.outside="addProductOpen=false" class="bg-white rounded-2xl shadow-card w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center gap-2 px-5 py-4 border-b border-black/[0.06]">
+      <span class="w-9 h-9 rounded-lg bg-emerald-soft text-emerald flex items-center justify-center"><i class="fa-solid fa-plus"></i></span>
+      <h3 class="font-extrabold">إضافة منتج جديد إلى التتبع والاستدعاء</h3>
+      <button @click="addProductOpen=false" class="ms-auto text-ink/40 hover:text-ink"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-5 space-y-3.5">
+      <div>
+        <label class="text-xs font-bold text-ink/60">اسم المنتج</label>
+        <input x-model="draftProduct.name" type="text" placeholder="مثال: مياه شرب معبأة" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-emerald">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-ink/60">الفئة / خط الإنتاج</label>
+        <input x-model="draftProduct.category" type="text" placeholder="مثال: تصنيع وتعبئة" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-emerald">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-ink/60">كود المنتج (اختياري)</label>
+        <input x-model="draftProduct.code" type="text" placeholder="مثال: TR-WTR-001" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-emerald">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-ink/60">ملاحظات عامة (اختياري)</label>
+        <textarea x-model="draftProduct.notes" rows="2" placeholder="أي سياق عام عن المنتج أو خط الإنتاج" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-emerald resize-none"></textarea>
+      </div>
+      <div class="rounded-lg bg-teal-soft/60 border border-teal/15 p-3.5 text-xs text-teal-deep leading-relaxed">
+        <i class="fa-solid fa-circle-info"></i>
+        لا يتم توليد أي بيانات تلقائية لهذا المنتج. بعد الإنشاء، فعّل وضع "تعديل بيانات التتبع" وأضف بنفسك بيانات الموردين
+        والتشغيلات والتوزيع وخطوات الاستدعاء الخاصة به عبر النماذج الـ11 (TR-F01 إلى TR-F11).
+      </div>
+    </div>
+    <div class="flex items-center gap-2 px-5 py-4 border-t border-black/[0.06]">
+      <button @click="addProductOpen=false" class="px-4 py-2.5 rounded-lg text-sm font-bold text-ink/60 hover:bg-canvas">إلغاء</button>
+      <button @click="createProduct()" :disabled="!draftProduct.name.trim()" class="ms-auto px-5 py-2.5 rounded-lg bg-brand text-ink text-sm font-bold hover:bg-brand-deep hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed">
+        <i class="fa-solid fa-check"></i> إنشاء المنتج
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Notification letter preview -->
+<div x-show="previewOpen" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+  <div @click.outside="previewOpen=false" class="bg-white rounded-2xl shadow-card w-full max-w-xl max-h-[88vh] overflow-y-auto">
+    <div class="flex items-center gap-2 px-5 py-4 border-b border-black/[0.06]">
+      <h3 class="font-extrabold">معاينة خطاب إخطار العميل</h3>
+      <button @click="previewOpen=false" class="ms-auto text-ink/40 hover:text-ink"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-6 text-[14px] leading-8" x-show="previewRow">
+      <p class="text-left text-ink/35 text-xs mb-4" x-text="'التاريخ: ' + (previewRow?.date || '____/____/____')"></p>
+      <p>السادة / <span x-text="previewRow?.customerName || '____________________'"></span> المحترمين،</p>
+      <p class="mt-3">
+        نرجو التوقف فوراً عن بيع أو استخدام منتج <b x-text="activeProduct?.name"></b>
+        <span x-text="previewRow?.size ? ' — ' + previewRow.size : ''"></span> الموضح أدناه، وعزل الكمية المتاحة لديكم
+        مع المحافظة على شروط التخزين المعتمدة لحين استلام تعليماتنا النهائية:
+      </p>
+      <table class="w-full mt-4 border border-black/10 text-xs">
+        <tr class="bg-canvas"><td class="border border-black/10 px-2 py-1.5 font-bold">المنتج</td><td class="border border-black/10 px-2 py-1.5" x-text="previewRow?.productName || activeProduct?.name"></td></tr>
+        <tr><td class="border border-black/10 px-2 py-1.5 font-bold">الحجم</td><td class="border border-black/10 px-2 py-1.5" x-text="previewRow?.size || '—'"></td></tr>
+        <tr class="bg-canvas"><td class="border border-black/10 px-2 py-1.5 font-bold">رقم التشغيلة</td><td class="border border-black/10 px-2 py-1.5" x-text="previewRow?.batchNo || '—'"></td></tr>
+        <tr><td class="border border-black/10 px-2 py-1.5 font-bold">الكمية المرسلة</td><td class="border border-black/10 px-2 py-1.5" x-text="previewRow?.qtySent || '—'"></td></tr>
+      </table>
+      <p class="mt-4">
+        سبب الإجراء: <span x-text="previewRow?.reason || '—'"></span>. يرجى تأكيد الكمية المتاحة والكمية التي تم بيعها/صرفها،
+        وتسجيل حالة المنتج عند العزل/الاستلام. لا يتم إعادة البيع أو التخلص من المنتج إلا وفق التعليمات المعتمدة.
+      </p>
+      <p class="mt-6 text-xs text-ink/45">
+        اسم المسؤول: <span x-text="previewRow?.responsibleName || '__________'"></span> &nbsp;&nbsp;
+        الهاتف: <span x-text="previewRow?.phone || '__________'"></span> &nbsp;&nbsp; التوقيع: __________
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div x-show="toastMsg" x-cloak x-transition x-text="toastMsg" class="fixed bottom-5 inset-x-0 mx-auto w-fit px-4 py-2.5 rounded-lg bg-ink text-white text-xs font-bold shadow-card z-50"></div>
+
+<script>
+const SEED_TRACE_PRODUCTS = [
+  {
+    "id": "p_seed_wtr",
+    "name": "مياه شرب معبأة",
+    "category": "تصنيع وتعبئة",
+    "code": "TR-WTR-001",
+    "notes": "بيانات تجريبية مبدئية — راجع وعدّل كل قيمة عبر وضع \"تعديل بيانات التتبع\" قبل الاعتماد.",
+    "createdAt": "2026-09-05T09:00:00.000Z",
+    "records": {
+      "tr01": [
+        {
+          "_id": "p_seed_wtr_tr01_1",
+          "batchCode": "WTR-260904-01",
+          "productSize": "مياه شرب معبأة – 330 مل",
+          "prodDate": "04/09/2026",
+          "mainSupplier": "مياه خام/مصدر معتمد",
+          "supplierBatch": "SUP-WTR-240903-B07",
+          "receivedDate": "03/09/2026",
+          "receivedQty": "كمية مرتبطة حسب سجل الاستلام",
+          "receiptStatus": "مقبول",
+          "packagingBatch": "PKG-WTR-0826-31",
+          "closureBatch": "CLS-WTR-0826-14",
+          "labelBatch": "LBL-WTR-0904-08",
+          "supervisor": "مسؤول الإنتاج/التعبئة – مثال",
+          "notes": "تم التحقق من مطابقة المواد وبيانات التشغيلة قبل بدء التشغيل"
+        }
+      ],
+      "tr02": [
+        {
+          "_id": "p_seed_wtr_tr02_1",
+          "batchCode": "WTR-260904-01",
+          "customer": "عميل/موزع A",
+          "city": "الرياض",
+          "invoiceNo": "INV-01512",
+          "date": "04/09/2026",
+          "qty": "300",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_wtr_tr02_2",
+          "batchCode": "WTR-260904-01",
+          "customer": "عميل/فرع B",
+          "city": "الخرج",
+          "invoiceNo": "INV-01518",
+          "date": "04/09/2026",
+          "qty": "250",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_wtr_tr02_3",
+          "batchCode": "WTR-260904-01",
+          "customer": "متجر C",
+          "city": "الرياض",
+          "invoiceNo": "INV-01521",
+          "date": "05/09/2026",
+          "qty": "220",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_wtr_tr02_4",
+          "batchCode": "WTR-260904-01",
+          "customer": "موزع D",
+          "city": "القصيم",
+          "invoiceNo": "INV-01527",
+          "date": "05/09/2026",
+          "qty": "210",
+          "contact": "05xxxxxxxx"
+        }
+      ],
+      "tr03": [
+        {
+          "_id": "p_seed_wtr_tr03_1",
+          "incidentNo": "RC-WTR-2026-001",
+          "reportedAt": "05/09/2026 – 10:00",
+          "source": "مراجعة داخلية/نتيجة فحص/بلاغ مورد",
+          "hazardDesc": "انحراف في نتيجة ميكروبيولوجية أو فشل خطوة معالجة/تعقيم",
+          "batchCode": "WTR-260904-01",
+          "isDistributed": "نعم",
+          "riskClass": "مرتفع",
+          "initialDecision": "إيقاف البيع + عزل التشغيلة + تفعيل الاستدعاء/الاختبار الوهمي",
+          "teamLeader": "________________",
+          "mgmtApproval": "________________"
+        }
+      ],
+      "tr04": [
+        {
+          "_id": "p_seed_wtr_tr04_1",
+          "location": "مخزن المنتج النهائي",
+          "qtyOnHand": "220",
+          "holdStatus": "معزولة",
+          "holdTag": "نعم",
+          "responsible": "أمين المخزن",
+          "dateTime": "05/09/2026 – 10:15"
+        },
+        {
+          "_id": "p_seed_wtr_tr04_2",
+          "location": "منطقة المرتجعات/الحجز",
+          "qtyOnHand": "0",
+          "holdStatus": "قيد المراجعة",
+          "holdTag": "نعم",
+          "responsible": "الجودة",
+          "dateTime": "05/09/2026 – 10:20"
+        }
+      ],
+      "tr05": [
+        {
+          "_id": "p_seed_wtr_tr05_1",
+          "time": "10:25",
+          "party": "عميل/موزع A",
+          "channel": "هاتف + بريد",
+          "message": "إيقاف البيع وعزل 300 وحدة",
+          "response": "تم التأكيد 10:32",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_wtr_tr05_2",
+          "time": "10:35",
+          "party": "عميل/فرع B",
+          "channel": "هاتف",
+          "message": "إيقاف وعزل 250 وحدة",
+          "response": "تم 10:45",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_wtr_tr05_3",
+          "time": "10:40",
+          "party": "متجر C",
+          "channel": "هاتف + واتساب أعمال",
+          "message": "عزل 220 وحدة",
+          "response": "218 متاحة؛ 2 بيعت",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_wtr_tr05_4",
+          "time": "10:50",
+          "party": "موزع D",
+          "channel": "هاتف",
+          "message": "إيقاف 210 وحدة قبل البيع",
+          "response": "تم 10:58",
+          "responsible": "المبيعات"
+        }
+      ],
+      "tr06": [
+        {
+          "_id": "p_seed_wtr_tr06_1",
+          "item": "إنتاج التشغيلة",
+          "category": "إنتاج التشغيلة",
+          "qty": "1200",
+          "source": "سجل الإنتاج/التعبئة"
+        },
+        {
+          "_id": "p_seed_wtr_tr06_2",
+          "item": "مخزون المنشأة",
+          "category": "مخزون المنشأة",
+          "qty": "220",
+          "source": "الجرد – مخزن المنتج النهائي"
+        },
+        {
+          "_id": "p_seed_wtr_tr06_3",
+          "item": "موزع",
+          "category": "موزع",
+          "qty": "980",
+          "source": "الفواتير/أذونات التسليم"
+        },
+        {
+          "_id": "p_seed_wtr_tr06_4",
+          "item": "مسترجع/موقوف",
+          "category": "مسترجع/موقوف",
+          "qty": "978",
+          "source": "تأكيدات العملاء"
+        },
+        {
+          "_id": "p_seed_wtr_tr06_5",
+          "item": "وصل للمستهلك/غير مسترجع",
+          "category": "وصل للمستهلك/غير مسترجع",
+          "qty": "2",
+          "source": "إفادة متجر C"
+        }
+      ],
+      "tr07": [
+        {
+          "_id": "p_seed_wtr_tr07_1",
+          "checkItem": "هل تم التواصل مع 100% من العملاء/الموزعين؟",
+          "result": "4/4",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_wtr_tr07_2",
+          "checkItem": "هل تم تحديد الكميات لدى كل عميل؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_wtr_tr07_3",
+          "checkItem": "هل توجد كميات غير محددة الموقع؟",
+          "result": "لا",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_wtr_tr07_4",
+          "checkItem": "هل توجد كمية وصلت للمستهلك؟",
+          "result": "2 وحدة",
+          "verdict": "يحتاج متابعة"
+        },
+        {
+          "_id": "p_seed_wtr_tr07_5",
+          "checkItem": "هل تم إيقاف البيع والحفاظ على شروط التخزين المعتمدة؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_wtr_tr07_6",
+          "checkItem": "هل يمكن إغلاق الاستدعاء؟",
+          "result": "بعد تقييم الوحدات المباعة واعتماد CAPA",
+          "verdict": ""
+        }
+      ],
+      "tr08": [
+        {
+          "_id": "p_seed_wtr_tr08_1",
+          "problem": "انحراف في نتيجة ميكروبيولوجية أو فشل خطوة معالجة/تعقيم",
+          "rootCause": "قصور في خطوة تحقق/فحص قبل الإفراج أو نقص في الضوابط الوقائية",
+          "action": "تحديث نقطة التحقق وقائمة الفحص قبل الإفراج عن التشغيلة",
+          "responsible": "الجودة",
+          "dueDate": "10/09/2026",
+          "verification": "مراجعة أول 3 تشغيلات",
+          "status": "مفتوح"
+        },
+        {
+          "_id": "p_seed_wtr_tr08_2",
+          "problem": "تأخر بسيط في تأكيد أحد العملاء",
+          "rootCause": "بيانات اتصال بديلة غير محدثة",
+          "action": "تحديث سجل العملاء وإضافة جهة اتصال بديلة",
+          "responsible": "المبيعات",
+          "dueDate": "07/09/2026",
+          "verification": "اختبار اتصال ربع سنوي",
+          "status": "قيد التنفيذ"
+        },
+        {
+          "_id": "p_seed_wtr_tr08_3",
+          "problem": "الحاجة لتعزيز ربط الفواتير بالتشغيلة",
+          "rootCause": "إدخال رقم التشغيلة غير إلزامي في نموذج التسليم",
+          "action": "إضافة حقل إلزامي لرقم التشغيلة في التسليم",
+          "responsible": "الإدارة/IT",
+          "dueDate": "30/09/2026",
+          "verification": "تدقيق 10 فواتير",
+          "status": "مفتوح"
+        }
+      ],
+      "tr09": [
+        {
+          "_id": "p_seed_wtr_tr09_1",
+          "testNo": "MR-WTR-2026-01",
+          "testDate": "05/09/2026",
+          "startTime": "10:00",
+          "traceCompleteTime": "11:20",
+          "commCompleteTime": "11:05",
+          "traceRate": "100",
+          "balanceRate": "100",
+          "controlRate": "100",
+          "overallResult": "ناجح مع فرص تحسين",
+          "keyImprovements": "",
+          "closureDecision": "تعزيز التحقق المرتبط بالخطر: انحراف في نتيجة ميكروبيولوجية أو فشل خطوة معالجة/تعقيم – تحديث بيانات العملاء – ربط رقم التشغيلة بالفواتير"
+        }
+      ],
+      "tr10": [
+        {
+          "_id": "p_seed_wtr_tr10_1",
+          "date": "",
+          "customerName": "",
+          "productName": "مياه شرب معبأة",
+          "size": "330 مل",
+          "batchNo": "WTR-________",
+          "qtySent": "________ وحدة",
+          "reason": "انحراف في نتيجة ميكروبيولوجية أو فشل خطوة معالجة/تعقيم",
+          "responsibleName": "",
+          "phone": ""
+        }
+      ],
+      "tr11": [
+        {
+          "_id": "p_seed_wtr_tr11_1",
+          "item": "كل تشغيلة نهائية لمنتج مياه شرب معبأة مرتبطة بالمادة/تشغيلة المورد الرئيسية",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_wtr_tr11_2",
+          "item": "مواد التعبئة والملصقات مرتبطة بالتشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_wtr_tr11_3",
+          "item": "كل فاتورة/إذن تسليم يحمل رقم التشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_wtr_tr11_4",
+          "item": "بيانات اتصال العملاء والموزعين محدثة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_wtr_tr11_5",
+          "item": "منطقة العزل والمرتجعات محددة ومناسبة لـ مخزن المنتج النهائي",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_wtr_tr11_6",
+          "item": "فريق الاستدعاء وأرقام الاتصال معروفة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_wtr_tr11_7",
+          "item": "النماذج TR-F01 إلى TR-F09 متاحة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_wtr_tr11_8",
+          "item": "اختبار استدعاء وهمي منفذ ومراجع",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_wtr_tr11_9",
+          "item": "CAPA للاختبار السابق مغلقة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_wtr_tr11_10",
+          "item": "سجلات المرتجعات/التصرف النهائي وشروط التخزين محفوظة",
+          "yesNo": "",
+          "evidence": ""
+        }
+      ]
+    }
+  },
+  {
+    "id": "p_seed_ice",
+    "name": "ثلج غذائي",
+    "category": "تصنيع وتعبئة",
+    "code": "TR-ICE-001",
+    "notes": "بيانات تجريبية مبدئية — راجع وعدّل كل قيمة عبر وضع \"تعديل بيانات التتبع\" قبل الاعتماد.",
+    "createdAt": "2026-09-05T09:00:00.000Z",
+    "records": {
+      "tr01": [
+        {
+          "_id": "p_seed_ice_tr01_1",
+          "batchCode": "ICE-260904-01",
+          "productSize": "ثلج غذائي – 2 كجم",
+          "prodDate": "04/09/2026",
+          "mainSupplier": "مياه معالجة",
+          "supplierBatch": "SUP-ICE-240903-B07",
+          "receivedDate": "03/09/2026",
+          "receivedQty": "كمية مرتبطة حسب سجل الاستلام",
+          "receiptStatus": "مقبول",
+          "packagingBatch": "PKG-ICE-0826-31",
+          "closureBatch": "CLS-ICE-0826-14",
+          "labelBatch": "LBL-ICE-0904-08",
+          "supervisor": "مسؤول الإنتاج/التعبئة – مثال",
+          "notes": "تم التحقق من مطابقة المواد وبيانات التشغيلة قبل بدء التشغيل"
+        }
+      ],
+      "tr02": [
+        {
+          "_id": "p_seed_ice_tr02_1",
+          "batchCode": "ICE-260904-01",
+          "customer": "عميل/موزع A",
+          "city": "الرياض",
+          "invoiceNo": "INV-02512",
+          "date": "04/09/2026",
+          "qty": "300",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_ice_tr02_2",
+          "batchCode": "ICE-260904-01",
+          "customer": "عميل/فرع B",
+          "city": "الخرج",
+          "invoiceNo": "INV-02518",
+          "date": "04/09/2026",
+          "qty": "250",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_ice_tr02_3",
+          "batchCode": "ICE-260904-01",
+          "customer": "متجر C",
+          "city": "الرياض",
+          "invoiceNo": "INV-02521",
+          "date": "05/09/2026",
+          "qty": "220",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_ice_tr02_4",
+          "batchCode": "ICE-260904-01",
+          "customer": "موزع D",
+          "city": "القصيم",
+          "invoiceNo": "INV-02527",
+          "date": "05/09/2026",
+          "qty": "210",
+          "contact": "05xxxxxxxx"
+        }
+      ],
+      "tr03": [
+        {
+          "_id": "p_seed_ice_tr03_1",
+          "incidentNo": "RC-ICE-2026-001",
+          "reportedAt": "05/09/2026 – 10:00",
+          "source": "مراجعة داخلية/نتيجة فحص/بلاغ مورد",
+          "hazardDesc": "نتيجة ميكروبيولوجية غير مطابقة في تشغيلة الثلج",
+          "batchCode": "ICE-260904-01",
+          "isDistributed": "نعم",
+          "riskClass": "مرتفع",
+          "initialDecision": "إيقاف البيع + عزل التشغيلة + تفعيل الاستدعاء/الاختبار الوهمي",
+          "teamLeader": "________________",
+          "mgmtApproval": "________________"
+        }
+      ],
+      "tr04": [
+        {
+          "_id": "p_seed_ice_tr04_1",
+          "location": "مخزن التجميد",
+          "qtyOnHand": "220",
+          "holdStatus": "معزولة",
+          "holdTag": "نعم",
+          "responsible": "أمين المخزن",
+          "dateTime": "05/09/2026 – 10:15"
+        },
+        {
+          "_id": "p_seed_ice_tr04_2",
+          "location": "منطقة المرتجعات/الحجز",
+          "qtyOnHand": "0",
+          "holdStatus": "قيد المراجعة",
+          "holdTag": "نعم",
+          "responsible": "الجودة",
+          "dateTime": "05/09/2026 – 10:20"
+        }
+      ],
+      "tr05": [
+        {
+          "_id": "p_seed_ice_tr05_1",
+          "time": "10:25",
+          "party": "عميل/موزع A",
+          "channel": "هاتف + بريد",
+          "message": "إيقاف البيع وعزل 300 وحدة",
+          "response": "تم التأكيد 10:32",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_ice_tr05_2",
+          "time": "10:35",
+          "party": "عميل/فرع B",
+          "channel": "هاتف",
+          "message": "إيقاف وعزل 250 وحدة",
+          "response": "تم 10:45",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_ice_tr05_3",
+          "time": "10:40",
+          "party": "متجر C",
+          "channel": "هاتف + واتساب أعمال",
+          "message": "عزل 220 وحدة",
+          "response": "218 متاحة؛ 2 بيعت",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_ice_tr05_4",
+          "time": "10:50",
+          "party": "موزع D",
+          "channel": "هاتف",
+          "message": "إيقاف 210 وحدة قبل البيع",
+          "response": "تم 10:58",
+          "responsible": "المبيعات"
+        }
+      ],
+      "tr06": [
+        {
+          "_id": "p_seed_ice_tr06_1",
+          "item": "إنتاج التشغيلة",
+          "category": "إنتاج التشغيلة",
+          "qty": "1200",
+          "source": "سجل الإنتاج/التعبئة"
+        },
+        {
+          "_id": "p_seed_ice_tr06_2",
+          "item": "مخزون المنشأة",
+          "category": "مخزون المنشأة",
+          "qty": "220",
+          "source": "الجرد – مخزن التجميد"
+        },
+        {
+          "_id": "p_seed_ice_tr06_3",
+          "item": "موزع",
+          "category": "موزع",
+          "qty": "980",
+          "source": "الفواتير/أذونات التسليم"
+        },
+        {
+          "_id": "p_seed_ice_tr06_4",
+          "item": "مسترجع/موقوف",
+          "category": "مسترجع/موقوف",
+          "qty": "978",
+          "source": "تأكيدات العملاء"
+        },
+        {
+          "_id": "p_seed_ice_tr06_5",
+          "item": "وصل للمستهلك/غير مسترجع",
+          "category": "وصل للمستهلك/غير مسترجع",
+          "qty": "2",
+          "source": "إفادة متجر C"
+        }
+      ],
+      "tr07": [
+        {
+          "_id": "p_seed_ice_tr07_1",
+          "checkItem": "هل تم التواصل مع 100% من العملاء/الموزعين؟",
+          "result": "4/4",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_ice_tr07_2",
+          "checkItem": "هل تم تحديد الكميات لدى كل عميل؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_ice_tr07_3",
+          "checkItem": "هل توجد كميات غير محددة الموقع؟",
+          "result": "لا",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_ice_tr07_4",
+          "checkItem": "هل توجد كمية وصلت للمستهلك؟",
+          "result": "2 وحدة",
+          "verdict": "يحتاج متابعة"
+        },
+        {
+          "_id": "p_seed_ice_tr07_5",
+          "checkItem": "هل تم إيقاف البيع والمحافظة على سلسلة التبريد/التجميد؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_ice_tr07_6",
+          "checkItem": "هل يمكن إغلاق الاستدعاء؟",
+          "result": "بعد تقييم الوحدات المباعة واعتماد CAPA",
+          "verdict": ""
+        }
+      ],
+      "tr08": [
+        {
+          "_id": "p_seed_ice_tr08_1",
+          "problem": "نتيجة ميكروبيولوجية غير مطابقة في تشغيلة الثلج",
+          "rootCause": "قصور في خطوة تحقق/فحص قبل الإفراج أو نقص في الضوابط الوقائية",
+          "action": "تحديث نقطة التحقق وقائمة الفحص قبل الإفراج عن التشغيلة",
+          "responsible": "الجودة",
+          "dueDate": "10/09/2026",
+          "verification": "مراجعة أول 3 تشغيلات",
+          "status": "مفتوح"
+        },
+        {
+          "_id": "p_seed_ice_tr08_2",
+          "problem": "تأخر بسيط في تأكيد أحد العملاء",
+          "rootCause": "بيانات اتصال بديلة غير محدثة",
+          "action": "تحديث سجل العملاء وإضافة جهة اتصال بديلة",
+          "responsible": "المبيعات",
+          "dueDate": "07/09/2026",
+          "verification": "اختبار اتصال ربع سنوي",
+          "status": "قيد التنفيذ"
+        },
+        {
+          "_id": "p_seed_ice_tr08_3",
+          "problem": "الحاجة لتعزيز ربط الفواتير بالتشغيلة",
+          "rootCause": "إدخال رقم التشغيلة غير إلزامي في نموذج التسليم",
+          "action": "إضافة حقل إلزامي لرقم التشغيلة في التسليم",
+          "responsible": "الإدارة/IT",
+          "dueDate": "30/09/2026",
+          "verification": "تدقيق 10 فواتير",
+          "status": "مفتوح"
+        }
+      ],
+      "tr09": [
+        {
+          "_id": "p_seed_ice_tr09_1",
+          "testNo": "MR-ICE-2026-01",
+          "testDate": "05/09/2026",
+          "startTime": "10:00",
+          "traceCompleteTime": "11:20",
+          "commCompleteTime": "11:05",
+          "traceRate": "100",
+          "balanceRate": "100",
+          "controlRate": "100",
+          "overallResult": "ناجح مع فرص تحسين",
+          "keyImprovements": "",
+          "closureDecision": "تعزيز التحقق المرتبط بالخطر: نتيجة ميكروبيولوجية غير مطابقة في تشغيلة الثلج – تحديث بيانات العملاء – ربط رقم التشغيلة بالفواتير"
+        }
+      ],
+      "tr10": [
+        {
+          "_id": "p_seed_ice_tr10_1",
+          "date": "",
+          "customerName": "",
+          "productName": "ثلج غذائي",
+          "size": "2 كجم",
+          "batchNo": "ICE-________",
+          "qtySent": "________ وحدة",
+          "reason": "نتيجة ميكروبيولوجية غير مطابقة في تشغيلة الثلج",
+          "responsibleName": "",
+          "phone": ""
+        }
+      ],
+      "tr11": [
+        {
+          "_id": "p_seed_ice_tr11_1",
+          "item": "كل تشغيلة نهائية لمنتج ثلج غذائي مرتبطة بالمادة/تشغيلة المورد الرئيسية",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ice_tr11_2",
+          "item": "مواد التعبئة والملصقات مرتبطة بالتشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ice_tr11_3",
+          "item": "كل فاتورة/إذن تسليم يحمل رقم التشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ice_tr11_4",
+          "item": "بيانات اتصال العملاء والموزعين محدثة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ice_tr11_5",
+          "item": "منطقة العزل والمرتجعات محددة ومناسبة لـ مخزن التجميد",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ice_tr11_6",
+          "item": "فريق الاستدعاء وأرقام الاتصال معروفة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ice_tr11_7",
+          "item": "النماذج TR-F01 إلى TR-F09 متاحة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ice_tr11_8",
+          "item": "اختبار استدعاء وهمي منفذ ومراجع",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ice_tr11_9",
+          "item": "CAPA للاختبار السابق مغلقة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ice_tr11_10",
+          "item": "سجلات المرتجعات/التصرف النهائي وشروط التخزين محفوظة",
+          "yesNo": "",
+          "evidence": ""
+        }
+      ]
+    }
+  },
+  {
+    "id": "p_seed_jce",
+    "name": "عصير فواكه",
+    "category": "تصنيع وتعبئة",
+    "code": "TR-JCE-001",
+    "notes": "بيانات تجريبية مبدئية — راجع وعدّل كل قيمة عبر وضع \"تعديل بيانات التتبع\" قبل الاعتماد.",
+    "createdAt": "2026-09-05T09:00:00.000Z",
+    "records": {
+      "tr01": [
+        {
+          "_id": "p_seed_jce_tr01_1",
+          "batchCode": "JCE-260904-01",
+          "productSize": "عصير فواكه – 250 مل",
+          "prodDate": "04/09/2026",
+          "mainSupplier": "مركز/فاكهة ومياه معالجة",
+          "supplierBatch": "SUP-JCE-240903-B07",
+          "receivedDate": "03/09/2026",
+          "receivedQty": "كمية مرتبطة حسب سجل الاستلام",
+          "receiptStatus": "مقبول",
+          "packagingBatch": "PKG-JCE-0826-31",
+          "closureBatch": "CLS-JCE-0826-14",
+          "labelBatch": "LBL-JCE-0904-08",
+          "supervisor": "مسؤول الإنتاج/التعبئة – مثال",
+          "notes": "تم التحقق من مطابقة المواد وبيانات التشغيلة قبل بدء التشغيل"
+        }
+      ],
+      "tr02": [
+        {
+          "_id": "p_seed_jce_tr02_1",
+          "batchCode": "JCE-260904-01",
+          "customer": "عميل/موزع A",
+          "city": "الرياض",
+          "invoiceNo": "INV-03512",
+          "date": "04/09/2026",
+          "qty": "300",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_jce_tr02_2",
+          "batchCode": "JCE-260904-01",
+          "customer": "عميل/فرع B",
+          "city": "الخرج",
+          "invoiceNo": "INV-03518",
+          "date": "04/09/2026",
+          "qty": "250",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_jce_tr02_3",
+          "batchCode": "JCE-260904-01",
+          "customer": "متجر C",
+          "city": "الرياض",
+          "invoiceNo": "INV-03521",
+          "date": "05/09/2026",
+          "qty": "220",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_jce_tr02_4",
+          "batchCode": "JCE-260904-01",
+          "customer": "موزع D",
+          "city": "القصيم",
+          "invoiceNo": "INV-03527",
+          "date": "05/09/2026",
+          "qty": "210",
+          "contact": "05xxxxxxxx"
+        }
+      ],
+      "tr03": [
+        {
+          "_id": "p_seed_jce_tr03_1",
+          "incidentNo": "RC-JCE-2026-001",
+          "reportedAt": "05/09/2026 – 10:00",
+          "source": "مراجعة داخلية/نتيجة فحص/بلاغ مورد",
+          "hazardDesc": "انحراف في البسترة أو سلامة الإغلاق",
+          "batchCode": "JCE-260904-01",
+          "isDistributed": "نعم",
+          "riskClass": "مرتفع",
+          "initialDecision": "إيقاف البيع + عزل التشغيلة + تفعيل الاستدعاء/الاختبار الوهمي",
+          "teamLeader": "________________",
+          "mgmtApproval": "________________"
+        }
+      ],
+      "tr04": [
+        {
+          "_id": "p_seed_jce_tr04_1",
+          "location": "مخزن المنتج النهائي",
+          "qtyOnHand": "220",
+          "holdStatus": "معزولة",
+          "holdTag": "نعم",
+          "responsible": "أمين المخزن",
+          "dateTime": "05/09/2026 – 10:15"
+        },
+        {
+          "_id": "p_seed_jce_tr04_2",
+          "location": "منطقة المرتجعات/الحجز",
+          "qtyOnHand": "0",
+          "holdStatus": "قيد المراجعة",
+          "holdTag": "نعم",
+          "responsible": "الجودة",
+          "dateTime": "05/09/2026 – 10:20"
+        }
+      ],
+      "tr05": [
+        {
+          "_id": "p_seed_jce_tr05_1",
+          "time": "10:25",
+          "party": "عميل/موزع A",
+          "channel": "هاتف + بريد",
+          "message": "إيقاف البيع وعزل 300 وحدة",
+          "response": "تم التأكيد 10:32",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_jce_tr05_2",
+          "time": "10:35",
+          "party": "عميل/فرع B",
+          "channel": "هاتف",
+          "message": "إيقاف وعزل 250 وحدة",
+          "response": "تم 10:45",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_jce_tr05_3",
+          "time": "10:40",
+          "party": "متجر C",
+          "channel": "هاتف + واتساب أعمال",
+          "message": "عزل 220 وحدة",
+          "response": "218 متاحة؛ 2 بيعت",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_jce_tr05_4",
+          "time": "10:50",
+          "party": "موزع D",
+          "channel": "هاتف",
+          "message": "إيقاف 210 وحدة قبل البيع",
+          "response": "تم 10:58",
+          "responsible": "المبيعات"
+        }
+      ],
+      "tr06": [
+        {
+          "_id": "p_seed_jce_tr06_1",
+          "item": "إنتاج التشغيلة",
+          "category": "إنتاج التشغيلة",
+          "qty": "1200",
+          "source": "سجل الإنتاج/التعبئة"
+        },
+        {
+          "_id": "p_seed_jce_tr06_2",
+          "item": "مخزون المنشأة",
+          "category": "مخزون المنشأة",
+          "qty": "220",
+          "source": "الجرد – مخزن المنتج النهائي"
+        },
+        {
+          "_id": "p_seed_jce_tr06_3",
+          "item": "موزع",
+          "category": "موزع",
+          "qty": "980",
+          "source": "الفواتير/أذونات التسليم"
+        },
+        {
+          "_id": "p_seed_jce_tr06_4",
+          "item": "مسترجع/موقوف",
+          "category": "مسترجع/موقوف",
+          "qty": "978",
+          "source": "تأكيدات العملاء"
+        },
+        {
+          "_id": "p_seed_jce_tr06_5",
+          "item": "وصل للمستهلك/غير مسترجع",
+          "category": "وصل للمستهلك/غير مسترجع",
+          "qty": "2",
+          "source": "إفادة متجر C"
+        }
+      ],
+      "tr07": [
+        {
+          "_id": "p_seed_jce_tr07_1",
+          "checkItem": "هل تم التواصل مع 100% من العملاء/الموزعين؟",
+          "result": "4/4",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_jce_tr07_2",
+          "checkItem": "هل تم تحديد الكميات لدى كل عميل؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_jce_tr07_3",
+          "checkItem": "هل توجد كميات غير محددة الموقع؟",
+          "result": "لا",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_jce_tr07_4",
+          "checkItem": "هل توجد كمية وصلت للمستهلك؟",
+          "result": "2 وحدة",
+          "verdict": "يحتاج متابعة"
+        },
+        {
+          "_id": "p_seed_jce_tr07_5",
+          "checkItem": "هل تم إيقاف البيع والمحافظة على سلسلة التبريد/التجميد؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_jce_tr07_6",
+          "checkItem": "هل يمكن إغلاق الاستدعاء؟",
+          "result": "بعد تقييم الوحدات المباعة واعتماد CAPA",
+          "verdict": ""
+        }
+      ],
+      "tr08": [
+        {
+          "_id": "p_seed_jce_tr08_1",
+          "problem": "انحراف في البسترة أو سلامة الإغلاق",
+          "rootCause": "قصور في خطوة تحقق/فحص قبل الإفراج أو نقص في الضوابط الوقائية",
+          "action": "تحديث نقطة التحقق وقائمة الفحص قبل الإفراج عن التشغيلة",
+          "responsible": "الجودة",
+          "dueDate": "10/09/2026",
+          "verification": "مراجعة أول 3 تشغيلات",
+          "status": "مفتوح"
+        },
+        {
+          "_id": "p_seed_jce_tr08_2",
+          "problem": "تأخر بسيط في تأكيد أحد العملاء",
+          "rootCause": "بيانات اتصال بديلة غير محدثة",
+          "action": "تحديث سجل العملاء وإضافة جهة اتصال بديلة",
+          "responsible": "المبيعات",
+          "dueDate": "07/09/2026",
+          "verification": "اختبار اتصال ربع سنوي",
+          "status": "قيد التنفيذ"
+        },
+        {
+          "_id": "p_seed_jce_tr08_3",
+          "problem": "الحاجة لتعزيز ربط الفواتير بالتشغيلة",
+          "rootCause": "إدخال رقم التشغيلة غير إلزامي في نموذج التسليم",
+          "action": "إضافة حقل إلزامي لرقم التشغيلة في التسليم",
+          "responsible": "الإدارة/IT",
+          "dueDate": "30/09/2026",
+          "verification": "تدقيق 10 فواتير",
+          "status": "مفتوح"
+        }
+      ],
+      "tr09": [
+        {
+          "_id": "p_seed_jce_tr09_1",
+          "testNo": "MR-JCE-2026-01",
+          "testDate": "05/09/2026",
+          "startTime": "10:00",
+          "traceCompleteTime": "11:20",
+          "commCompleteTime": "11:05",
+          "traceRate": "100",
+          "balanceRate": "100",
+          "controlRate": "100",
+          "overallResult": "ناجح مع فرص تحسين",
+          "keyImprovements": "",
+          "closureDecision": "تعزيز التحقق المرتبط بالخطر: انحراف في البسترة أو سلامة الإغلاق – تحديث بيانات العملاء – ربط رقم التشغيلة بالفواتير"
+        }
+      ],
+      "tr10": [
+        {
+          "_id": "p_seed_jce_tr10_1",
+          "date": "",
+          "customerName": "",
+          "productName": "عصير فواكه",
+          "size": "250 مل",
+          "batchNo": "JCE-________",
+          "qtySent": "________ وحدة",
+          "reason": "انحراف في البسترة أو سلامة الإغلاق",
+          "responsibleName": "",
+          "phone": ""
+        }
+      ],
+      "tr11": [
+        {
+          "_id": "p_seed_jce_tr11_1",
+          "item": "كل تشغيلة نهائية لمنتج عصير فواكه مرتبطة بالمادة/تشغيلة المورد الرئيسية",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_jce_tr11_2",
+          "item": "مواد التعبئة والملصقات مرتبطة بالتشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_jce_tr11_3",
+          "item": "كل فاتورة/إذن تسليم يحمل رقم التشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_jce_tr11_4",
+          "item": "بيانات اتصال العملاء والموزعين محدثة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_jce_tr11_5",
+          "item": "منطقة العزل والمرتجعات محددة ومناسبة لـ مخزن المنتج النهائي",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_jce_tr11_6",
+          "item": "فريق الاستدعاء وأرقام الاتصال معروفة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_jce_tr11_7",
+          "item": "النماذج TR-F01 إلى TR-F09 متاحة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_jce_tr11_8",
+          "item": "اختبار استدعاء وهمي منفذ ومراجع",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_jce_tr11_9",
+          "item": "CAPA للاختبار السابق مغلقة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_jce_tr11_10",
+          "item": "سجلات المرتجعات/التصرف النهائي وشروط التخزين محفوظة",
+          "yesNo": "",
+          "evidence": ""
+        }
+      ]
+    }
+  },
+  {
+    "id": "p_seed_nct",
+    "name": "نكتار فواكه",
+    "category": "تصنيع وتعبئة",
+    "code": "TR-NCT-001",
+    "notes": "بيانات تجريبية مبدئية — راجع وعدّل كل قيمة عبر وضع \"تعديل بيانات التتبع\" قبل الاعتماد.",
+    "createdAt": "2026-09-05T09:00:00.000Z",
+    "records": {
+      "tr01": [
+        {
+          "_id": "p_seed_nct_tr01_1",
+          "batchCode": "NCT-260904-01",
+          "productSize": "نكتار فواكه – 250 مل",
+          "prodDate": "04/09/2026",
+          "mainSupplier": "مركز فاكهة/سكر/مياه",
+          "supplierBatch": "SUP-NCT-240903-B07",
+          "receivedDate": "03/09/2026",
+          "receivedQty": "كمية مرتبطة حسب سجل الاستلام",
+          "receiptStatus": "مقبول",
+          "packagingBatch": "PKG-NCT-0826-31",
+          "closureBatch": "CLS-NCT-0826-14",
+          "labelBatch": "LBL-NCT-0904-08",
+          "supervisor": "مسؤول الإنتاج/التعبئة – مثال",
+          "notes": "تم التحقق من مطابقة المواد وبيانات التشغيلة قبل بدء التشغيل"
+        }
+      ],
+      "tr02": [
+        {
+          "_id": "p_seed_nct_tr02_1",
+          "batchCode": "NCT-260904-01",
+          "customer": "عميل/موزع A",
+          "city": "الرياض",
+          "invoiceNo": "INV-04512",
+          "date": "04/09/2026",
+          "qty": "300",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_nct_tr02_2",
+          "batchCode": "NCT-260904-01",
+          "customer": "عميل/فرع B",
+          "city": "الخرج",
+          "invoiceNo": "INV-04518",
+          "date": "04/09/2026",
+          "qty": "250",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_nct_tr02_3",
+          "batchCode": "NCT-260904-01",
+          "customer": "متجر C",
+          "city": "الرياض",
+          "invoiceNo": "INV-04521",
+          "date": "05/09/2026",
+          "qty": "220",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_nct_tr02_4",
+          "batchCode": "NCT-260904-01",
+          "customer": "موزع D",
+          "city": "القصيم",
+          "invoiceNo": "INV-04527",
+          "date": "05/09/2026",
+          "qty": "210",
+          "contact": "05xxxxxxxx"
+        }
+      ],
+      "tr03": [
+        {
+          "_id": "p_seed_nct_tr03_1",
+          "incidentNo": "RC-NCT-2026-001",
+          "reportedAt": "05/09/2026 – 10:00",
+          "source": "مراجعة داخلية/نتيجة فحص/بلاغ مورد",
+          "hazardDesc": "انحراف في البسترة أو عدم مطابقة العبوة",
+          "batchCode": "NCT-260904-01",
+          "isDistributed": "نعم",
+          "riskClass": "مرتفع",
+          "initialDecision": "إيقاف البيع + عزل التشغيلة + تفعيل الاستدعاء/الاختبار الوهمي",
+          "teamLeader": "________________",
+          "mgmtApproval": "________________"
+        }
+      ],
+      "tr04": [
+        {
+          "_id": "p_seed_nct_tr04_1",
+          "location": "مخزن المنتج النهائي",
+          "qtyOnHand": "220",
+          "holdStatus": "معزولة",
+          "holdTag": "نعم",
+          "responsible": "أمين المخزن",
+          "dateTime": "05/09/2026 – 10:15"
+        },
+        {
+          "_id": "p_seed_nct_tr04_2",
+          "location": "منطقة المرتجعات/الحجز",
+          "qtyOnHand": "0",
+          "holdStatus": "قيد المراجعة",
+          "holdTag": "نعم",
+          "responsible": "الجودة",
+          "dateTime": "05/09/2026 – 10:20"
+        }
+      ],
+      "tr05": [
+        {
+          "_id": "p_seed_nct_tr05_1",
+          "time": "10:25",
+          "party": "عميل/موزع A",
+          "channel": "هاتف + بريد",
+          "message": "إيقاف البيع وعزل 300 وحدة",
+          "response": "تم التأكيد 10:32",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_nct_tr05_2",
+          "time": "10:35",
+          "party": "عميل/فرع B",
+          "channel": "هاتف",
+          "message": "إيقاف وعزل 250 وحدة",
+          "response": "تم 10:45",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_nct_tr05_3",
+          "time": "10:40",
+          "party": "متجر C",
+          "channel": "هاتف + واتساب أعمال",
+          "message": "عزل 220 وحدة",
+          "response": "218 متاحة؛ 2 بيعت",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_nct_tr05_4",
+          "time": "10:50",
+          "party": "موزع D",
+          "channel": "هاتف",
+          "message": "إيقاف 210 وحدة قبل البيع",
+          "response": "تم 10:58",
+          "responsible": "المبيعات"
+        }
+      ],
+      "tr06": [
+        {
+          "_id": "p_seed_nct_tr06_1",
+          "item": "إنتاج التشغيلة",
+          "category": "إنتاج التشغيلة",
+          "qty": "1200",
+          "source": "سجل الإنتاج/التعبئة"
+        },
+        {
+          "_id": "p_seed_nct_tr06_2",
+          "item": "مخزون المنشأة",
+          "category": "مخزون المنشأة",
+          "qty": "220",
+          "source": "الجرد – مخزن المنتج النهائي"
+        },
+        {
+          "_id": "p_seed_nct_tr06_3",
+          "item": "موزع",
+          "category": "موزع",
+          "qty": "980",
+          "source": "الفواتير/أذونات التسليم"
+        },
+        {
+          "_id": "p_seed_nct_tr06_4",
+          "item": "مسترجع/موقوف",
+          "category": "مسترجع/موقوف",
+          "qty": "978",
+          "source": "تأكيدات العملاء"
+        },
+        {
+          "_id": "p_seed_nct_tr06_5",
+          "item": "وصل للمستهلك/غير مسترجع",
+          "category": "وصل للمستهلك/غير مسترجع",
+          "qty": "2",
+          "source": "إفادة متجر C"
+        }
+      ],
+      "tr07": [
+        {
+          "_id": "p_seed_nct_tr07_1",
+          "checkItem": "هل تم التواصل مع 100% من العملاء/الموزعين؟",
+          "result": "4/4",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_nct_tr07_2",
+          "checkItem": "هل تم تحديد الكميات لدى كل عميل؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_nct_tr07_3",
+          "checkItem": "هل توجد كميات غير محددة الموقع؟",
+          "result": "لا",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_nct_tr07_4",
+          "checkItem": "هل توجد كمية وصلت للمستهلك؟",
+          "result": "2 وحدة",
+          "verdict": "يحتاج متابعة"
+        },
+        {
+          "_id": "p_seed_nct_tr07_5",
+          "checkItem": "هل تم إيقاف البيع والحفاظ على شروط التخزين المعتمدة؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_nct_tr07_6",
+          "checkItem": "هل يمكن إغلاق الاستدعاء؟",
+          "result": "بعد تقييم الوحدات المباعة واعتماد CAPA",
+          "verdict": ""
+        }
+      ],
+      "tr08": [
+        {
+          "_id": "p_seed_nct_tr08_1",
+          "problem": "انحراف في البسترة أو عدم مطابقة العبوة",
+          "rootCause": "قصور في خطوة تحقق/فحص قبل الإفراج أو نقص في الضوابط الوقائية",
+          "action": "تحديث نقطة التحقق وقائمة الفحص قبل الإفراج عن التشغيلة",
+          "responsible": "الجودة",
+          "dueDate": "10/09/2026",
+          "verification": "مراجعة أول 3 تشغيلات",
+          "status": "مفتوح"
+        },
+        {
+          "_id": "p_seed_nct_tr08_2",
+          "problem": "تأخر بسيط في تأكيد أحد العملاء",
+          "rootCause": "بيانات اتصال بديلة غير محدثة",
+          "action": "تحديث سجل العملاء وإضافة جهة اتصال بديلة",
+          "responsible": "المبيعات",
+          "dueDate": "07/09/2026",
+          "verification": "اختبار اتصال ربع سنوي",
+          "status": "قيد التنفيذ"
+        },
+        {
+          "_id": "p_seed_nct_tr08_3",
+          "problem": "الحاجة لتعزيز ربط الفواتير بالتشغيلة",
+          "rootCause": "إدخال رقم التشغيلة غير إلزامي في نموذج التسليم",
+          "action": "إضافة حقل إلزامي لرقم التشغيلة في التسليم",
+          "responsible": "الإدارة/IT",
+          "dueDate": "30/09/2026",
+          "verification": "تدقيق 10 فواتير",
+          "status": "مفتوح"
+        }
+      ],
+      "tr09": [
+        {
+          "_id": "p_seed_nct_tr09_1",
+          "testNo": "MR-NCT-2026-01",
+          "testDate": "05/09/2026",
+          "startTime": "10:00",
+          "traceCompleteTime": "11:20",
+          "commCompleteTime": "11:05",
+          "traceRate": "100",
+          "balanceRate": "100",
+          "controlRate": "100",
+          "overallResult": "ناجح مع فرص تحسين",
+          "keyImprovements": "",
+          "closureDecision": "تعزيز التحقق المرتبط بالخطر: انحراف في البسترة أو عدم مطابقة العبوة – تحديث بيانات العملاء – ربط رقم التشغيلة بالفواتير"
+        }
+      ],
+      "tr10": [
+        {
+          "_id": "p_seed_nct_tr10_1",
+          "date": "",
+          "customerName": "",
+          "productName": "نكتار فواكه",
+          "size": "250 مل",
+          "batchNo": "NCT-________",
+          "qtySent": "________ وحدة",
+          "reason": "انحراف في البسترة أو عدم مطابقة العبوة",
+          "responsibleName": "",
+          "phone": ""
+        }
+      ],
+      "tr11": [
+        {
+          "_id": "p_seed_nct_tr11_1",
+          "item": "كل تشغيلة نهائية لمنتج نكتار فواكه مرتبطة بالمادة/تشغيلة المورد الرئيسية",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_nct_tr11_2",
+          "item": "مواد التعبئة والملصقات مرتبطة بالتشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_nct_tr11_3",
+          "item": "كل فاتورة/إذن تسليم يحمل رقم التشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_nct_tr11_4",
+          "item": "بيانات اتصال العملاء والموزعين محدثة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_nct_tr11_5",
+          "item": "منطقة العزل والمرتجعات محددة ومناسبة لـ مخزن المنتج النهائي",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_nct_tr11_6",
+          "item": "فريق الاستدعاء وأرقام الاتصال معروفة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_nct_tr11_7",
+          "item": "النماذج TR-F01 إلى TR-F09 متاحة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_nct_tr11_8",
+          "item": "اختبار استدعاء وهمي منفذ ومراجع",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_nct_tr11_9",
+          "item": "CAPA للاختبار السابق مغلقة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_nct_tr11_10",
+          "item": "سجلات المرتجعات/التصرف النهائي وشروط التخزين محفوظة",
+          "yesNo": "",
+          "evidence": ""
+        }
+      ]
+    }
+  },
+  {
+    "id": "p_seed_sft",
+    "name": "مشروبات غازية",
+    "category": "تصنيع وتعبئة",
+    "code": "TR-SFT-001",
+    "notes": "بيانات تجريبية مبدئية — راجع وعدّل كل قيمة عبر وضع \"تعديل بيانات التتبع\" قبل الاعتماد.",
+    "createdAt": "2026-09-05T09:00:00.000Z",
+    "records": {
+      "tr01": [
+        {
+          "_id": "p_seed_sft_tr01_1",
+          "batchCode": "SFT-260904-01",
+          "productSize": "مشروبات غازية – 330 مل",
+          "prodDate": "04/09/2026",
+          "mainSupplier": "مياه معالجة/شراب مركز/CO2",
+          "supplierBatch": "SUP-SFT-240903-B07",
+          "receivedDate": "03/09/2026",
+          "receivedQty": "كمية مرتبطة حسب سجل الاستلام",
+          "receiptStatus": "مقبول",
+          "packagingBatch": "PKG-SFT-0826-31",
+          "closureBatch": "CLS-SFT-0826-14",
+          "labelBatch": "LBL-SFT-0904-08",
+          "supervisor": "مسؤول الإنتاج/التعبئة – مثال",
+          "notes": "تم التحقق من مطابقة المواد وبيانات التشغيلة قبل بدء التشغيل"
+        }
+      ],
+      "tr02": [
+        {
+          "_id": "p_seed_sft_tr02_1",
+          "batchCode": "SFT-260904-01",
+          "customer": "عميل/موزع A",
+          "city": "الرياض",
+          "invoiceNo": "INV-05512",
+          "date": "04/09/2026",
+          "qty": "300",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_sft_tr02_2",
+          "batchCode": "SFT-260904-01",
+          "customer": "عميل/فرع B",
+          "city": "الخرج",
+          "invoiceNo": "INV-05518",
+          "date": "04/09/2026",
+          "qty": "250",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_sft_tr02_3",
+          "batchCode": "SFT-260904-01",
+          "customer": "متجر C",
+          "city": "الرياض",
+          "invoiceNo": "INV-05521",
+          "date": "05/09/2026",
+          "qty": "220",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_sft_tr02_4",
+          "batchCode": "SFT-260904-01",
+          "customer": "موزع D",
+          "city": "القصيم",
+          "invoiceNo": "INV-05527",
+          "date": "05/09/2026",
+          "qty": "210",
+          "contact": "05xxxxxxxx"
+        }
+      ],
+      "tr03": [
+        {
+          "_id": "p_seed_sft_tr03_1",
+          "incidentNo": "RC-SFT-2026-001",
+          "reportedAt": "05/09/2026 – 10:00",
+          "source": "مراجعة داخلية/نتيجة فحص/بلاغ مورد",
+          "hazardDesc": "تلوث تعبئة أو عدم إحكام الغلق",
+          "batchCode": "SFT-260904-01",
+          "isDistributed": "نعم",
+          "riskClass": "مرتفع",
+          "initialDecision": "إيقاف البيع + عزل التشغيلة + تفعيل الاستدعاء/الاختبار الوهمي",
+          "teamLeader": "________________",
+          "mgmtApproval": "________________"
+        }
+      ],
+      "tr04": [
+        {
+          "_id": "p_seed_sft_tr04_1",
+          "location": "مخزن المنتج النهائي",
+          "qtyOnHand": "220",
+          "holdStatus": "معزولة",
+          "holdTag": "نعم",
+          "responsible": "أمين المخزن",
+          "dateTime": "05/09/2026 – 10:15"
+        },
+        {
+          "_id": "p_seed_sft_tr04_2",
+          "location": "منطقة المرتجعات/الحجز",
+          "qtyOnHand": "0",
+          "holdStatus": "قيد المراجعة",
+          "holdTag": "نعم",
+          "responsible": "الجودة",
+          "dateTime": "05/09/2026 – 10:20"
+        }
+      ],
+      "tr05": [
+        {
+          "_id": "p_seed_sft_tr05_1",
+          "time": "10:25",
+          "party": "عميل/موزع A",
+          "channel": "هاتف + بريد",
+          "message": "إيقاف البيع وعزل 300 وحدة",
+          "response": "تم التأكيد 10:32",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_sft_tr05_2",
+          "time": "10:35",
+          "party": "عميل/فرع B",
+          "channel": "هاتف",
+          "message": "إيقاف وعزل 250 وحدة",
+          "response": "تم 10:45",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_sft_tr05_3",
+          "time": "10:40",
+          "party": "متجر C",
+          "channel": "هاتف + واتساب أعمال",
+          "message": "عزل 220 وحدة",
+          "response": "218 متاحة؛ 2 بيعت",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_sft_tr05_4",
+          "time": "10:50",
+          "party": "موزع D",
+          "channel": "هاتف",
+          "message": "إيقاف 210 وحدة قبل البيع",
+          "response": "تم 10:58",
+          "responsible": "المبيعات"
+        }
+      ],
+      "tr06": [
+        {
+          "_id": "p_seed_sft_tr06_1",
+          "item": "إنتاج التشغيلة",
+          "category": "إنتاج التشغيلة",
+          "qty": "1200",
+          "source": "سجل الإنتاج/التعبئة"
+        },
+        {
+          "_id": "p_seed_sft_tr06_2",
+          "item": "مخزون المنشأة",
+          "category": "مخزون المنشأة",
+          "qty": "220",
+          "source": "الجرد – مخزن المنتج النهائي"
+        },
+        {
+          "_id": "p_seed_sft_tr06_3",
+          "item": "موزع",
+          "category": "موزع",
+          "qty": "980",
+          "source": "الفواتير/أذونات التسليم"
+        },
+        {
+          "_id": "p_seed_sft_tr06_4",
+          "item": "مسترجع/موقوف",
+          "category": "مسترجع/موقوف",
+          "qty": "978",
+          "source": "تأكيدات العملاء"
+        },
+        {
+          "_id": "p_seed_sft_tr06_5",
+          "item": "وصل للمستهلك/غير مسترجع",
+          "category": "وصل للمستهلك/غير مسترجع",
+          "qty": "2",
+          "source": "إفادة متجر C"
+        }
+      ],
+      "tr07": [
+        {
+          "_id": "p_seed_sft_tr07_1",
+          "checkItem": "هل تم التواصل مع 100% من العملاء/الموزعين؟",
+          "result": "4/4",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_sft_tr07_2",
+          "checkItem": "هل تم تحديد الكميات لدى كل عميل؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_sft_tr07_3",
+          "checkItem": "هل توجد كميات غير محددة الموقع؟",
+          "result": "لا",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_sft_tr07_4",
+          "checkItem": "هل توجد كمية وصلت للمستهلك؟",
+          "result": "2 وحدة",
+          "verdict": "يحتاج متابعة"
+        },
+        {
+          "_id": "p_seed_sft_tr07_5",
+          "checkItem": "هل تم إيقاف البيع والحفاظ على شروط التخزين المعتمدة؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_sft_tr07_6",
+          "checkItem": "هل يمكن إغلاق الاستدعاء؟",
+          "result": "بعد تقييم الوحدات المباعة واعتماد CAPA",
+          "verdict": ""
+        }
+      ],
+      "tr08": [
+        {
+          "_id": "p_seed_sft_tr08_1",
+          "problem": "تلوث تعبئة أو عدم إحكام الغلق",
+          "rootCause": "قصور في خطوة تحقق/فحص قبل الإفراج أو نقص في الضوابط الوقائية",
+          "action": "تحديث نقطة التحقق وقائمة الفحص قبل الإفراج عن التشغيلة",
+          "responsible": "الجودة",
+          "dueDate": "10/09/2026",
+          "verification": "مراجعة أول 3 تشغيلات",
+          "status": "مفتوح"
+        },
+        {
+          "_id": "p_seed_sft_tr08_2",
+          "problem": "تأخر بسيط في تأكيد أحد العملاء",
+          "rootCause": "بيانات اتصال بديلة غير محدثة",
+          "action": "تحديث سجل العملاء وإضافة جهة اتصال بديلة",
+          "responsible": "المبيعات",
+          "dueDate": "07/09/2026",
+          "verification": "اختبار اتصال ربع سنوي",
+          "status": "قيد التنفيذ"
+        },
+        {
+          "_id": "p_seed_sft_tr08_3",
+          "problem": "الحاجة لتعزيز ربط الفواتير بالتشغيلة",
+          "rootCause": "إدخال رقم التشغيلة غير إلزامي في نموذج التسليم",
+          "action": "إضافة حقل إلزامي لرقم التشغيلة في التسليم",
+          "responsible": "الإدارة/IT",
+          "dueDate": "30/09/2026",
+          "verification": "تدقيق 10 فواتير",
+          "status": "مفتوح"
+        }
+      ],
+      "tr09": [
+        {
+          "_id": "p_seed_sft_tr09_1",
+          "testNo": "MR-SFT-2026-01",
+          "testDate": "05/09/2026",
+          "startTime": "10:00",
+          "traceCompleteTime": "11:20",
+          "commCompleteTime": "11:05",
+          "traceRate": "100",
+          "balanceRate": "100",
+          "controlRate": "100",
+          "overallResult": "ناجح مع فرص تحسين",
+          "keyImprovements": "",
+          "closureDecision": "تعزيز التحقق المرتبط بالخطر: تلوث تعبئة أو عدم إحكام الغلق – تحديث بيانات العملاء – ربط رقم التشغيلة بالفواتير"
+        }
+      ],
+      "tr10": [
+        {
+          "_id": "p_seed_sft_tr10_1",
+          "date": "",
+          "customerName": "",
+          "productName": "مشروبات غازية",
+          "size": "330 مل",
+          "batchNo": "SFT-________",
+          "qtySent": "________ وحدة",
+          "reason": "تلوث تعبئة أو عدم إحكام الغلق",
+          "responsibleName": "",
+          "phone": ""
+        }
+      ],
+      "tr11": [
+        {
+          "_id": "p_seed_sft_tr11_1",
+          "item": "كل تشغيلة نهائية لمنتج مشروبات غازية مرتبطة بالمادة/تشغيلة المورد الرئيسية",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_sft_tr11_2",
+          "item": "مواد التعبئة والملصقات مرتبطة بالتشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_sft_tr11_3",
+          "item": "كل فاتورة/إذن تسليم يحمل رقم التشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_sft_tr11_4",
+          "item": "بيانات اتصال العملاء والموزعين محدثة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_sft_tr11_5",
+          "item": "منطقة العزل والمرتجعات محددة ومناسبة لـ مخزن المنتج النهائي",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_sft_tr11_6",
+          "item": "فريق الاستدعاء وأرقام الاتصال معروفة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_sft_tr11_7",
+          "item": "النماذج TR-F01 إلى TR-F09 متاحة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_sft_tr11_8",
+          "item": "اختبار استدعاء وهمي منفذ ومراجع",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_sft_tr11_9",
+          "item": "CAPA للاختبار السابق مغلقة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_sft_tr11_10",
+          "item": "سجلات المرتجعات/التصرف النهائي وشروط التخزين محفوظة",
+          "yesNo": "",
+          "evidence": ""
+        }
+      ]
+    }
+  },
+  {
+    "id": "p_seed_eng",
+    "name": "مشروبات طاقة",
+    "category": "تصنيع وتعبئة",
+    "code": "TR-ENG-001",
+    "notes": "بيانات تجريبية مبدئية — راجع وعدّل كل قيمة عبر وضع \"تعديل بيانات التتبع\" قبل الاعتماد.",
+    "createdAt": "2026-09-05T09:00:00.000Z",
+    "records": {
+      "tr01": [
+        {
+          "_id": "p_seed_eng_tr01_1",
+          "batchCode": "ENG-260904-01",
+          "productSize": "مشروبات طاقة – 250 مل",
+          "prodDate": "04/09/2026",
+          "mainSupplier": "مياه/مكونات وظيفية/منكهات",
+          "supplierBatch": "SUP-ENG-240903-B07",
+          "receivedDate": "03/09/2026",
+          "receivedQty": "كمية مرتبطة حسب سجل الاستلام",
+          "receiptStatus": "مقبول",
+          "packagingBatch": "PKG-ENG-0826-31",
+          "closureBatch": "CLS-ENG-0826-14",
+          "labelBatch": "LBL-ENG-0904-08",
+          "supervisor": "مسؤول الإنتاج/التعبئة – مثال",
+          "notes": "تم التحقق من مطابقة المواد وبيانات التشغيلة قبل بدء التشغيل"
+        }
+      ],
+      "tr02": [
+        {
+          "_id": "p_seed_eng_tr02_1",
+          "batchCode": "ENG-260904-01",
+          "customer": "عميل/موزع A",
+          "city": "الرياض",
+          "invoiceNo": "INV-06512",
+          "date": "04/09/2026",
+          "qty": "300",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_eng_tr02_2",
+          "batchCode": "ENG-260904-01",
+          "customer": "عميل/فرع B",
+          "city": "الخرج",
+          "invoiceNo": "INV-06518",
+          "date": "04/09/2026",
+          "qty": "250",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_eng_tr02_3",
+          "batchCode": "ENG-260904-01",
+          "customer": "متجر C",
+          "city": "الرياض",
+          "invoiceNo": "INV-06521",
+          "date": "05/09/2026",
+          "qty": "220",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_eng_tr02_4",
+          "batchCode": "ENG-260904-01",
+          "customer": "موزع D",
+          "city": "القصيم",
+          "invoiceNo": "INV-06527",
+          "date": "05/09/2026",
+          "qty": "210",
+          "contact": "05xxxxxxxx"
+        }
+      ],
+      "tr03": [
+        {
+          "_id": "p_seed_eng_tr03_1",
+          "incidentNo": "RC-ENG-2026-001",
+          "reportedAt": "05/09/2026 – 10:00",
+          "source": "مراجعة داخلية/نتيجة فحص/بلاغ مورد",
+          "hazardDesc": "خطأ جرعات أو بيان ملصق لمكون حساس",
+          "batchCode": "ENG-260904-01",
+          "isDistributed": "نعم",
+          "riskClass": "مرتفع",
+          "initialDecision": "إيقاف البيع + عزل التشغيلة + تفعيل الاستدعاء/الاختبار الوهمي",
+          "teamLeader": "________________",
+          "mgmtApproval": "________________"
+        }
+      ],
+      "tr04": [
+        {
+          "_id": "p_seed_eng_tr04_1",
+          "location": "مخزن المنتج النهائي",
+          "qtyOnHand": "220",
+          "holdStatus": "معزولة",
+          "holdTag": "نعم",
+          "responsible": "أمين المخزن",
+          "dateTime": "05/09/2026 – 10:15"
+        },
+        {
+          "_id": "p_seed_eng_tr04_2",
+          "location": "منطقة المرتجعات/الحجز",
+          "qtyOnHand": "0",
+          "holdStatus": "قيد المراجعة",
+          "holdTag": "نعم",
+          "responsible": "الجودة",
+          "dateTime": "05/09/2026 – 10:20"
+        }
+      ],
+      "tr05": [
+        {
+          "_id": "p_seed_eng_tr05_1",
+          "time": "10:25",
+          "party": "عميل/موزع A",
+          "channel": "هاتف + بريد",
+          "message": "إيقاف البيع وعزل 300 وحدة",
+          "response": "تم التأكيد 10:32",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_eng_tr05_2",
+          "time": "10:35",
+          "party": "عميل/فرع B",
+          "channel": "هاتف",
+          "message": "إيقاف وعزل 250 وحدة",
+          "response": "تم 10:45",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_eng_tr05_3",
+          "time": "10:40",
+          "party": "متجر C",
+          "channel": "هاتف + واتساب أعمال",
+          "message": "عزل 220 وحدة",
+          "response": "218 متاحة؛ 2 بيعت",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_eng_tr05_4",
+          "time": "10:50",
+          "party": "موزع D",
+          "channel": "هاتف",
+          "message": "إيقاف 210 وحدة قبل البيع",
+          "response": "تم 10:58",
+          "responsible": "المبيعات"
+        }
+      ],
+      "tr06": [
+        {
+          "_id": "p_seed_eng_tr06_1",
+          "item": "إنتاج التشغيلة",
+          "category": "إنتاج التشغيلة",
+          "qty": "1200",
+          "source": "سجل الإنتاج/التعبئة"
+        },
+        {
+          "_id": "p_seed_eng_tr06_2",
+          "item": "مخزون المنشأة",
+          "category": "مخزون المنشأة",
+          "qty": "220",
+          "source": "الجرد – مخزن المنتج النهائي"
+        },
+        {
+          "_id": "p_seed_eng_tr06_3",
+          "item": "موزع",
+          "category": "موزع",
+          "qty": "980",
+          "source": "الفواتير/أذونات التسليم"
+        },
+        {
+          "_id": "p_seed_eng_tr06_4",
+          "item": "مسترجع/موقوف",
+          "category": "مسترجع/موقوف",
+          "qty": "978",
+          "source": "تأكيدات العملاء"
+        },
+        {
+          "_id": "p_seed_eng_tr06_5",
+          "item": "وصل للمستهلك/غير مسترجع",
+          "category": "وصل للمستهلك/غير مسترجع",
+          "qty": "2",
+          "source": "إفادة متجر C"
+        }
+      ],
+      "tr07": [
+        {
+          "_id": "p_seed_eng_tr07_1",
+          "checkItem": "هل تم التواصل مع 100% من العملاء/الموزعين؟",
+          "result": "4/4",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_eng_tr07_2",
+          "checkItem": "هل تم تحديد الكميات لدى كل عميل؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_eng_tr07_3",
+          "checkItem": "هل توجد كميات غير محددة الموقع؟",
+          "result": "لا",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_eng_tr07_4",
+          "checkItem": "هل توجد كمية وصلت للمستهلك؟",
+          "result": "2 وحدة",
+          "verdict": "يحتاج متابعة"
+        },
+        {
+          "_id": "p_seed_eng_tr07_5",
+          "checkItem": "هل تم إيقاف البيع والحفاظ على شروط التخزين المعتمدة؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_eng_tr07_6",
+          "checkItem": "هل يمكن إغلاق الاستدعاء؟",
+          "result": "بعد تقييم الوحدات المباعة واعتماد CAPA",
+          "verdict": ""
+        }
+      ],
+      "tr08": [
+        {
+          "_id": "p_seed_eng_tr08_1",
+          "problem": "خطأ جرعات أو بيان ملصق لمكون حساس",
+          "rootCause": "قصور في خطوة تحقق/فحص قبل الإفراج أو نقص في الضوابط الوقائية",
+          "action": "تحديث نقطة التحقق وقائمة الفحص قبل الإفراج عن التشغيلة",
+          "responsible": "الجودة",
+          "dueDate": "10/09/2026",
+          "verification": "مراجعة أول 3 تشغيلات",
+          "status": "مفتوح"
+        },
+        {
+          "_id": "p_seed_eng_tr08_2",
+          "problem": "تأخر بسيط في تأكيد أحد العملاء",
+          "rootCause": "بيانات اتصال بديلة غير محدثة",
+          "action": "تحديث سجل العملاء وإضافة جهة اتصال بديلة",
+          "responsible": "المبيعات",
+          "dueDate": "07/09/2026",
+          "verification": "اختبار اتصال ربع سنوي",
+          "status": "قيد التنفيذ"
+        },
+        {
+          "_id": "p_seed_eng_tr08_3",
+          "problem": "الحاجة لتعزيز ربط الفواتير بالتشغيلة",
+          "rootCause": "إدخال رقم التشغيلة غير إلزامي في نموذج التسليم",
+          "action": "إضافة حقل إلزامي لرقم التشغيلة في التسليم",
+          "responsible": "الإدارة/IT",
+          "dueDate": "30/09/2026",
+          "verification": "تدقيق 10 فواتير",
+          "status": "مفتوح"
+        }
+      ],
+      "tr09": [
+        {
+          "_id": "p_seed_eng_tr09_1",
+          "testNo": "MR-ENG-2026-01",
+          "testDate": "05/09/2026",
+          "startTime": "10:00",
+          "traceCompleteTime": "11:20",
+          "commCompleteTime": "11:05",
+          "traceRate": "100",
+          "balanceRate": "100",
+          "controlRate": "100",
+          "overallResult": "ناجح مع فرص تحسين",
+          "keyImprovements": "",
+          "closureDecision": "تعزيز التحقق المرتبط بالخطر: خطأ جرعات أو بيان ملصق لمكون حساس – تحديث بيانات العملاء – ربط رقم التشغيلة بالفواتير"
+        }
+      ],
+      "tr10": [
+        {
+          "_id": "p_seed_eng_tr10_1",
+          "date": "",
+          "customerName": "",
+          "productName": "مشروبات طاقة",
+          "size": "250 مل",
+          "batchNo": "ENG-________",
+          "qtySent": "________ وحدة",
+          "reason": "خطأ جرعات أو بيان ملصق لمكون حساس",
+          "responsibleName": "",
+          "phone": ""
+        }
+      ],
+      "tr11": [
+        {
+          "_id": "p_seed_eng_tr11_1",
+          "item": "كل تشغيلة نهائية لمنتج مشروبات طاقة مرتبطة بالمادة/تشغيلة المورد الرئيسية",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_eng_tr11_2",
+          "item": "مواد التعبئة والملصقات مرتبطة بالتشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_eng_tr11_3",
+          "item": "كل فاتورة/إذن تسليم يحمل رقم التشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_eng_tr11_4",
+          "item": "بيانات اتصال العملاء والموزعين محدثة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_eng_tr11_5",
+          "item": "منطقة العزل والمرتجعات محددة ومناسبة لـ مخزن المنتج النهائي",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_eng_tr11_6",
+          "item": "فريق الاستدعاء وأرقام الاتصال معروفة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_eng_tr11_7",
+          "item": "النماذج TR-F01 إلى TR-F09 متاحة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_eng_tr11_8",
+          "item": "اختبار استدعاء وهمي منفذ ومراجع",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_eng_tr11_9",
+          "item": "CAPA للاختبار السابق مغلقة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_eng_tr11_10",
+          "item": "سجلات المرتجعات/التصرف النهائي وشروط التخزين محفوظة",
+          "yesNo": "",
+          "evidence": ""
+        }
+      ]
+    }
+  },
+  {
+    "id": "p_seed_srp",
+    "name": "شراب مركز وسيرب",
+    "category": "تصنيع وتعبئة",
+    "code": "TR-SRP-001",
+    "notes": "بيانات تجريبية مبدئية — راجع وعدّل كل قيمة عبر وضع \"تعديل بيانات التتبع\" قبل الاعتماد.",
+    "createdAt": "2026-09-05T09:00:00.000Z",
+    "records": {
+      "tr01": [
+        {
+          "_id": "p_seed_srp_tr01_1",
+          "batchCode": "SRP-260904-01",
+          "productSize": "شراب مركز وسيرب – 750 مل",
+          "prodDate": "04/09/2026",
+          "mainSupplier": "سكر/مركزات/منكهات",
+          "supplierBatch": "SUP-SRP-240903-B07",
+          "receivedDate": "03/09/2026",
+          "receivedQty": "كمية مرتبطة حسب سجل الاستلام",
+          "receiptStatus": "مقبول",
+          "packagingBatch": "PKG-SRP-0826-31",
+          "closureBatch": "CLS-SRP-0826-14",
+          "labelBatch": "LBL-SRP-0904-08",
+          "supervisor": "مسؤول الإنتاج/التعبئة – مثال",
+          "notes": "تم التحقق من مطابقة المواد وبيانات التشغيلة قبل بدء التشغيل"
+        }
+      ],
+      "tr02": [
+        {
+          "_id": "p_seed_srp_tr02_1",
+          "batchCode": "SRP-260904-01",
+          "customer": "عميل/موزع A",
+          "city": "الرياض",
+          "invoiceNo": "INV-07512",
+          "date": "04/09/2026",
+          "qty": "300",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_srp_tr02_2",
+          "batchCode": "SRP-260904-01",
+          "customer": "عميل/فرع B",
+          "city": "الخرج",
+          "invoiceNo": "INV-07518",
+          "date": "04/09/2026",
+          "qty": "250",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_srp_tr02_3",
+          "batchCode": "SRP-260904-01",
+          "customer": "متجر C",
+          "city": "الرياض",
+          "invoiceNo": "INV-07521",
+          "date": "05/09/2026",
+          "qty": "220",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_srp_tr02_4",
+          "batchCode": "SRP-260904-01",
+          "customer": "موزع D",
+          "city": "القصيم",
+          "invoiceNo": "INV-07527",
+          "date": "05/09/2026",
+          "qty": "210",
+          "contact": "05xxxxxxxx"
+        }
+      ],
+      "tr03": [
+        {
+          "_id": "p_seed_srp_tr03_1",
+          "incidentNo": "RC-SRP-2026-001",
+          "reportedAt": "05/09/2026 – 10:00",
+          "source": "مراجعة داخلية/نتيجة فحص/بلاغ مورد",
+          "hazardDesc": "تلوث أو جسم غريب/عدم إحكام الإغلاق",
+          "batchCode": "SRP-260904-01",
+          "isDistributed": "نعم",
+          "riskClass": "مرتفع",
+          "initialDecision": "إيقاف البيع + عزل التشغيلة + تفعيل الاستدعاء/الاختبار الوهمي",
+          "teamLeader": "________________",
+          "mgmtApproval": "________________"
+        }
+      ],
+      "tr04": [
+        {
+          "_id": "p_seed_srp_tr04_1",
+          "location": "مخزن المنتج النهائي",
+          "qtyOnHand": "220",
+          "holdStatus": "معزولة",
+          "holdTag": "نعم",
+          "responsible": "أمين المخزن",
+          "dateTime": "05/09/2026 – 10:15"
+        },
+        {
+          "_id": "p_seed_srp_tr04_2",
+          "location": "منطقة المرتجعات/الحجز",
+          "qtyOnHand": "0",
+          "holdStatus": "قيد المراجعة",
+          "holdTag": "نعم",
+          "responsible": "الجودة",
+          "dateTime": "05/09/2026 – 10:20"
+        }
+      ],
+      "tr05": [
+        {
+          "_id": "p_seed_srp_tr05_1",
+          "time": "10:25",
+          "party": "عميل/موزع A",
+          "channel": "هاتف + بريد",
+          "message": "إيقاف البيع وعزل 300 وحدة",
+          "response": "تم التأكيد 10:32",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_srp_tr05_2",
+          "time": "10:35",
+          "party": "عميل/فرع B",
+          "channel": "هاتف",
+          "message": "إيقاف وعزل 250 وحدة",
+          "response": "تم 10:45",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_srp_tr05_3",
+          "time": "10:40",
+          "party": "متجر C",
+          "channel": "هاتف + واتساب أعمال",
+          "message": "عزل 220 وحدة",
+          "response": "218 متاحة؛ 2 بيعت",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_srp_tr05_4",
+          "time": "10:50",
+          "party": "موزع D",
+          "channel": "هاتف",
+          "message": "إيقاف 210 وحدة قبل البيع",
+          "response": "تم 10:58",
+          "responsible": "المبيعات"
+        }
+      ],
+      "tr06": [
+        {
+          "_id": "p_seed_srp_tr06_1",
+          "item": "إنتاج التشغيلة",
+          "category": "إنتاج التشغيلة",
+          "qty": "1200",
+          "source": "سجل الإنتاج/التعبئة"
+        },
+        {
+          "_id": "p_seed_srp_tr06_2",
+          "item": "مخزون المنشأة",
+          "category": "مخزون المنشأة",
+          "qty": "220",
+          "source": "الجرد – مخزن المنتج النهائي"
+        },
+        {
+          "_id": "p_seed_srp_tr06_3",
+          "item": "موزع",
+          "category": "موزع",
+          "qty": "980",
+          "source": "الفواتير/أذونات التسليم"
+        },
+        {
+          "_id": "p_seed_srp_tr06_4",
+          "item": "مسترجع/موقوف",
+          "category": "مسترجع/موقوف",
+          "qty": "978",
+          "source": "تأكيدات العملاء"
+        },
+        {
+          "_id": "p_seed_srp_tr06_5",
+          "item": "وصل للمستهلك/غير مسترجع",
+          "category": "وصل للمستهلك/غير مسترجع",
+          "qty": "2",
+          "source": "إفادة متجر C"
+        }
+      ],
+      "tr07": [
+        {
+          "_id": "p_seed_srp_tr07_1",
+          "checkItem": "هل تم التواصل مع 100% من العملاء/الموزعين؟",
+          "result": "4/4",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_srp_tr07_2",
+          "checkItem": "هل تم تحديد الكميات لدى كل عميل؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_srp_tr07_3",
+          "checkItem": "هل توجد كميات غير محددة الموقع؟",
+          "result": "لا",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_srp_tr07_4",
+          "checkItem": "هل توجد كمية وصلت للمستهلك؟",
+          "result": "2 وحدة",
+          "verdict": "يحتاج متابعة"
+        },
+        {
+          "_id": "p_seed_srp_tr07_5",
+          "checkItem": "هل تم إيقاف البيع والحفاظ على شروط التخزين المعتمدة؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_srp_tr07_6",
+          "checkItem": "هل يمكن إغلاق الاستدعاء؟",
+          "result": "بعد تقييم الوحدات المباعة واعتماد CAPA",
+          "verdict": ""
+        }
+      ],
+      "tr08": [
+        {
+          "_id": "p_seed_srp_tr08_1",
+          "problem": "تلوث أو جسم غريب/عدم إحكام الإغلاق",
+          "rootCause": "قصور في خطوة تحقق/فحص قبل الإفراج أو نقص في الضوابط الوقائية",
+          "action": "تحديث نقطة التحقق وقائمة الفحص قبل الإفراج عن التشغيلة",
+          "responsible": "الجودة",
+          "dueDate": "10/09/2026",
+          "verification": "مراجعة أول 3 تشغيلات",
+          "status": "مفتوح"
+        },
+        {
+          "_id": "p_seed_srp_tr08_2",
+          "problem": "تأخر بسيط في تأكيد أحد العملاء",
+          "rootCause": "بيانات اتصال بديلة غير محدثة",
+          "action": "تحديث سجل العملاء وإضافة جهة اتصال بديلة",
+          "responsible": "المبيعات",
+          "dueDate": "07/09/2026",
+          "verification": "اختبار اتصال ربع سنوي",
+          "status": "قيد التنفيذ"
+        },
+        {
+          "_id": "p_seed_srp_tr08_3",
+          "problem": "الحاجة لتعزيز ربط الفواتير بالتشغيلة",
+          "rootCause": "إدخال رقم التشغيلة غير إلزامي في نموذج التسليم",
+          "action": "إضافة حقل إلزامي لرقم التشغيلة في التسليم",
+          "responsible": "الإدارة/IT",
+          "dueDate": "30/09/2026",
+          "verification": "تدقيق 10 فواتير",
+          "status": "مفتوح"
+        }
+      ],
+      "tr09": [
+        {
+          "_id": "p_seed_srp_tr09_1",
+          "testNo": "MR-SRP-2026-01",
+          "testDate": "05/09/2026",
+          "startTime": "10:00",
+          "traceCompleteTime": "11:20",
+          "commCompleteTime": "11:05",
+          "traceRate": "100",
+          "balanceRate": "100",
+          "controlRate": "100",
+          "overallResult": "ناجح مع فرص تحسين",
+          "keyImprovements": "",
+          "closureDecision": "تعزيز التحقق المرتبط بالخطر: تلوث أو جسم غريب/عدم إحكام الإغلاق – تحديث بيانات العملاء – ربط رقم التشغيلة بالفواتير"
+        }
+      ],
+      "tr10": [
+        {
+          "_id": "p_seed_srp_tr10_1",
+          "date": "",
+          "customerName": "",
+          "productName": "شراب مركز وسيرب",
+          "size": "750 مل",
+          "batchNo": "SRP-________",
+          "qtySent": "________ وحدة",
+          "reason": "تلوث أو جسم غريب/عدم إحكام الإغلاق",
+          "responsibleName": "",
+          "phone": ""
+        }
+      ],
+      "tr11": [
+        {
+          "_id": "p_seed_srp_tr11_1",
+          "item": "كل تشغيلة نهائية لمنتج شراب مركز وسيرب مرتبطة بالمادة/تشغيلة المورد الرئيسية",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_srp_tr11_2",
+          "item": "مواد التعبئة والملصقات مرتبطة بالتشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_srp_tr11_3",
+          "item": "كل فاتورة/إذن تسليم يحمل رقم التشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_srp_tr11_4",
+          "item": "بيانات اتصال العملاء والموزعين محدثة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_srp_tr11_5",
+          "item": "منطقة العزل والمرتجعات محددة ومناسبة لـ مخزن المنتج النهائي",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_srp_tr11_6",
+          "item": "فريق الاستدعاء وأرقام الاتصال معروفة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_srp_tr11_7",
+          "item": "النماذج TR-F01 إلى TR-F09 متاحة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_srp_tr11_8",
+          "item": "اختبار استدعاء وهمي منفذ ومراجع",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_srp_tr11_9",
+          "item": "CAPA للاختبار السابق مغلقة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_srp_tr11_10",
+          "item": "سجلات المرتجعات/التصرف النهائي وشروط التخزين محفوظة",
+          "yesNo": "",
+          "evidence": ""
+        }
+      ]
+    }
+  },
+  {
+    "id": "p_seed_mlt",
+    "name": "مشروب شعير غير كحولي",
+    "category": "تصنيع وتعبئة",
+    "code": "TR-MLT-001",
+    "notes": "بيانات تجريبية مبدئية — راجع وعدّل كل قيمة عبر وضع \"تعديل بيانات التتبع\" قبل الاعتماد.",
+    "createdAt": "2026-09-05T09:00:00.000Z",
+    "records": {
+      "tr01": [
+        {
+          "_id": "p_seed_mlt_tr01_1",
+          "batchCode": "MLT-260904-01",
+          "productSize": "مشروب شعير غير كحولي – 330 مل",
+          "prodDate": "04/09/2026",
+          "mainSupplier": "مستخلص شعير/مياه/منكهات",
+          "supplierBatch": "SUP-MLT-240903-B07",
+          "receivedDate": "03/09/2026",
+          "receivedQty": "كمية مرتبطة حسب سجل الاستلام",
+          "receiptStatus": "مقبول",
+          "packagingBatch": "PKG-MLT-0826-31",
+          "closureBatch": "CLS-MLT-0826-14",
+          "labelBatch": "LBL-MLT-0904-08",
+          "supervisor": "مسؤول الإنتاج/التعبئة – مثال",
+          "notes": "تم التحقق من مطابقة المواد وبيانات التشغيلة قبل بدء التشغيل"
+        }
+      ],
+      "tr02": [
+        {
+          "_id": "p_seed_mlt_tr02_1",
+          "batchCode": "MLT-260904-01",
+          "customer": "عميل/موزع A",
+          "city": "الرياض",
+          "invoiceNo": "INV-08512",
+          "date": "04/09/2026",
+          "qty": "300",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_mlt_tr02_2",
+          "batchCode": "MLT-260904-01",
+          "customer": "عميل/فرع B",
+          "city": "الخرج",
+          "invoiceNo": "INV-08518",
+          "date": "04/09/2026",
+          "qty": "250",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_mlt_tr02_3",
+          "batchCode": "MLT-260904-01",
+          "customer": "متجر C",
+          "city": "الرياض",
+          "invoiceNo": "INV-08521",
+          "date": "05/09/2026",
+          "qty": "220",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_mlt_tr02_4",
+          "batchCode": "MLT-260904-01",
+          "customer": "موزع D",
+          "city": "القصيم",
+          "invoiceNo": "INV-08527",
+          "date": "05/09/2026",
+          "qty": "210",
+          "contact": "05xxxxxxxx"
+        }
+      ],
+      "tr03": [
+        {
+          "_id": "p_seed_mlt_tr03_1",
+          "incidentNo": "RC-MLT-2026-001",
+          "reportedAt": "05/09/2026 – 10:00",
+          "source": "مراجعة داخلية/نتيجة فحص/بلاغ مورد",
+          "hazardDesc": "انحراف في المعالجة الحرارية أو سلامة العبوة",
+          "batchCode": "MLT-260904-01",
+          "isDistributed": "نعم",
+          "riskClass": "مرتفع",
+          "initialDecision": "إيقاف البيع + عزل التشغيلة + تفعيل الاستدعاء/الاختبار الوهمي",
+          "teamLeader": "________________",
+          "mgmtApproval": "________________"
+        }
+      ],
+      "tr04": [
+        {
+          "_id": "p_seed_mlt_tr04_1",
+          "location": "مخزن المنتج النهائي",
+          "qtyOnHand": "220",
+          "holdStatus": "معزولة",
+          "holdTag": "نعم",
+          "responsible": "أمين المخزن",
+          "dateTime": "05/09/2026 – 10:15"
+        },
+        {
+          "_id": "p_seed_mlt_tr04_2",
+          "location": "منطقة المرتجعات/الحجز",
+          "qtyOnHand": "0",
+          "holdStatus": "قيد المراجعة",
+          "holdTag": "نعم",
+          "responsible": "الجودة",
+          "dateTime": "05/09/2026 – 10:20"
+        }
+      ],
+      "tr05": [
+        {
+          "_id": "p_seed_mlt_tr05_1",
+          "time": "10:25",
+          "party": "عميل/موزع A",
+          "channel": "هاتف + بريد",
+          "message": "إيقاف البيع وعزل 300 وحدة",
+          "response": "تم التأكيد 10:32",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_mlt_tr05_2",
+          "time": "10:35",
+          "party": "عميل/فرع B",
+          "channel": "هاتف",
+          "message": "إيقاف وعزل 250 وحدة",
+          "response": "تم 10:45",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_mlt_tr05_3",
+          "time": "10:40",
+          "party": "متجر C",
+          "channel": "هاتف + واتساب أعمال",
+          "message": "عزل 220 وحدة",
+          "response": "218 متاحة؛ 2 بيعت",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_mlt_tr05_4",
+          "time": "10:50",
+          "party": "موزع D",
+          "channel": "هاتف",
+          "message": "إيقاف 210 وحدة قبل البيع",
+          "response": "تم 10:58",
+          "responsible": "المبيعات"
+        }
+      ],
+      "tr06": [
+        {
+          "_id": "p_seed_mlt_tr06_1",
+          "item": "إنتاج التشغيلة",
+          "category": "إنتاج التشغيلة",
+          "qty": "1200",
+          "source": "سجل الإنتاج/التعبئة"
+        },
+        {
+          "_id": "p_seed_mlt_tr06_2",
+          "item": "مخزون المنشأة",
+          "category": "مخزون المنشأة",
+          "qty": "220",
+          "source": "الجرد – مخزن المنتج النهائي"
+        },
+        {
+          "_id": "p_seed_mlt_tr06_3",
+          "item": "موزع",
+          "category": "موزع",
+          "qty": "980",
+          "source": "الفواتير/أذونات التسليم"
+        },
+        {
+          "_id": "p_seed_mlt_tr06_4",
+          "item": "مسترجع/موقوف",
+          "category": "مسترجع/موقوف",
+          "qty": "978",
+          "source": "تأكيدات العملاء"
+        },
+        {
+          "_id": "p_seed_mlt_tr06_5",
+          "item": "وصل للمستهلك/غير مسترجع",
+          "category": "وصل للمستهلك/غير مسترجع",
+          "qty": "2",
+          "source": "إفادة متجر C"
+        }
+      ],
+      "tr07": [
+        {
+          "_id": "p_seed_mlt_tr07_1",
+          "checkItem": "هل تم التواصل مع 100% من العملاء/الموزعين؟",
+          "result": "4/4",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_mlt_tr07_2",
+          "checkItem": "هل تم تحديد الكميات لدى كل عميل؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_mlt_tr07_3",
+          "checkItem": "هل توجد كميات غير محددة الموقع؟",
+          "result": "لا",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_mlt_tr07_4",
+          "checkItem": "هل توجد كمية وصلت للمستهلك؟",
+          "result": "2 وحدة",
+          "verdict": "يحتاج متابعة"
+        },
+        {
+          "_id": "p_seed_mlt_tr07_5",
+          "checkItem": "هل تم إيقاف البيع والحفاظ على شروط التخزين المعتمدة؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_mlt_tr07_6",
+          "checkItem": "هل يمكن إغلاق الاستدعاء؟",
+          "result": "بعد تقييم الوحدات المباعة واعتماد CAPA",
+          "verdict": ""
+        }
+      ],
+      "tr08": [
+        {
+          "_id": "p_seed_mlt_tr08_1",
+          "problem": "انحراف في المعالجة الحرارية أو سلامة العبوة",
+          "rootCause": "قصور في خطوة تحقق/فحص قبل الإفراج أو نقص في الضوابط الوقائية",
+          "action": "تحديث نقطة التحقق وقائمة الفحص قبل الإفراج عن التشغيلة",
+          "responsible": "الجودة",
+          "dueDate": "10/09/2026",
+          "verification": "مراجعة أول 3 تشغيلات",
+          "status": "مفتوح"
+        },
+        {
+          "_id": "p_seed_mlt_tr08_2",
+          "problem": "تأخر بسيط في تأكيد أحد العملاء",
+          "rootCause": "بيانات اتصال بديلة غير محدثة",
+          "action": "تحديث سجل العملاء وإضافة جهة اتصال بديلة",
+          "responsible": "المبيعات",
+          "dueDate": "07/09/2026",
+          "verification": "اختبار اتصال ربع سنوي",
+          "status": "قيد التنفيذ"
+        },
+        {
+          "_id": "p_seed_mlt_tr08_3",
+          "problem": "الحاجة لتعزيز ربط الفواتير بالتشغيلة",
+          "rootCause": "إدخال رقم التشغيلة غير إلزامي في نموذج التسليم",
+          "action": "إضافة حقل إلزامي لرقم التشغيلة في التسليم",
+          "responsible": "الإدارة/IT",
+          "dueDate": "30/09/2026",
+          "verification": "تدقيق 10 فواتير",
+          "status": "مفتوح"
+        }
+      ],
+      "tr09": [
+        {
+          "_id": "p_seed_mlt_tr09_1",
+          "testNo": "MR-MLT-2026-01",
+          "testDate": "05/09/2026",
+          "startTime": "10:00",
+          "traceCompleteTime": "11:20",
+          "commCompleteTime": "11:05",
+          "traceRate": "100",
+          "balanceRate": "100",
+          "controlRate": "100",
+          "overallResult": "ناجح مع فرص تحسين",
+          "keyImprovements": "",
+          "closureDecision": "تعزيز التحقق المرتبط بالخطر: انحراف في المعالجة الحرارية أو سلامة العبوة – تحديث بيانات العملاء – ربط رقم التشغيلة بالفواتير"
+        }
+      ],
+      "tr10": [
+        {
+          "_id": "p_seed_mlt_tr10_1",
+          "date": "",
+          "customerName": "",
+          "productName": "مشروب شعير غير كحولي",
+          "size": "330 مل",
+          "batchNo": "MLT-________",
+          "qtySent": "________ وحدة",
+          "reason": "انحراف في المعالجة الحرارية أو سلامة العبوة",
+          "responsibleName": "",
+          "phone": ""
+        }
+      ],
+      "tr11": [
+        {
+          "_id": "p_seed_mlt_tr11_1",
+          "item": "كل تشغيلة نهائية لمنتج مشروب شعير غير كحولي مرتبطة بالمادة/تشغيلة المورد الرئيسية",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_mlt_tr11_2",
+          "item": "مواد التعبئة والملصقات مرتبطة بالتشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_mlt_tr11_3",
+          "item": "كل فاتورة/إذن تسليم يحمل رقم التشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_mlt_tr11_4",
+          "item": "بيانات اتصال العملاء والموزعين محدثة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_mlt_tr11_5",
+          "item": "منطقة العزل والمرتجعات محددة ومناسبة لـ مخزن المنتج النهائي",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_mlt_tr11_6",
+          "item": "فريق الاستدعاء وأرقام الاتصال معروفة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_mlt_tr11_7",
+          "item": "النماذج TR-F01 إلى TR-F09 متاحة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_mlt_tr11_8",
+          "item": "اختبار استدعاء وهمي منفذ ومراجع",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_mlt_tr11_9",
+          "item": "CAPA للاختبار السابق مغلقة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_mlt_tr11_10",
+          "item": "سجلات المرتجعات/التصرف النهائي وشروط التخزين محفوظة",
+          "yesNo": "",
+          "evidence": ""
+        }
+      ]
+    }
+  },
+  {
+    "id": "p_seed_rdc",
+    "name": "قهوة جاهزة للشرب",
+    "category": "تصنيع وتعبئة",
+    "code": "TR-RDC-001",
+    "notes": "بيانات تجريبية مبدئية — راجع وعدّل كل قيمة عبر وضع \"تعديل بيانات التتبع\" قبل الاعتماد.",
+    "createdAt": "2026-09-05T09:00:00.000Z",
+    "records": {
+      "tr01": [
+        {
+          "_id": "p_seed_rdc_tr01_1",
+          "batchCode": "RDC-260904-01",
+          "productSize": "قهوة جاهزة للشرب – 250 مل",
+          "prodDate": "04/09/2026",
+          "mainSupplier": "قهوة/مياه/مكونات إضافية",
+          "supplierBatch": "SUP-RDC-240903-B07",
+          "receivedDate": "03/09/2026",
+          "receivedQty": "كمية مرتبطة حسب سجل الاستلام",
+          "receiptStatus": "مقبول",
+          "packagingBatch": "PKG-RDC-0826-31",
+          "closureBatch": "CLS-RDC-0826-14",
+          "labelBatch": "LBL-RDC-0904-08",
+          "supervisor": "مسؤول الإنتاج/التعبئة – مثال",
+          "notes": "تم التحقق من مطابقة المواد وبيانات التشغيلة قبل بدء التشغيل"
+        }
+      ],
+      "tr02": [
+        {
+          "_id": "p_seed_rdc_tr02_1",
+          "batchCode": "RDC-260904-01",
+          "customer": "عميل/موزع A",
+          "city": "الرياض",
+          "invoiceNo": "INV-09512",
+          "date": "04/09/2026",
+          "qty": "300",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_rdc_tr02_2",
+          "batchCode": "RDC-260904-01",
+          "customer": "عميل/فرع B",
+          "city": "الخرج",
+          "invoiceNo": "INV-09518",
+          "date": "04/09/2026",
+          "qty": "250",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_rdc_tr02_3",
+          "batchCode": "RDC-260904-01",
+          "customer": "متجر C",
+          "city": "الرياض",
+          "invoiceNo": "INV-09521",
+          "date": "05/09/2026",
+          "qty": "220",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_rdc_tr02_4",
+          "batchCode": "RDC-260904-01",
+          "customer": "موزع D",
+          "city": "القصيم",
+          "invoiceNo": "INV-09527",
+          "date": "05/09/2026",
+          "qty": "210",
+          "contact": "05xxxxxxxx"
+        }
+      ],
+      "tr03": [
+        {
+          "_id": "p_seed_rdc_tr03_1",
+          "incidentNo": "RC-RDC-2026-001",
+          "reportedAt": "05/09/2026 – 10:00",
+          "source": "مراجعة داخلية/نتيجة فحص/بلاغ مورد",
+          "hazardDesc": "انحراف حراري أو بيان حساسية غير مكتمل عند وجود الحليب",
+          "batchCode": "RDC-260904-01",
+          "isDistributed": "نعم",
+          "riskClass": "مرتفع",
+          "initialDecision": "إيقاف البيع + عزل التشغيلة + تفعيل الاستدعاء/الاختبار الوهمي",
+          "teamLeader": "________________",
+          "mgmtApproval": "________________"
+        }
+      ],
+      "tr04": [
+        {
+          "_id": "p_seed_rdc_tr04_1",
+          "location": "مخزن مبرد/نهائي",
+          "qtyOnHand": "220",
+          "holdStatus": "معزولة",
+          "holdTag": "نعم",
+          "responsible": "أمين المخزن",
+          "dateTime": "05/09/2026 – 10:15"
+        },
+        {
+          "_id": "p_seed_rdc_tr04_2",
+          "location": "منطقة المرتجعات/الحجز",
+          "qtyOnHand": "0",
+          "holdStatus": "قيد المراجعة",
+          "holdTag": "نعم",
+          "responsible": "الجودة",
+          "dateTime": "05/09/2026 – 10:20"
+        }
+      ],
+      "tr05": [
+        {
+          "_id": "p_seed_rdc_tr05_1",
+          "time": "10:25",
+          "party": "عميل/موزع A",
+          "channel": "هاتف + بريد",
+          "message": "إيقاف البيع وعزل 300 وحدة",
+          "response": "تم التأكيد 10:32",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_rdc_tr05_2",
+          "time": "10:35",
+          "party": "عميل/فرع B",
+          "channel": "هاتف",
+          "message": "إيقاف وعزل 250 وحدة",
+          "response": "تم 10:45",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_rdc_tr05_3",
+          "time": "10:40",
+          "party": "متجر C",
+          "channel": "هاتف + واتساب أعمال",
+          "message": "عزل 220 وحدة",
+          "response": "218 متاحة؛ 2 بيعت",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_rdc_tr05_4",
+          "time": "10:50",
+          "party": "موزع D",
+          "channel": "هاتف",
+          "message": "إيقاف 210 وحدة قبل البيع",
+          "response": "تم 10:58",
+          "responsible": "المبيعات"
+        }
+      ],
+      "tr06": [
+        {
+          "_id": "p_seed_rdc_tr06_1",
+          "item": "إنتاج التشغيلة",
+          "category": "إنتاج التشغيلة",
+          "qty": "1200",
+          "source": "سجل الإنتاج/التعبئة"
+        },
+        {
+          "_id": "p_seed_rdc_tr06_2",
+          "item": "مخزون المنشأة",
+          "category": "مخزون المنشأة",
+          "qty": "220",
+          "source": "الجرد – مخزن مبرد/نهائي"
+        },
+        {
+          "_id": "p_seed_rdc_tr06_3",
+          "item": "موزع",
+          "category": "موزع",
+          "qty": "980",
+          "source": "الفواتير/أذونات التسليم"
+        },
+        {
+          "_id": "p_seed_rdc_tr06_4",
+          "item": "مسترجع/موقوف",
+          "category": "مسترجع/موقوف",
+          "qty": "978",
+          "source": "تأكيدات العملاء"
+        },
+        {
+          "_id": "p_seed_rdc_tr06_5",
+          "item": "وصل للمستهلك/غير مسترجع",
+          "category": "وصل للمستهلك/غير مسترجع",
+          "qty": "2",
+          "source": "إفادة متجر C"
+        }
+      ],
+      "tr07": [
+        {
+          "_id": "p_seed_rdc_tr07_1",
+          "checkItem": "هل تم التواصل مع 100% من العملاء/الموزعين؟",
+          "result": "4/4",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_rdc_tr07_2",
+          "checkItem": "هل تم تحديد الكميات لدى كل عميل؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_rdc_tr07_3",
+          "checkItem": "هل توجد كميات غير محددة الموقع؟",
+          "result": "لا",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_rdc_tr07_4",
+          "checkItem": "هل توجد كمية وصلت للمستهلك؟",
+          "result": "2 وحدة",
+          "verdict": "يحتاج متابعة"
+        },
+        {
+          "_id": "p_seed_rdc_tr07_5",
+          "checkItem": "هل تم إيقاف البيع والمحافظة على سلسلة التبريد/التجميد؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_rdc_tr07_6",
+          "checkItem": "هل يمكن إغلاق الاستدعاء؟",
+          "result": "بعد تقييم الوحدات المباعة واعتماد CAPA",
+          "verdict": ""
+        }
+      ],
+      "tr08": [
+        {
+          "_id": "p_seed_rdc_tr08_1",
+          "problem": "انحراف حراري أو بيان حساسية غير مكتمل عند وجود الحليب",
+          "rootCause": "قصور في خطوة تحقق/فحص قبل الإفراج أو نقص في الضوابط الوقائية",
+          "action": "تحديث نقطة التحقق وقائمة الفحص قبل الإفراج عن التشغيلة",
+          "responsible": "الجودة",
+          "dueDate": "10/09/2026",
+          "verification": "مراجعة أول 3 تشغيلات",
+          "status": "مفتوح"
+        },
+        {
+          "_id": "p_seed_rdc_tr08_2",
+          "problem": "تأخر بسيط في تأكيد أحد العملاء",
+          "rootCause": "بيانات اتصال بديلة غير محدثة",
+          "action": "تحديث سجل العملاء وإضافة جهة اتصال بديلة",
+          "responsible": "المبيعات",
+          "dueDate": "07/09/2026",
+          "verification": "اختبار اتصال ربع سنوي",
+          "status": "قيد التنفيذ"
+        },
+        {
+          "_id": "p_seed_rdc_tr08_3",
+          "problem": "الحاجة لتعزيز ربط الفواتير بالتشغيلة",
+          "rootCause": "إدخال رقم التشغيلة غير إلزامي في نموذج التسليم",
+          "action": "إضافة حقل إلزامي لرقم التشغيلة في التسليم",
+          "responsible": "الإدارة/IT",
+          "dueDate": "30/09/2026",
+          "verification": "تدقيق 10 فواتير",
+          "status": "مفتوح"
+        }
+      ],
+      "tr09": [
+        {
+          "_id": "p_seed_rdc_tr09_1",
+          "testNo": "MR-RDC-2026-01",
+          "testDate": "05/09/2026",
+          "startTime": "10:00",
+          "traceCompleteTime": "11:20",
+          "commCompleteTime": "11:05",
+          "traceRate": "100",
+          "balanceRate": "100",
+          "controlRate": "100",
+          "overallResult": "ناجح مع فرص تحسين",
+          "keyImprovements": "",
+          "closureDecision": "تعزيز التحقق المرتبط بالخطر: انحراف حراري أو بيان حساسية غير مكتمل عند وجود الحليب – تحديث بيانات العملاء – ربط رقم التشغيلة بالفواتير"
+        }
+      ],
+      "tr10": [
+        {
+          "_id": "p_seed_rdc_tr10_1",
+          "date": "",
+          "customerName": "",
+          "productName": "قهوة جاهزة للشرب",
+          "size": "250 مل",
+          "batchNo": "RDC-________",
+          "qtySent": "________ وحدة",
+          "reason": "انحراف حراري أو بيان حساسية غير مكتمل عند وجود الحليب",
+          "responsibleName": "",
+          "phone": ""
+        }
+      ],
+      "tr11": [
+        {
+          "_id": "p_seed_rdc_tr11_1",
+          "item": "كل تشغيلة نهائية لمنتج قهوة جاهزة للشرب مرتبطة بالمادة/تشغيلة المورد الرئيسية",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_rdc_tr11_2",
+          "item": "مواد التعبئة والملصقات مرتبطة بالتشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_rdc_tr11_3",
+          "item": "كل فاتورة/إذن تسليم يحمل رقم التشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_rdc_tr11_4",
+          "item": "بيانات اتصال العملاء والموزعين محدثة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_rdc_tr11_5",
+          "item": "منطقة العزل والمرتجعات محددة ومناسبة لـ مخزن مبرد/نهائي",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_rdc_tr11_6",
+          "item": "فريق الاستدعاء وأرقام الاتصال معروفة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_rdc_tr11_7",
+          "item": "النماذج TR-F01 إلى TR-F09 متاحة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_rdc_tr11_8",
+          "item": "اختبار استدعاء وهمي منفذ ومراجع",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_rdc_tr11_9",
+          "item": "CAPA للاختبار السابق مغلقة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_rdc_tr11_10",
+          "item": "سجلات المرتجعات/التصرف النهائي وشروط التخزين محفوظة",
+          "yesNo": "",
+          "evidence": ""
+        }
+      ]
+    }
+  },
+  {
+    "id": "p_seed_ict",
+    "name": "شاي مثلج جاهز للشرب",
+    "category": "تصنيع وتعبئة",
+    "code": "TR-ICT-001",
+    "notes": "بيانات تجريبية مبدئية — راجع وعدّل كل قيمة عبر وضع \"تعديل بيانات التتبع\" قبل الاعتماد.",
+    "createdAt": "2026-09-05T09:00:00.000Z",
+    "records": {
+      "tr01": [
+        {
+          "_id": "p_seed_ict_tr01_1",
+          "batchCode": "ICT-260904-01",
+          "productSize": "شاي مثلج جاهز للشرب – 250 مل",
+          "prodDate": "04/09/2026",
+          "mainSupplier": "شاي/مياه/سكر",
+          "supplierBatch": "SUP-ICT-240903-B07",
+          "receivedDate": "03/09/2026",
+          "receivedQty": "كمية مرتبطة حسب سجل الاستلام",
+          "receiptStatus": "مقبول",
+          "packagingBatch": "PKG-ICT-0826-31",
+          "closureBatch": "CLS-ICT-0826-14",
+          "labelBatch": "LBL-ICT-0904-08",
+          "supervisor": "مسؤول الإنتاج/التعبئة – مثال",
+          "notes": "تم التحقق من مطابقة المواد وبيانات التشغيلة قبل بدء التشغيل"
+        }
+      ],
+      "tr02": [
+        {
+          "_id": "p_seed_ict_tr02_1",
+          "batchCode": "ICT-260904-01",
+          "customer": "عميل/موزع A",
+          "city": "الرياض",
+          "invoiceNo": "INV-10512",
+          "date": "04/09/2026",
+          "qty": "300",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_ict_tr02_2",
+          "batchCode": "ICT-260904-01",
+          "customer": "عميل/فرع B",
+          "city": "الخرج",
+          "invoiceNo": "INV-10518",
+          "date": "04/09/2026",
+          "qty": "250",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_ict_tr02_3",
+          "batchCode": "ICT-260904-01",
+          "customer": "متجر C",
+          "city": "الرياض",
+          "invoiceNo": "INV-10521",
+          "date": "05/09/2026",
+          "qty": "220",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_ict_tr02_4",
+          "batchCode": "ICT-260904-01",
+          "customer": "موزع D",
+          "city": "القصيم",
+          "invoiceNo": "INV-10527",
+          "date": "05/09/2026",
+          "qty": "210",
+          "contact": "05xxxxxxxx"
+        }
+      ],
+      "tr03": [
+        {
+          "_id": "p_seed_ict_tr03_1",
+          "incidentNo": "RC-ICT-2026-001",
+          "reportedAt": "05/09/2026 – 10:00",
+          "source": "مراجعة داخلية/نتيجة فحص/بلاغ مورد",
+          "hazardDesc": "انحراف في المعالجة الحرارية أو سلامة الإغلاق",
+          "batchCode": "ICT-260904-01",
+          "isDistributed": "نعم",
+          "riskClass": "مرتفع",
+          "initialDecision": "إيقاف البيع + عزل التشغيلة + تفعيل الاستدعاء/الاختبار الوهمي",
+          "teamLeader": "________________",
+          "mgmtApproval": "________________"
+        }
+      ],
+      "tr04": [
+        {
+          "_id": "p_seed_ict_tr04_1",
+          "location": "مخزن المنتج النهائي",
+          "qtyOnHand": "220",
+          "holdStatus": "معزولة",
+          "holdTag": "نعم",
+          "responsible": "أمين المخزن",
+          "dateTime": "05/09/2026 – 10:15"
+        },
+        {
+          "_id": "p_seed_ict_tr04_2",
+          "location": "منطقة المرتجعات/الحجز",
+          "qtyOnHand": "0",
+          "holdStatus": "قيد المراجعة",
+          "holdTag": "نعم",
+          "responsible": "الجودة",
+          "dateTime": "05/09/2026 – 10:20"
+        }
+      ],
+      "tr05": [
+        {
+          "_id": "p_seed_ict_tr05_1",
+          "time": "10:25",
+          "party": "عميل/موزع A",
+          "channel": "هاتف + بريد",
+          "message": "إيقاف البيع وعزل 300 وحدة",
+          "response": "تم التأكيد 10:32",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_ict_tr05_2",
+          "time": "10:35",
+          "party": "عميل/فرع B",
+          "channel": "هاتف",
+          "message": "إيقاف وعزل 250 وحدة",
+          "response": "تم 10:45",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_ict_tr05_3",
+          "time": "10:40",
+          "party": "متجر C",
+          "channel": "هاتف + واتساب أعمال",
+          "message": "عزل 220 وحدة",
+          "response": "218 متاحة؛ 2 بيعت",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_ict_tr05_4",
+          "time": "10:50",
+          "party": "موزع D",
+          "channel": "هاتف",
+          "message": "إيقاف 210 وحدة قبل البيع",
+          "response": "تم 10:58",
+          "responsible": "المبيعات"
+        }
+      ],
+      "tr06": [
+        {
+          "_id": "p_seed_ict_tr06_1",
+          "item": "إنتاج التشغيلة",
+          "category": "إنتاج التشغيلة",
+          "qty": "1200",
+          "source": "سجل الإنتاج/التعبئة"
+        },
+        {
+          "_id": "p_seed_ict_tr06_2",
+          "item": "مخزون المنشأة",
+          "category": "مخزون المنشأة",
+          "qty": "220",
+          "source": "الجرد – مخزن المنتج النهائي"
+        },
+        {
+          "_id": "p_seed_ict_tr06_3",
+          "item": "موزع",
+          "category": "موزع",
+          "qty": "980",
+          "source": "الفواتير/أذونات التسليم"
+        },
+        {
+          "_id": "p_seed_ict_tr06_4",
+          "item": "مسترجع/موقوف",
+          "category": "مسترجع/موقوف",
+          "qty": "978",
+          "source": "تأكيدات العملاء"
+        },
+        {
+          "_id": "p_seed_ict_tr06_5",
+          "item": "وصل للمستهلك/غير مسترجع",
+          "category": "وصل للمستهلك/غير مسترجع",
+          "qty": "2",
+          "source": "إفادة متجر C"
+        }
+      ],
+      "tr07": [
+        {
+          "_id": "p_seed_ict_tr07_1",
+          "checkItem": "هل تم التواصل مع 100% من العملاء/الموزعين؟",
+          "result": "4/4",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_ict_tr07_2",
+          "checkItem": "هل تم تحديد الكميات لدى كل عميل؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_ict_tr07_3",
+          "checkItem": "هل توجد كميات غير محددة الموقع؟",
+          "result": "لا",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_ict_tr07_4",
+          "checkItem": "هل توجد كمية وصلت للمستهلك؟",
+          "result": "2 وحدة",
+          "verdict": "يحتاج متابعة"
+        },
+        {
+          "_id": "p_seed_ict_tr07_5",
+          "checkItem": "هل تم إيقاف البيع والحفاظ على شروط التخزين المعتمدة؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_ict_tr07_6",
+          "checkItem": "هل يمكن إغلاق الاستدعاء؟",
+          "result": "بعد تقييم الوحدات المباعة واعتماد CAPA",
+          "verdict": ""
+        }
+      ],
+      "tr08": [
+        {
+          "_id": "p_seed_ict_tr08_1",
+          "problem": "انحراف في المعالجة الحرارية أو سلامة الإغلاق",
+          "rootCause": "قصور في خطوة تحقق/فحص قبل الإفراج أو نقص في الضوابط الوقائية",
+          "action": "تحديث نقطة التحقق وقائمة الفحص قبل الإفراج عن التشغيلة",
+          "responsible": "الجودة",
+          "dueDate": "10/09/2026",
+          "verification": "مراجعة أول 3 تشغيلات",
+          "status": "مفتوح"
+        },
+        {
+          "_id": "p_seed_ict_tr08_2",
+          "problem": "تأخر بسيط في تأكيد أحد العملاء",
+          "rootCause": "بيانات اتصال بديلة غير محدثة",
+          "action": "تحديث سجل العملاء وإضافة جهة اتصال بديلة",
+          "responsible": "المبيعات",
+          "dueDate": "07/09/2026",
+          "verification": "اختبار اتصال ربع سنوي",
+          "status": "قيد التنفيذ"
+        },
+        {
+          "_id": "p_seed_ict_tr08_3",
+          "problem": "الحاجة لتعزيز ربط الفواتير بالتشغيلة",
+          "rootCause": "إدخال رقم التشغيلة غير إلزامي في نموذج التسليم",
+          "action": "إضافة حقل إلزامي لرقم التشغيلة في التسليم",
+          "responsible": "الإدارة/IT",
+          "dueDate": "30/09/2026",
+          "verification": "تدقيق 10 فواتير",
+          "status": "مفتوح"
+        }
+      ],
+      "tr09": [
+        {
+          "_id": "p_seed_ict_tr09_1",
+          "testNo": "MR-ICT-2026-01",
+          "testDate": "05/09/2026",
+          "startTime": "10:00",
+          "traceCompleteTime": "11:20",
+          "commCompleteTime": "11:05",
+          "traceRate": "100",
+          "balanceRate": "100",
+          "controlRate": "100",
+          "overallResult": "ناجح مع فرص تحسين",
+          "keyImprovements": "",
+          "closureDecision": "تعزيز التحقق المرتبط بالخطر: انحراف في المعالجة الحرارية أو سلامة الإغلاق – تحديث بيانات العملاء – ربط رقم التشغيلة بالفواتير"
+        }
+      ],
+      "tr10": [
+        {
+          "_id": "p_seed_ict_tr10_1",
+          "date": "",
+          "customerName": "",
+          "productName": "شاي مثلج جاهز للشرب",
+          "size": "250 مل",
+          "batchNo": "ICT-________",
+          "qtySent": "________ وحدة",
+          "reason": "انحراف في المعالجة الحرارية أو سلامة الإغلاق",
+          "responsibleName": "",
+          "phone": ""
+        }
+      ],
+      "tr11": [
+        {
+          "_id": "p_seed_ict_tr11_1",
+          "item": "كل تشغيلة نهائية لمنتج شاي مثلج جاهز للشرب مرتبطة بالمادة/تشغيلة المورد الرئيسية",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ict_tr11_2",
+          "item": "مواد التعبئة والملصقات مرتبطة بالتشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ict_tr11_3",
+          "item": "كل فاتورة/إذن تسليم يحمل رقم التشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ict_tr11_4",
+          "item": "بيانات اتصال العملاء والموزعين محدثة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ict_tr11_5",
+          "item": "منطقة العزل والمرتجعات محددة ومناسبة لـ مخزن المنتج النهائي",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ict_tr11_6",
+          "item": "فريق الاستدعاء وأرقام الاتصال معروفة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ict_tr11_7",
+          "item": "النماذج TR-F01 إلى TR-F09 متاحة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ict_tr11_8",
+          "item": "اختبار استدعاء وهمي منفذ ومراجع",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ict_tr11_9",
+          "item": "CAPA للاختبار السابق مغلقة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_ict_tr11_10",
+          "item": "سجلات المرتجعات/التصرف النهائي وشروط التخزين محفوظة",
+          "yesNo": "",
+          "evidence": ""
+        }
+      ]
+    }
+  },
+  {
+    "id": "p_seed_pmk",
+    "name": "حليب مبستر",
+    "category": "تصنيع وتعبئة",
+    "code": "TR-PMK-001",
+    "notes": "بيانات تجريبية مبدئية — راجع وعدّل كل قيمة عبر وضع \"تعديل بيانات التتبع\" قبل الاعتماد.",
+    "createdAt": "2026-09-05T09:00:00.000Z",
+    "records": {
+      "tr01": [
+        {
+          "_id": "p_seed_pmk_tr01_1",
+          "batchCode": "PMK-260904-01",
+          "productSize": "حليب مبستر – 1 لتر",
+          "prodDate": "04/09/2026",
+          "mainSupplier": "حليب خام معتمد",
+          "supplierBatch": "SUP-PMK-240903-B07",
+          "receivedDate": "03/09/2026",
+          "receivedQty": "كمية مرتبطة حسب سجل الاستلام",
+          "receiptStatus": "مقبول",
+          "packagingBatch": "PKG-PMK-0826-31",
+          "closureBatch": "CLS-PMK-0826-14",
+          "labelBatch": "LBL-PMK-0904-08",
+          "supervisor": "مسؤول الإنتاج/التعبئة – مثال",
+          "notes": "تم التحقق من مطابقة المواد وبيانات التشغيلة قبل بدء التشغيل"
+        }
+      ],
+      "tr02": [
+        {
+          "_id": "p_seed_pmk_tr02_1",
+          "batchCode": "PMK-260904-01",
+          "customer": "عميل/موزع A",
+          "city": "الرياض",
+          "invoiceNo": "INV-11512",
+          "date": "04/09/2026",
+          "qty": "300",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_pmk_tr02_2",
+          "batchCode": "PMK-260904-01",
+          "customer": "عميل/فرع B",
+          "city": "الخرج",
+          "invoiceNo": "INV-11518",
+          "date": "04/09/2026",
+          "qty": "250",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_pmk_tr02_3",
+          "batchCode": "PMK-260904-01",
+          "customer": "متجر C",
+          "city": "الرياض",
+          "invoiceNo": "INV-11521",
+          "date": "05/09/2026",
+          "qty": "220",
+          "contact": "05xxxxxxxx"
+        },
+        {
+          "_id": "p_seed_pmk_tr02_4",
+          "batchCode": "PMK-260904-01",
+          "customer": "موزع D",
+          "city": "القصيم",
+          "invoiceNo": "INV-11527",
+          "date": "05/09/2026",
+          "qty": "210",
+          "contact": "05xxxxxxxx"
+        }
+      ],
+      "tr03": [
+        {
+          "_id": "p_seed_pmk_tr03_1",
+          "incidentNo": "RC-PMK-2026-001",
+          "reportedAt": "05/09/2026 – 10:00",
+          "source": "مراجعة داخلية/نتيجة فحص/بلاغ مورد",
+          "hazardDesc": "انحراف في البسترة أو سلسلة التبريد",
+          "batchCode": "PMK-260904-01",
+          "isDistributed": "نعم",
+          "riskClass": "مرتفع",
+          "initialDecision": "إيقاف البيع + عزل التشغيلة + تفعيل الاستدعاء/الاختبار الوهمي",
+          "teamLeader": "________________",
+          "mgmtApproval": "________________"
+        }
+      ],
+      "tr04": [
+        {
+          "_id": "p_seed_pmk_tr04_1",
+          "location": "مخزن التبريد",
+          "qtyOnHand": "220",
+          "holdStatus": "معزولة",
+          "holdTag": "نعم",
+          "responsible": "أمين المخزن",
+          "dateTime": "05/09/2026 – 10:15"
+        },
+        {
+          "_id": "p_seed_pmk_tr04_2",
+          "location": "منطقة المرتجعات/الحجز",
+          "qtyOnHand": "0",
+          "holdStatus": "قيد المراجعة",
+          "holdTag": "نعم",
+          "responsible": "الجودة",
+          "dateTime": "05/09/2026 – 10:20"
+        }
+      ],
+      "tr05": [
+        {
+          "_id": "p_seed_pmk_tr05_1",
+          "time": "10:25",
+          "party": "عميل/موزع A",
+          "channel": "هاتف + بريد",
+          "message": "إيقاف البيع وعزل 300 وحدة",
+          "response": "تم التأكيد 10:32",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_pmk_tr05_2",
+          "time": "10:35",
+          "party": "عميل/فرع B",
+          "channel": "هاتف",
+          "message": "إيقاف وعزل 250 وحدة",
+          "response": "تم 10:45",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_pmk_tr05_3",
+          "time": "10:40",
+          "party": "متجر C",
+          "channel": "هاتف + واتساب أعمال",
+          "message": "عزل 220 وحدة",
+          "response": "218 متاحة؛ 2 بيعت",
+          "responsible": "المبيعات"
+        },
+        {
+          "_id": "p_seed_pmk_tr05_4",
+          "time": "10:50",
+          "party": "موزع D",
+          "channel": "هاتف",
+          "message": "إيقاف 210 وحدة قبل البيع",
+          "response": "تم 10:58",
+          "responsible": "المبيعات"
+        }
+      ],
+      "tr06": [
+        {
+          "_id": "p_seed_pmk_tr06_1",
+          "item": "إنتاج التشغيلة",
+          "category": "إنتاج التشغيلة",
+          "qty": "1200",
+          "source": "سجل الإنتاج/التعبئة"
+        },
+        {
+          "_id": "p_seed_pmk_tr06_2",
+          "item": "مخزون المنشأة",
+          "category": "مخزون المنشأة",
+          "qty": "220",
+          "source": "الجرد – مخزن التبريد"
+        },
+        {
+          "_id": "p_seed_pmk_tr06_3",
+          "item": "موزع",
+          "category": "موزع",
+          "qty": "980",
+          "source": "الفواتير/أذونات التسليم"
+        },
+        {
+          "_id": "p_seed_pmk_tr06_4",
+          "item": "مسترجع/موقوف",
+          "category": "مسترجع/موقوف",
+          "qty": "978",
+          "source": "تأكيدات العملاء"
+        },
+        {
+          "_id": "p_seed_pmk_tr06_5",
+          "item": "وصل للمستهلك/غير مسترجع",
+          "category": "وصل للمستهلك/غير مسترجع",
+          "qty": "2",
+          "source": "إفادة متجر C"
+        }
+      ],
+      "tr07": [
+        {
+          "_id": "p_seed_pmk_tr07_1",
+          "checkItem": "هل تم التواصل مع 100% من العملاء/الموزعين؟",
+          "result": "4/4",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_pmk_tr07_2",
+          "checkItem": "هل تم تحديد الكميات لدى كل عميل؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_pmk_tr07_3",
+          "checkItem": "هل توجد كميات غير محددة الموقع؟",
+          "result": "لا",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_pmk_tr07_4",
+          "checkItem": "هل توجد كمية وصلت للمستهلك؟",
+          "result": "2 وحدة",
+          "verdict": "يحتاج متابعة"
+        },
+        {
+          "_id": "p_seed_pmk_tr07_5",
+          "checkItem": "هل تم إيقاف البيع والمحافظة على سلسلة التبريد/التجميد؟",
+          "result": "نعم",
+          "verdict": "ناجح"
+        },
+        {
+          "_id": "p_seed_pmk_tr07_6",
+          "checkItem": "هل يمكن إغلاق الاستدعاء؟",
+          "result": "بعد تقييم الوحدات المباعة واعتماد CAPA",
+          "verdict": ""
+        }
+      ],
+      "tr08": [
+        {
+          "_id": "p_seed_pmk_tr08_1",
+          "problem": "انحراف في البسترة أو سلسلة التبريد",
+          "rootCause": "قصور في خطوة تحقق/فحص قبل الإفراج أو نقص في الضوابط الوقائية",
+          "action": "تحديث نقطة التحقق وقائمة الفحص قبل الإفراج عن التشغيلة",
+          "responsible": "الجودة",
+          "dueDate": "10/09/2026",
+          "verification": "مراجعة أول 3 تشغيلات",
+          "status": "مفتوح"
+        },
+        {
+          "_id": "p_seed_pmk_tr08_2",
+          "problem": "تأخر بسيط في تأكيد أحد العملاء",
+          "rootCause": "بيانات اتصال بديلة غير محدثة",
+          "action": "تحديث سجل العملاء وإضافة جهة اتصال بديلة",
+          "responsible": "المبيعات",
+          "dueDate": "07/09/2026",
+          "verification": "اختبار اتصال ربع سنوي",
+          "status": "قيد التنفيذ"
+        },
+        {
+          "_id": "p_seed_pmk_tr08_3",
+          "problem": "الحاجة لتعزيز ربط الفواتير بالتشغيلة",
+          "rootCause": "إدخال رقم التشغيلة غير إلزامي في نموذج التسليم",
+          "action": "إضافة حقل إلزامي لرقم التشغيلة في التسليم",
+          "responsible": "الإدارة/IT",
+          "dueDate": "30/09/2026",
+          "verification": "تدقيق 10 فواتير",
+          "status": "مفتوح"
+        }
+      ],
+      "tr09": [
+        {
+          "_id": "p_seed_pmk_tr09_1",
+          "testNo": "MR-PMK-2026-01",
+          "testDate": "05/09/2026",
+          "startTime": "10:00",
+          "traceCompleteTime": "11:20",
+          "commCompleteTime": "11:05",
+          "traceRate": "100",
+          "balanceRate": "100",
+          "controlRate": "100",
+          "overallResult": "ناجح مع فرص تحسين",
+          "keyImprovements": "",
+          "closureDecision": "تعزيز التحقق المرتبط بالخطر: انحراف في البسترة أو سلسلة التبريد – تحديث بيانات العملاء – ربط رقم التشغيلة بالفواتير"
+        }
+      ],
+      "tr10": [
+        {
+          "_id": "p_seed_pmk_tr10_1",
+          "date": "",
+          "customerName": "",
+          "productName": "حليب مبستر",
+          "size": "1 لتر",
+          "batchNo": "PMK-________",
+          "qtySent": "________ وحدة",
+          "reason": "انحراف في البسترة أو سلسلة التبريد",
+          "responsibleName": "",
+          "phone": ""
+        }
+      ],
+      "tr11": [
+        {
+          "_id": "p_seed_pmk_tr11_1",
+          "item": "كل تشغيلة نهائية لمنتج حليب مبستر مرتبطة بالمادة/تشغيلة المورد الرئيسية",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_pmk_tr11_2",
+          "item": "مواد التعبئة والملصقات مرتبطة بالتشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_pmk_tr11_3",
+          "item": "كل فاتورة/إذن تسليم يحمل رقم التشغيلة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_pmk_tr11_4",
+          "item": "بيانات اتصال العملاء والموزعين محدثة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_pmk_tr11_5",
+          "item": "منطقة العزل والمرتجعات محددة ومناسبة لـ مخزن التبريد",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_pmk_tr11_6",
+          "item": "فريق الاستدعاء وأرقام الاتصال معروفة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_pmk_tr11_7",
+          "item": "النماذج TR-F01 إلى TR-F09 متاحة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_pmk_tr11_8",
+          "item": "اختبار استدعاء وهمي منفذ ومراجع",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_pmk_tr11_9",
+          "item": "CAPA للاختبار السابق مغلقة",
+          "yesNo": "",
+          "evidence": ""
+        },
+        {
+          "_id": "p_seed_pmk_tr11_10",
+          "item": "سجلات المرتجعات/التصرف النهائي وشروط التخزين محفوظة",
+          "yesNo": "",
+          "evidence": ""
+        }
+      ]
+    }
+  }
+];
+
+function traceabilityApp(){
+  return {
+    // ---------- Tab schema: field structure only, no product data ----------
+    tabOrder:['tr01','tr02','tr03','tr04','tr05','tr06','tr07','tr08','tr09','tr10','tr11'],
+    tabDefs:{
+      tr01:{ code:'TR-F01', mode:'cards', icon:'fa-solid fa-truck-ramp-box', label:'التتبع الخلفي (المورد)',
+        desc:'يربط كل تشغيلة نهائية بالمادة/المورد الرئيسي ومواد التعبئة والملصقات المستخدمة.',
+        fields:[
+          {key:'batchCode', label:'كود التشغيلة النهائية', type:'text'},
+          {key:'productSize', label:'المنتج / الحجم', type:'text'},
+          {key:'prodDate', label:'تاريخ الإنتاج/التعبئة', type:'date'},
+          {key:'mainSupplier', label:'المادة / المورد الرئيسي', type:'text'},
+          {key:'supplierBatch', label:'تشغيلة المورد/المادة', type:'text'},
+          {key:'receivedDate', label:'تاريخ الاستلام', type:'date'},
+          {key:'receivedQty', label:'الكمية المستلمة المرتبطة', type:'text'},
+          {key:'receiptStatus', label:'حالة الاستلام', type:'select', options:['مقبول','مرفوض','قيد الفحص']},
+          {key:'packagingBatch', label:'دفعة العبوات', type:'text'},
+          {key:'closureBatch', label:'دفعة الأغطية/الإغلاق', type:'text'},
+          {key:'labelBatch', label:'دفعة الملصقات', type:'text'},
+          {key:'supervisor', label:'المشرف', type:'text'},
+          {key:'notes', label:'ملاحظات', type:'textarea', full:true},
+        ]},
+      tr02:{ code:'TR-F02', mode:'table', icon:'fa-solid fa-people-carry-box', label:'التتبع الأمامي (العملاء)',
+        desc:'يسجل العملاء والكميات الموزعة لضمان إمكانية تحديد موقع كل كمية من التشغيلة.',
+        fields:[
+          {key:'batchCode', label:'رقم التشغيلة', type:'text'},
+          {key:'customer', label:'العميل', type:'text'},
+          {key:'city', label:'المدينة', type:'text'},
+          {key:'invoiceNo', label:'الفاتورة/الإذن', type:'text'},
+          {key:'date', label:'التاريخ', type:'date'},
+          {key:'qty', label:'الكمية', type:'number'},
+          {key:'contact', label:'بيانات التواصل', type:'text'},
+        ]},
+      tr03:{ code:'TR-F03', mode:'cards', icon:'fa-solid fa-triangle-exclamation', label:'بدء الاستدعاء وتقييم الواقعة',
+        desc:'تصنيف الخطر يعتمد على الحالة الفعلية واحتمال وشدة الضرر، وليس على مثال جاهز.',
+        fields:[
+          {key:'incidentNo', label:'رقم الواقعة', type:'text'},
+          {key:'reportedAt', label:'تاريخ/وقت البلاغ', type:'datetime-local'},
+          {key:'source', label:'مصدر البلاغ', type:'text'},
+          {key:'hazardDesc', label:'وصف الخطر', type:'textarea', full:true},
+          {key:'batchCode', label:'التشغيلة', type:'text'},
+          {key:'isDistributed', label:'هل المنتج موزع؟', type:'select', options:['نعم','لا']},
+          {key:'riskClass', label:'تصنيف أولي للخطر', type:'select', options:['منخفض','متوسط','مرتفع','شديد']},
+          {key:'initialDecision', label:'قرار أولي', type:'textarea', full:true},
+          {key:'teamLeader', label:'قائد الفريق', type:'text'},
+          {key:'mgmtApproval', label:'اعتماد الإدارة', type:'text'},
+        ]},
+      tr04:{ code:'TR-F04', mode:'table', icon:'fa-solid fa-lock', label:'حصر وتجميد المخزون',
+        desc:'يمنع صرف أو إعادة بيع أي كمية مشمولة بالاستدعاء إلا بعد قرار موثق من الجودة والإدارة.',
+        fields:[
+          {key:'location', label:'الموقع', type:'text'},
+          {key:'qtyOnHand', label:'الكمية الموجودة', type:'number'},
+          {key:'holdStatus', label:'حالة العزل', type:'select', options:['معزولة','قيد المراجعة','مفرج عنها']},
+          {key:'holdTag', label:'وسم HOLD', type:'select', options:['نعم','لا']},
+          {key:'responsible', label:'المسؤول', type:'text'},
+          {key:'dateTime', label:'التاريخ/الوقت', type:'datetime-local'},
+        ]},
+      tr05:{ code:'TR-F05', mode:'table', icon:'fa-solid fa-phone-volume', label:'سجل اتصالات الاستدعاء',
+        desc:'يوثق جميع الاتصالات مع العملاء والجهات ذات العلاقة ووقت الاستجابة والإجراء المتخذ.',
+        fields:[
+          {key:'time', label:'الوقت', type:'datetime-local'},
+          {key:'party', label:'الطرف', type:'text'},
+          {key:'channel', label:'وسيلة الاتصال', type:'text'},
+          {key:'message', label:'الرسالة/الإجراء', type:'textarea'},
+          {key:'response', label:'الاستجابة', type:'text'},
+          {key:'responsible', label:'المسؤول', type:'text'},
+        ]},
+      tr06:{ code:'TR-F06', mode:'table', icon:'fa-solid fa-scale-balanced', label:'الموازنة الكمية',
+        desc:'إنتاج التشغيلة = مخزون المنشأة + الموزع، والموزع = مسترجع/موقوف + وصل للمستهلك.',
+        fields:[
+          {key:'item', label:'البند', type:'text'},
+          {key:'category', label:'نوع البند', type:'select', options:['إنتاج التشغيلة','مخزون المنشأة','موزع','مسترجع/موقوف','وصل للمستهلك/غير مسترجع','أخرى']},
+          {key:'qty', label:'الكمية', type:'number'},
+          {key:'source', label:'مصدر الإثبات', type:'text'},
+        ]},
+      tr07:{ code:'TR-F07', mode:'table', icon:'fa-solid fa-stamp', label:'التحقق من فعالية الاستدعاء',
+        desc:'يستخدم للتحقق من الوصول للعملاء وتحديد مواقع الكميات وإيقاف البيع وجاهزية الإغلاق.',
+        fields:[
+          {key:'checkItem', label:'عنصر التحقق', type:'text'},
+          {key:'result', label:'النتيجة', type:'text'},
+          {key:'verdict', label:'الحكم', type:'select', options:['ناجح','يحتاج متابعة','غير مكتمل']},
+        ]},
+      tr08:{ code:'TR-F08', mode:'table', icon:'fa-solid fa-list-check', label:'CAPA بعد الاستدعاء',
+        desc:'يوثق المشكلة والسبب الجذري والإجراء التصحيحي والمسؤول والموعد والتحقق وحالة الإغلاق.',
+        fields:[
+          {key:'problem', label:'المشكلة', type:'textarea'},
+          {key:'rootCause', label:'السبب الجذري', type:'textarea'},
+          {key:'action', label:'الإجراء التصحيحي', type:'textarea'},
+          {key:'responsible', label:'المسؤول', type:'text'},
+          {key:'dueDate', label:'الموعد', type:'date'},
+          {key:'verification', label:'التحقق', type:'text'},
+          {key:'status', label:'الحالة', type:'select', options:['مفتوح','قيد التنفيذ','مغلق']},
+        ]},
+      tr09:{ code:'TR-F09', mode:'cards', icon:'fa-solid fa-vial-circle-check', label:'تقرير الاستدعاء الوهمي والإغلاق',
+        desc:'يلخص اختبار الاستدعاء الوهمي من حيث الزمن والتتبع والموازنة والسيطرة على الكميات.',
+        fields:[
+          {key:'testNo', label:'رقم الاختبار', type:'text'},
+          {key:'testDate', label:'تاريخ الاختبار', type:'date'},
+          {key:'startTime', label:'وقت البداية', type:'time'},
+          {key:'traceCompleteTime', label:'وقت اكتمال التتبع', type:'time'},
+          {key:'commCompleteTime', label:'وقت اكتمال التواصل', type:'time'},
+          {key:'traceRate', label:'نسبة التتبع %', type:'number'},
+          {key:'balanceRate', label:'نسبة الموازنة %', type:'number'},
+          {key:'controlRate', label:'نسبة السيطرة على الكمية الموزعة %', type:'number'},
+          {key:'overallResult', label:'النتيجة العامة', type:'select', options:['ناجح','ناجح مع فرص تحسين','غير مكتمل']},
+          {key:'keyImprovements', label:'أهم فرص التحسين', type:'textarea', full:true},
+          {key:'closureDecision', label:'قرار الإغلاق', type:'textarea', full:true},
+        ]},
+      tr10:{ code:'TR-F10', mode:'cards', icon:'fa-solid fa-envelope-open-text', label:'إخطار العميل', hasPreview:true,
+        desc:'نموذج اتصال رسمي للعميل عند إيقاف منتج أو سحبه/استدعائه.',
+        fields:[
+          {key:'date', label:'التاريخ', type:'date'},
+          {key:'customerName', label:'اسم العميل / الجهة', type:'text'},
+          {key:'productName', label:'اسم المنتج', type:'text'},
+          {key:'size', label:'الحجم', type:'text'},
+          {key:'batchNo', label:'رقم التشغيلة', type:'text'},
+          {key:'qtySent', label:'الكمية المرسلة لهذا العميل', type:'text'},
+          {key:'reason', label:'سبب الإجراء', type:'textarea', full:true},
+          {key:'responsibleName', label:'اسم المسؤول', type:'text'},
+          {key:'phone', label:'الهاتف', type:'text'},
+        ]},
+      tr11:{ code:'TR-F11', mode:'table', icon:'fa-solid fa-clipboard-check', label:'جاهزية الاستدعاء',
+        desc:'تُستخدم قبل الاختبار الوهمي أو عند المراجعة الدورية. أضف عناصر التحقق الخاصة بمنتجك.',
+        fields:[
+          {key:'item', label:'عنصر التحقق', type:'textarea'},
+          {key:'yesNo', label:'نعم/لا', type:'select', options:['نعم','لا']},
+          {key:'evidence', label:'الدليل', type:'text'},
+        ]},
+    },
+
+    // ---------- State (in-memory only; NO predefined products/records) ----------
+    traceProducts: JSON.parse(JSON.stringify(SEED_TRACE_PRODUCTS)),
+    activeProductId: SEED_TRACE_PRODUCTS[0]?.id || null,
+    activeSection: 'tr01',
+    addProductOpen: false,
+    editMode: false,
+    editSnapshot: null,
+    editSnapshotIndex: -1,
+    toastMsg: '',
+    draftProduct: { name:'', category:'', code:'', notes:'' },
+    previewOpen:false, previewRow:null,
+
+    get activeProduct(){
+      return this.traceProducts.find(p=>p.id===this.activeProductId) || null;
+    },
+
+    uid(){ return 'id_' + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4); },
+    newRecordShell(){ const rec={}; this.tabOrder.forEach(k=>rec[k]=[]); return rec; },
+
+    createProduct(){
+      if(!this.draftProduct.name.trim()) return;
+      const id = 'p_' + this.uid();
+      this.traceProducts.push({
+        id, name: this.draftProduct.name.trim(), category: this.draftProduct.category.trim(),
+        code: this.draftProduct.code.trim(), notes: this.draftProduct.notes.trim(),
+        createdAt: new Date().toISOString(), records: this.newRecordShell(),
+      });
+      this.activeProductId = id;
+      this.activeSection = 'tr01';
+      this.addProductOpen = false;
+      this.draftProduct = { name:'', category:'', code:'', notes:'' };
+      this.toast('تمت إضافة المنتج. فعّل "تعديل بيانات التتبع" لبدء إدخال بياناته.');
+    },
+    confirmDeleteProduct(id){
+      const p = this.traceProducts.find(x=>x.id===id);
+      if(!p) return;
+      if(confirm(`حذف المنتج "${p.name}" وكل بيانات التتبع والاستدعاء المرتبطة به؟ لا يمكن التراجع.`)){
+        this.traceProducts = this.traceProducts.filter(x=>x.id!==id);
+        if(this.activeProductId===id) this.activeProductId = this.traceProducts[0]?.id || null;
+        this.toast('تم حذف المنتج وكل بياناته.');
+      }
+    },
+
+    // ---- Edit lifecycle: snapshot the *currently selected product only*, so Cancel rolls
+    // back that one product without touching any other product in traceProducts ----
+    startEdit(){
+      this.editSnapshotIndex = this.traceProducts.findIndex(p=>p.id===this.activeProductId);
+      this.editSnapshot = JSON.parse(JSON.stringify(this.activeProduct));
+      this.editMode = true;
+    },
+    cancelEdit(){
+      if(this.editSnapshot && this.editSnapshotIndex > -1){
+        this.traceProducts.splice(this.editSnapshotIndex, 1, this.editSnapshot);
+      }
+      this.editMode = false; this.editSnapshot = null; this.editSnapshotIndex = -1;
+      this.toast('تم التراجع عن التعديلات');
+    },
+    saveEdit(){
+      const name = this.activeProduct.name;
+      this.editMode = false; this.editSnapshot = null; this.editSnapshotIndex = -1;
+      this.toast('تم حفظ بيانات التتبع الخاصة بـ «' + name + '» بنجاح');
+    },
+
+    addRow(key){
+      const blank = {_id:this.uid()};
+      this.tabDefs[key].fields.forEach(f=>blank[f.key]='');
+      this.activeProduct.records[key].push(blank);
+    },
+
+    // ---------- Computed metrics ----------
+    openCapaCount(){
+      const p=this.activeProduct; if(!p) return 0;
+      return p.records.tr08.filter(r=>r.status && r.status!=='مغلق').length;
+    },
+    readinessPct(){
+      const p=this.activeProduct; if(!p) return 0;
+      const rows = p.records.tr11; if(!rows.length) return 0;
+      return Math.round((rows.filter(r=>r.yesNo==='نعم').length/rows.length)*100);
+    },
+    balance(){
+      const rows = this.activeProduct ? this.activeProduct.records.tr06 : [];
+      const sum = (cat)=>rows.filter(r=>r.category===cat).reduce((a,r)=>a+(parseFloat(r.qty)||0),0);
+      const production=sum('إنتاج التشغيلة'), facility=sum('مخزون المنشأة'), distributed=sum('موزع');
+      const returned=sum('مسترجع/موقوف'), reached=sum('وصل للمستهلك/غير مسترجع');
+      return { diff1: production-(facility+distributed), diff2: distributed-(returned+reached) };
+    },
+
+    openPreview(row){ this.previewRow = row; this.previewOpen = true; },
+
+    toast(msg){ this.toastMsg = msg; setTimeout(()=>{ this.toastMsg=''; }, 2800); },
+  }
+}
+</script>
+</body>
+</html>

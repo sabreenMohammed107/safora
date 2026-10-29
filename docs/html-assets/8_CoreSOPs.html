@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الإجراءات الأساسية الموحدة | SAFORA</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 47'%3E%3Crect width='35' height='35' rx='8' fill='%23F02B18'/%3E%3Crect x='13' y='12' width='35' height='35' rx='8' fill='%23FD8118' fill-opacity='.92'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Montserrat:wght@700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { cairo: ['Cairo','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+      colors: {
+        ink: { DEFAULT:'#071A2A', elev:'#0E2A40', border:'#1A3A55', soft:'#11304A', mist:'#9FB2BF' },
+        canvas: '#F3F5F8',
+        brand: { DEFAULT:'#FD8118', deep:'#B8560A', soft:'#FFF1E3', red:'#F02B18', cream:'#F6F2E8' },
+        emerald: { DEFAULT:'#0FA968', deep:'#066B41', soft:'#E4F6ED' },
+        rose: { DEFAULT:'#E11D48', deep:'#9F1239', soft:'#FDECEF' },
+        amber: { DEFAULT:'#C58B00', deep:'#7A5700', soft:'#FBF3D6' },
+        teal: { DEFAULT:'#0E86B4', deep:'#0A5F80', soft:'#E2F2F9' },
+      },
+      boxShadow: { card: '0 1px 2px rgba(7,26,42,0.06), 0 8px 24px -12px rgba(7,26,42,0.12)' }
+    }
+  }
+}
+</script>
+<style>
+  body{ font-family:'Cairo',sans-serif; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+  .wordmark{ font-family:'Montserrat','Cairo',sans-serif; font-weight:800; letter-spacing:.015em; }
+  ::selection{ background:#FFE2C4; color:#071A2A; }
+  ::-webkit-scrollbar{ width:8px; height:8px; } ::-webkit-scrollbar-thumb{ background:#D3DAE3; border-radius:99px; }
+  [x-cloak]{ display:none !important; }
+  .sop-chip.active{ background:#071A2A; border-color:#071A2A; }
+  .sop-chip.active .sop-code{ color:#FF9F4A; }
+  .sop-chip.active .sop-name{ color:#fff; }
+  .sec-head{ position:sticky; top:0; background:#fff; z-index:5; }
+  textarea{ resize:vertical; }
+  table.doc-table{ width:100%; border-collapse:collapse; table-layout:fixed; }
+  table.doc-table th{ background:#F3F5F8; font-size:10.5px; font-weight:800; color:#071A2A; opacity:.55; padding:8px 10px; text-align:right; border-bottom:1px solid #00000014; white-space:nowrap; }
+  table.doc-table td{ padding:2px 8px; border-bottom:1px solid #0000000d; vertical-align:middle; }
+  table.doc-table tbody tr:last-child td{ border-bottom:none; }
+  table.doc-table tbody tr:hover{ background:#F3F5F8; }
+  table.doc-table input, table.doc-table textarea{ width:100%; background:transparent; outline:none; font-size:12.5px; padding:7px 4px; text-align:right; border-radius:6px; line-height:1.4; }
+  table.doc-table input:not(:disabled):focus, table.doc-table textarea:not(:disabled):focus{ background:#fff; box-shadow: inset 0 0 0 1.5px #0E86B4; }
+  table.doc-table input:disabled, table.doc-table textarea:disabled{ color:#071A2A; opacity:.85; cursor:default; }
+  table.doc-table th:last-child, table.doc-table td:last-child{ width:34px; text-align:center; padding:2px 2px; }
+  table.doc-table td:last-child button{ width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center; border-radius:6px; }
+  table.doc-table td:last-child button:hover{ background:#FDECEF; }
+</style>
+</head>
+<body class="bg-canvas text-ink font-cairo antialiased" x-data="coreSOPsApp()">
+
+<!-- Top strip -->
+<header class="flex items-center gap-3 px-5 py-3 bg-ink text-white sticky top-0 z-20">
+  <a href="1_Dashboard.html" class="flex items-center gap-2 shrink-0" aria-label="SAFORA">
+    <svg class="w-7 h-7" viewBox="0 0 48 47" aria-hidden="true"><defs><clipPath id="sfMarkTop"><rect width="35" height="35" rx="8"/></clipPath></defs><rect width="35" height="35" rx="8" fill="#F02B18"/><rect x="13" y="12" width="35" height="35" rx="8" fill="#E17F1A"/><rect x="13" y="12" width="35" height="35" rx="8" fill="#FD8118" clip-path="url(#sfMarkTop)"/></svg>
+    <span dir="ltr" class="wordmark text-[17px] text-brand-cream hidden sm:inline">SAFORA</span>
+  </a>
+  <span class="w-px h-5 bg-white/15 hidden sm:block"></span>
+  <a href="1_Dashboard.html" class="text-white/50 hover:text-white text-sm"><i class="fa-solid fa-arrow-right ms-1"></i> لوحة القيادة</a>
+  <span class="text-white/20">/</span>
+  <a href="8_CoreSOPs.html" class="text-white/50 hover:text-white text-sm">الملفات الكاملة</a>
+  <span class="text-white/20">/</span>
+  <h1 class="font-bold text-sm">الإجراءات الأساسية الموحدة</h1>
+  <span x-show="activeSop" class="mono text-[11px] text-white/40 ms-1" x-text="activeSop?.code"></span>
+
+  <div class="ms-auto flex items-center gap-2">
+    <a href="7_SectorManagement.html" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-[11px] font-bold text-white/70 transition">
+      <i class="fa-solid fa-industry text-teal"></i> عرض القطاعات
+    </a>
+    <template x-if="activeSop">
+      <div class="flex items-center gap-2">
+        <button x-show="!editMode" @click="startEdit()" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition">
+          <i class="fa-solid fa-pen"></i> تعديل الإجراء
+        </button>
+        <button x-show="editMode" x-cloak @click="cancelEdit()" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition">
+          <i class="fa-solid fa-rotate-left"></i> إلغاء
+        </button>
+        <button x-show="editMode" x-cloak @click="saveEdit()" class="px-4 py-2 rounded-lg bg-amber hover:bg-amber-deep text-white text-xs font-bold transition">
+          <i class="fa-solid fa-check"></i> حفظ التغييرات
+        </button>
+      </div>
+    </template>
+  </div>
+</header>
+
+<main class="p-5 lg:p-7 space-y-5">
+
+  <!-- Page header -->
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p class="mono text-[11px] text-teal font-semibold tracking-widest">CORE SOPs · ISO 22000:2018 — FSMS-SOP</p>
+      <h1 class="text-2xl lg:text-[26px] font-extrabold tracking-tight mt-1">الإجراءات الأساسية الموحدة (Core-SOPs)</h1>
+      <p class="text-sm text-ink/45 mt-1 max-w-3xl">مصدر واحد موحّد لكل القطاعات. أي تعديل هنا (بما في ذلك إضافة أو حذف إجراء) ينعكس تلقائياً على جميع القطاعات، ولذلك لا يمكن تعديل هذه الإجراءات من داخل صفحة أي قطاع.</p>
+    </div>
+    <span class="px-3 py-1.5 rounded-full bg-rose-soft text-rose-deep text-[11px] font-bold shrink-0"><i class="fa-solid fa-triangle-exclamation"></i> نطاق التعديل: عام لكل القطاعات</span>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-5 items-start">
+
+    <!-- SOP list -->
+    <div class="bg-white rounded-2xl border border-black/5 shadow-card p-3 space-y-1.5 lg:sticky lg:top-[64px] max-h-[calc(100vh-90px)] overflow-y-auto">
+      <div class="flex items-center justify-between px-1 pb-1">
+        <p class="text-xs font-extrabold text-ink/60" x-text="coreSOPs.length + ' إجراء أساسي'"></p>
+        <button @click="openAddSop()" class="text-[11px] font-bold text-brand-deep hover:text-ink"><i class="fa-solid fa-plus"></i> إضافة</button>
+      </div>
+      <template x-for="s in coreSOPs" :key="s.code">
+        <button @click="activeCode = s.code; editMode=false" :disabled="editMode"
+                class="sop-chip w-full text-start flex flex-col gap-1 p-2.5 rounded-xl border border-transparent hover:border-black/10 transition disabled:opacity-40"
+                :class="activeCode===s.code && 'active'">
+          <span class="sop-code mono text-[10px] font-bold text-teal-deep" x-text="s.code"></span>
+          <p class="sop-name text-xs font-bold leading-snug" x-text="s.ar"></p>
+          <p class="text-[10px] text-ink/35" x-text="s.dynamicForms.length + ' نموذج ديناميكي'"></p>
+        </button>
+      </template>
+    </div>
+
+    <!-- SOP detail -->
+    <div class="space-y-4" x-show="activeSop" x-cloak>
+
+      <!-- Identity + header metadata (exactly as in the source document header table) -->
+      <div class="bg-white rounded-2xl border border-black/5 shadow-card p-5">
+        <div class="flex items-start justify-between gap-3 flex-wrap">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <input :disabled="!editMode" x-model="activeSop.code" class="mono text-[11px] text-teal-deep font-bold tracking-widest bg-transparent outline-none border-b border-transparent focus:border-teal disabled:cursor-default w-40">
+            </div>
+            <input :disabled="!editMode" x-model="activeSop.ar" class="text-xl font-extrabold bg-transparent outline-none border-b border-transparent focus:border-teal disabled:cursor-default w-full mt-1">
+            <input :disabled="!editMode" x-model="activeSop.en" placeholder="English title" class="text-sm text-ink/50 bg-transparent outline-none border-b border-transparent focus:border-teal disabled:cursor-default w-full mt-1">
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-soft text-teal-deep mono">مشترك · جميع القطاعات</span>
+            <button @click="deleteSop(activeSop.code)" class="text-xs font-bold text-rose/60 hover:text-rose px-3 py-2 rounded-lg hover:bg-rose-soft transition"><i class="fa-solid fa-trash"></i> حذف</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+          <div class="p-3 rounded-lg bg-canvas">
+            <p class="text-[10px] font-bold text-ink/40 mb-1">القطاع / Sector</p>
+            <input :disabled="!editMode" x-model="activeSop.sector" class="w-full text-xs font-bold bg-transparent outline-none">
+          </div>
+          <div class="p-3 rounded-lg bg-canvas">
+            <p class="text-[10px] font-bold text-ink/40 mb-1">الإصدار / Version</p>
+            <input :disabled="!editMode" x-model="activeSop.version" class="w-full text-xs font-bold bg-transparent outline-none mono">
+          </div>
+          <div class="p-3 rounded-lg bg-canvas">
+            <p class="text-[10px] font-bold text-ink/40 mb-1">تاريخ الإصدار</p>
+            <input :disabled="!editMode" x-model="activeSop.issueDate" class="w-full text-xs font-bold bg-transparent outline-none mono">
+          </div>
+          <div class="p-3 rounded-lg bg-canvas">
+            <p class="text-[10px] font-bold text-ink/40 mb-1">تاريخ السريان</p>
+            <input :disabled="!editMode" x-model="activeSop.effectiveDate" class="w-full text-xs font-bold bg-transparent outline-none mono">
+          </div>
+          <div class="p-3 rounded-lg bg-canvas">
+            <p class="text-[10px] font-bold text-ink/40 mb-1">المرجع الرئيسي</p>
+            <input :disabled="!editMode" x-model="activeSop.primaryRef" class="w-full text-xs font-bold bg-transparent outline-none">
+          </div>
+          <div class="p-3 rounded-lg bg-canvas col-span-2">
+            <p class="text-[10px] font-bold text-ink/40 mb-1">المراجع المساندة</p>
+            <input :disabled="!editMode" x-model="activeSop.supportingRefs" class="w-full text-xs font-bold bg-transparent outline-none">
+          </div>
+          <div class="p-3 rounded-lg bg-canvas">
+            <p class="text-[10px] font-bold text-ink/40 mb-1">حالة الوثيقة</p>
+            <input :disabled="!editMode" x-model="activeSop.status" class="w-full text-xs font-bold bg-transparent outline-none">
+          </div>
+          <div class="p-3 rounded-lg bg-canvas col-span-2 lg:col-span-4">
+            <p class="text-[10px] font-bold text-ink/40 mb-1">الغرض المختصر / Brief Purpose</p>
+            <textarea :disabled="!editMode" x-model="activeSop.briefPurpose" rows="1" class="w-full text-xs font-bold bg-transparent outline-none resize-none"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Narrative sections 1-5 -->
+      <template x-for="sec in narrativeSections" :key="sec.key">
+        <div class="bg-white rounded-2xl border border-black/5 shadow-card overflow-hidden">
+          <button @click="toggle(sec.key)" class="sec-head w-full flex items-center gap-2 p-4 hover:bg-canvas/50 transition text-start">
+            <i :class="sec.icon" class="text-teal shrink-0"></i>
+            <p class="text-sm font-extrabold flex-1" x-text="sec.titleAr + ' / ' + sec.titleEn"></p>
+            <i class="fa-solid fa-chevron-down text-ink/25 text-xs transition" :class="open[sec.key] && 'rotate-180'"></i>
+          </button>
+          <div x-show="open[sec.key]" x-cloak class="p-4 pt-0 space-y-3">
+            <div>
+              <label class="text-[11px] font-bold text-ink/45 mb-1 block">النص بالعربية (كل بند في سطر)</label>
+              <textarea :disabled="!editMode" x-model="activeSop[sec.key+'Ar']" rows="4" class="w-full text-sm p-2.5 rounded-lg border border-black/10 outline-none focus:border-teal bg-canvas/30 disabled:bg-canvas/40"></textarea>
+            </div>
+            <div>
+              <label class="text-[11px] font-bold text-ink/45 mb-1 block">English Summary</label>
+              <textarea :disabled="!editMode" x-model="activeSop[sec.key+'En']" rows="2" class="w-full text-sm p-2.5 rounded-lg border border-black/10 outline-none focus:border-teal bg-canvas/30 disabled:bg-canvas/40"></textarea>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- 6. Control & Monitoring Points (table) -->
+      <div class="bg-white rounded-2xl border border-black/5 shadow-card overflow-hidden">
+        <button @click="toggle('controlPoints')" class="sec-head w-full flex items-center gap-2 p-4 hover:bg-canvas/50 transition text-start">
+          <i class="fa-solid fa-gauge-high text-teal shrink-0"></i>
+          <p class="text-sm font-extrabold flex-1">6. نقاط الضبط والمتابعة / Control &amp; Monitoring Points</p>
+          <i class="fa-solid fa-chevron-down text-ink/25 text-xs transition" :class="open.controlPoints && 'rotate-180'"></i>
+        </button>
+        <div x-show="open.controlPoints" x-cloak class="p-4 pt-0 space-y-3">
+          <div class="overflow-x-auto rounded-lg border border-black/10">
+            <table class="doc-table">
+              <thead><tr><th class="w-1/4">البند / Item</th><th>الوصف / Description</th><th class="w-1/5">المسؤول / Responsible</th><th class="w-8"></th></tr></thead>
+              <tbody>
+                <template x-for="(row,i) in activeSop.controlPoints" :key="i">
+                  <tr>
+                    <td><input :disabled="!editMode" x-model="row[0]"></td>
+                    <td><input :disabled="!editMode" x-model="row[1]"></td>
+                    <td><input :disabled="!editMode" x-model="row[2]"></td>
+                    <td><button x-show="editMode" x-cloak @click="activeSop.controlPoints.splice(i,1)" class="text-rose/50 hover:text-rose"><i class="fa-solid fa-xmark text-xs"></i></button></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+          <button x-show="editMode" x-cloak @click="activeSop.controlPoints.push(['','',''])" class="text-xs font-bold text-brand-deep hover:text-ink"><i class="fa-solid fa-plus"></i> إضافة سطر</button>
+          <div>
+            <label class="text-[11px] font-bold text-ink/45 mb-1 block">English Summary</label>
+            <textarea :disabled="!editMode" x-model="activeSop.controlPointsEn" rows="2" class="w-full text-sm p-2.5 rounded-lg border border-black/10 outline-none focus:border-teal bg-canvas/30 disabled:bg-canvas/40"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Linked Forms & Records (table, from the source document) -->
+      <div class="bg-white rounded-2xl border border-black/5 shadow-card overflow-hidden">
+        <button @click="toggle('linkedForms')" class="sec-head w-full flex items-center gap-2 p-4 hover:bg-canvas/50 transition text-start">
+          <i class="fa-solid fa-table-list text-teal shrink-0"></i>
+          <p class="text-sm font-extrabold flex-1">7. النماذج والسجلات المرتبطة (من الوثيقة الأصلية) / Linked Forms &amp; Records</p>
+          <i class="fa-solid fa-chevron-down text-ink/25 text-xs transition" :class="open.linkedForms && 'rotate-180'"></i>
+        </button>
+        <div x-show="open.linkedForms" x-cloak class="p-4 pt-0 space-y-3">
+          <div class="overflow-x-auto rounded-lg border border-black/10">
+            <table class="doc-table">
+              <thead><tr><th>الكود/الاسم / Code · Name</th><th class="w-1/4">النوع / Type</th><th class="w-8"></th></tr></thead>
+              <tbody>
+                <template x-for="(row,i) in activeSop.linkedForms" :key="i">
+                  <tr>
+                    <td><input :disabled="!editMode" x-model="row[0]"></td>
+                    <td><input :disabled="!editMode" x-model="row[1]"></td>
+                    <td><button x-show="editMode" x-cloak @click="activeSop.linkedForms.splice(i,1)" class="text-rose/50 hover:text-rose"><i class="fa-solid fa-xmark text-xs"></i></button></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+          <button x-show="editMode" x-cloak @click="activeSop.linkedForms.push(['','نموذج/سجل مرتبط'])" class="text-xs font-bold text-brand-deep hover:text-ink"><i class="fa-solid fa-plus"></i> إضافة سطر</button>
+          <div>
+            <label class="text-[11px] font-bold text-ink/45 mb-1 block">English Summary</label>
+            <textarea :disabled="!editMode" x-model="activeSop.linkedFormsEn" rows="2" class="w-full text-sm p-2.5 rounded-lg border border-black/10 outline-none focus:border-teal bg-canvas/30 disabled:bg-canvas/40"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8, 9: KPIs + Application Notes -->
+      <template x-for="sec in [ {key:'kpis', titleAr:'مؤشرات المتابعة', titleEn:'KPIs', icon:'fa-solid fa-chart-line'}, {key:'notes', titleAr:'ملاحظات التطبيق', titleEn:'Application Notes', icon:'fa-solid fa-note-sticky'} ]" :key="sec.key">
+        <div class="bg-white rounded-2xl border border-black/5 shadow-card overflow-hidden">
+          <button @click="toggle(sec.key)" class="sec-head w-full flex items-center gap-2 p-4 hover:bg-canvas/50 transition text-start">
+            <i :class="sec.icon" class="text-teal shrink-0"></i>
+            <p class="text-sm font-extrabold flex-1" x-text="sec.titleAr + ' / ' + sec.titleEn"></p>
+            <i class="fa-solid fa-chevron-down text-ink/25 text-xs transition" :class="open[sec.key] && 'rotate-180'"></i>
+          </button>
+          <div x-show="open[sec.key]" x-cloak class="p-4 pt-0 space-y-3">
+            <div>
+              <label class="text-[11px] font-bold text-ink/45 mb-1 block">النص بالعربية (كل بند في سطر)</label>
+              <textarea :disabled="!editMode" x-model="activeSop[sec.key+'Ar']" rows="3" class="w-full text-sm p-2.5 rounded-lg border border-black/10 outline-none focus:border-teal bg-canvas/30 disabled:bg-canvas/40"></textarea>
+            </div>
+            <div>
+              <label class="text-[11px] font-bold text-ink/45 mb-1 block">English Summary</label>
+              <textarea :disabled="!editMode" x-model="activeSop[sec.key+'En']" rows="2" class="w-full text-sm p-2.5 rounded-lg border border-black/10 outline-none focus:border-teal bg-canvas/30 disabled:bg-canvas/40"></textarea>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- 10. Revision History (table) -->
+      <div class="bg-white rounded-2xl border border-black/5 shadow-card overflow-hidden">
+        <button @click="toggle('revisionHistory')" class="sec-head w-full flex items-center gap-2 p-4 hover:bg-canvas/50 transition text-start">
+          <i class="fa-solid fa-clock-rotate-left text-teal shrink-0"></i>
+          <p class="text-sm font-extrabold flex-1">10. سجل التعديلات / Revision History</p>
+          <i class="fa-solid fa-chevron-down text-ink/25 text-xs transition" :class="open.revisionHistory && 'rotate-180'"></i>
+        </button>
+        <div x-show="open.revisionHistory" x-cloak class="p-4 pt-0 space-y-3">
+          <div class="overflow-x-auto rounded-lg border border-black/10">
+            <table class="doc-table">
+              <thead><tr><th class="w-1/12">الإصدار</th><th class="w-1/6">التاريخ</th><th>وصف التعديل</th><th class="w-1/6">إعداد/مراجعة/اعتماد</th><th class="w-8"></th></tr></thead>
+              <tbody>
+                <template x-for="(row,i) in activeSop.revisionHistory" :key="i">
+                  <tr>
+                    <td><input :disabled="!editMode" x-model="row[0]"></td>
+                    <td><input :disabled="!editMode" x-model="row[1]"></td>
+                    <td><input :disabled="!editMode" x-model="row[2]"></td>
+                    <td><input :disabled="!editMode" x-model="row[3]"></td>
+                    <td><button x-show="editMode" x-cloak @click="activeSop.revisionHistory.splice(i,1)" class="text-rose/50 hover:text-rose"><i class="fa-solid fa-xmark text-xs"></i></button></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+          <button x-show="editMode" x-cloak @click="activeSop.revisionHistory.push(['','',(new Date()).toISOString().slice(0,10),''])" class="text-xs font-bold text-brand-deep hover:text-ink"><i class="fa-solid fa-plus"></i> إضافة سطر</button>
+          <div>
+            <label class="text-[11px] font-bold text-ink/45 mb-1 block">English Summary</label>
+            <textarea :disabled="!editMode" x-model="activeSop.revisionHistoryEn" rows="2" class="w-full text-sm p-2.5 rounded-lg border border-black/10 outline-none focus:border-teal bg-canvas/30 disabled:bg-canvas/40"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Linked dynamic forms (platform feature, separate from the document's own Linked Forms & Records table) -->
+      <div class="bg-white rounded-2xl border border-black/5 shadow-card p-5">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm font-extrabold"><i class="fa-solid fa-layer-group text-teal"></i> النماذج الديناميكية المرتبطة بهذا الإجراء</p>
+          <button @click="openLinkForm(activeSop)" class="px-3 py-2 rounded-lg bg-brand-soft text-brand-deep text-xs font-bold hover:bg-brand hover:text-ink transition">
+            <i class="fa-solid fa-plus"></i> إضافة نموذج ديناميكي
+          </button>
+        </div>
+
+        <div class="space-y-2" x-show="activeSop.dynamicForms.length">
+          <template x-for="(f,i) in activeSop.dynamicForms" :key="f.id">
+            <div class="flex items-center gap-3 p-3 rounded-xl border border-black/5">
+              <i :class="f.icon || 'fa-solid fa-file-lines'" class="text-teal shrink-0"></i>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-bold truncate" x-text="f.titleAr"></p>
+                <p class="text-[11px] text-ink/40 truncate" x-text="f.titleEn + ' · ' + f.frequency"></p>
+              </div>
+              <a href="2_FormBuilder.html?std=iso" class="text-[11px] font-bold text-teal-deep hover:underline shrink-0">فتح في منشئ النماذج</a>
+              <button @click="activeSop.dynamicForms.splice(i,1)" class="text-rose/50 hover:text-rose shrink-0"><i class="fa-solid fa-trash text-xs"></i></button>
+            </div>
+          </template>
+        </div>
+        <div x-show="!activeSop.dynamicForms.length" class="text-center py-8 text-ink/35">
+          <i class="fa-solid fa-layer-group text-2xl mb-2"></i>
+          <p class="text-xs font-semibold">لا توجد نماذج مرتبطة بعد بهذا الإجراء</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- Link/create dynamic form modal -->
+<div x-show="linkFormOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @keydown.escape.window="linkFormOpen=false">
+  <div class="bg-white rounded-2xl w-full max-w-md p-5 space-y-3" @click.outside="linkFormOpen=false">
+    <p class="font-extrabold"><i class="fa-solid fa-layer-group text-brand-deep"></i> نموذج ديناميكي جديد لإجراء <span class="mono text-teal-deep" x-text="activeSop?.code"></span></p>
+    <div>
+      <label class="text-xs font-bold text-ink/60">اسم النموذج (عربي)</label>
+      <input x-model="linkDraft.titleAr" placeholder="مثال: سجل تحقق يومي" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-teal">
+    </div>
+    <div>
+      <label class="text-xs font-bold text-ink/60">Form Name (English)</label>
+      <input x-model="linkDraft.titleEn" placeholder="e.g. Daily verification log" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-teal">
+    </div>
+    <div>
+      <label class="text-xs font-bold text-ink/60">دورية التعبئة</label>
+      <select x-model="linkDraft.frequency" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-teal bg-white">
+        <option>يومي</option><option>أسبوعي</option><option>شهري</option><option>عند الحدوث</option>
+      </select>
+    </div>
+    <p class="text-[11px] text-ink/40 leading-relaxed"><i class="fa-solid fa-circle-info"></i> يتم إنشاء رابط النموذج هنا فقط؛ تصميم الحقول التفصيلي يتم لاحقاً من «منشئ النماذج».</p>
+    <div class="flex gap-2 pt-2">
+      <button @click="linkFormOpen=false" class="flex-1 py-2.5 rounded-lg border border-black/10 text-sm font-bold hover:bg-canvas transition">إلغاء</button>
+      <button @click="saveLinkedForm()" :disabled="!linkDraft.titleAr" class="flex-1 py-2.5 rounded-lg bg-brand text-ink hover:bg-brand-deep hover:text-white text-sm font-bold transition disabled:opacity-30 disabled:cursor-not-allowed">حفظ وربط</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Core SOP modal -->
+<div x-show="addSopOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @keydown.escape.window="addSopOpen=false">
+  <div class="bg-white rounded-2xl w-full max-w-md p-5 space-y-3" @click.outside="addSopOpen=false">
+    <p class="font-extrabold"><i class="fa-solid fa-layer-group text-brand-deep"></i> إضافة إجراء أساسي جديد</p>
+    <div>
+      <label class="text-xs font-bold text-ink/60">كود الإجراء</label>
+      <input x-model="newSop.code" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-teal mono">
+    </div>
+    <div>
+      <label class="text-xs font-bold text-ink/60">اسم الإجراء (عربي)</label>
+      <input x-model="newSop.ar" placeholder="مثال: إدارة النفايات والمخلفات" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-teal">
+    </div>
+    <div>
+      <label class="text-xs font-bold text-ink/60">Name (English)</label>
+      <input x-model="newSop.en" placeholder="e.g. Waste Management" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-teal">
+    </div>
+    <p class="text-[11px] text-ink/40 leading-relaxed"><i class="fa-solid fa-circle-info"></i> سيُضاف كإجراء أساسي مشترك لكل القطاعات، بحقول فارغة جاهزة للتعبئة.</p>
+    <div class="flex gap-2 pt-2">
+      <button @click="addSopOpen=false" class="flex-1 py-2.5 rounded-lg border border-black/10 text-sm font-bold hover:bg-canvas transition">إلغاء</button>
+      <button @click="saveNewSop()" :disabled="!newSop.code || !newSop.ar" class="flex-1 py-2.5 rounded-lg bg-brand text-ink hover:bg-brand-deep hover:text-white text-sm font-bold transition disabled:opacity-30 disabled:cursor-not-allowed">إنشاء الإجراء</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function coreSOPsApp(){
+  return {
+    activeCode: 'FSMS-SOP-001',
+    editMode: false,
+    editSnapshot: null,
+    linkFormOpen: false,
+    linkDraft: {titleAr:'', titleEn:'', frequency:'يومي'},
+    addSopOpen: false,
+    newSop: {code:'', ar:'', en:''},
+    open: { purpose:true, scope:false, references:false, responsibilities:false, execution:false, controlPoints:false, linkedForms:false, kpis:false, notes:false, revisionHistory:false },
+
+    narrativeSections: [
+      {key:'purpose', titleAr:'1. الغرض', titleEn:'Purpose', icon:'fa-solid fa-bullseye'},
+      {key:'scope', titleAr:'2. النطاق', titleEn:'Scope', icon:'fa-solid fa-diagram-project'},
+      {key:'references', titleAr:'3. المراجع المرجعية', titleEn:'References', icon:'fa-solid fa-book'},
+      {key:'responsibilities', titleAr:'4. المسؤوليات', titleEn:'Responsibilities', icon:'fa-solid fa-user-check'},
+      {key:'execution', titleAr:'5. منهجية التنفيذ', titleEn:'Execution Method', icon:'fa-solid fa-list-ol'},
+    ],
+
+    // ---------- the single, shared source of the Core-SOPs — full document content ----------
+    // Editing (and adding/removing entries) is the ONLY place these are editable; sector pages only display them read-only.
+    coreSOPs: [
+{code:'FSMS-SOP-001',ar:'ضبط الوثائق والمعلومات الموثقة',en:'Document Control',sector:'مشترك - جميع القطاعات Core FSMS - All Sectors',version:'1.0',issueDate:'2026-04-12',effectiveDate:'2026-04-12',primaryRef:'ISO 22000:2018',supportingRefs:'Codex CXC 1-1969 General Principles of Food Hygiene and HACCP؛ ISO 22002-100:2025',status:'سارية Active',briefPurpose:'ضمان إصدار واعتماد وتحديث وتوزيع الوثائق السارية فقط. Operational control of document control within the Core FSMS - All Sectors FSMS.',purposeAr:'ضمان إصدار واعتماد وتحديث وتوزيع الوثائق السارية فقط.',purposeEn:'This SOP defines the operational and control requirements for document control within the Core FSMS - All Sectors food safety management system.',scopeAr:'كل السياسات والإجراءات وتعليمات العمل والنماذج والسجلات.',scopeEn:'This SOP applies to the activities, monitoring points, records, and related documents associated with document control.',referencesAr:'ISO 22000:2018\nCodex CXC 1-1969 General Principles of Food Hygiene and HACCP\nISO 22002-100:2025',referencesEn:'Use the standards and prerequisite-programme references listed above together with any site-specific legal and customer requirements.',responsibilitiesAr:'ممثل النظام يملك سجل الوثائق الرئيسي.\nالمدير الفني يراجع المحتوى قبل الإصدار.\nالإدارة العليا تعتمد الوثائق الحرجة.',responsibilitiesEn:'The process owner is responsible for implementation. Quality verifies compliance and record completion. Other relevant teams such as operations, stores, maintenance, laboratory, service, or purchasing support execution as applicable.',executionAr:'إعداد كود فريد لكل وثيقة وتحديد المالك والغرض وموقع الاستخدام.\nمراجعة فنية قبل الإصدار مع التأكد من اتساق الوثيقة مع المخاطر والضوابط التشغيلية.\nاعتماد الوثيقة وتسجيلها في السجل الرئيسي وتحديد تاريخ السريان.\nسحب النسخ الملغاة ومنع استخدامها غير المقصود ووضع ختم غير سارية عند الاحتفاظ المرجعي.\nمراجعة الوثيقة دوريًا أو عند التغيير التشغيلي أو النظامي أو التنظيمي.',executionEn:'Perform approved pre-checks, operate within defined limits, monitor the relevant parameters, record results, manage deviations promptly, and release only conforming product or service.',controlPoints:[['المدخل/النشاط','كل السياسات والإجراءات وتعليمات العمل والنماذ...','المشرف/صاحب العملية'],['السجل/الإثبات','السجل الرئيسي؛ طلبات التعديل','الجودة/القسم'],['التعامل مع الانحراف','حجز/إيقاف/تصحيح/تحقيق/إعادة إطلاق حسب الحالة','المشرف + الجودة']],controlPointsEn:'Control points and monitoring requirements shall align with the approved flow diagram, hazard analysis, PRPs, OPRPs, CCPs, acceptance criteria, and escalation rules.',linkedForms:[['FSMS-FRM-001 سجل الوثائق الرئيسي','نموذج/سجل مرتبط'],['FSMS-FRM-002 طلب إنشاء/تعديل وثيقة','نموذج/سجل مرتبط'],['FSMS-FRM-003 سجل التوزيع','نموذج/سجل مرتبط']],linkedFormsEn:'Use the listed forms and records to demonstrate implementation, monitoring, verification, deviation handling, traceability, and management review.',kpisAr:'نسبة الوثائق السارية\nمراجعات الوثائق المنجزة في موعدها',kpisEn:'Track the listed indicators to confirm control effectiveness, compliance, and continual improvement.',notesAr:'يجب ربط هذا الإجراء بدراسة المخاطر ومخطط التدفق المعتمد للقطاع.\nأي تغيير في المعدات أو المنتج أو المورد أو طريقة التشغيل يتطلب مراجعة هذا الإجراء وما يرتبط به من نماذج.\nلا يُسمح بإطلاق المنتج أو الخدمة عند وجود سجل حرج غير مكتمل أو نتيجة غير مقبولة دون قرار موثق.',notesEn:'Apply this SOP together with the approved process flow, hazard study, document-control rules, and any sector-specific operational requirements.',revisionHistory:[['1.0','2026-04-12','إصدار أولي منظم ضمن حزمة SOP المنفصلة','يستكمل عند الاعتماد']],revisionHistoryEn:'Update this section whenever the SOP is revised, reissued, or reapproved after a change.',dynamicForms:[]},
+{code:'FSMS-SOP-002',ar:'ضبط السجلات والحفظ والاسترجاع',en:'Records Control',sector:'مشترك - جميع القطاعات Core FSMS - All Sectors',version:'1.0',issueDate:'2026-04-12',effectiveDate:'2026-04-12',primaryRef:'ISO 22000:2018',supportingRefs:'Codex CXC 1-1969 General Principles of Food Hygiene and HACCP؛ ISO 22002-100:2025',status:'سارية Active',briefPurpose:'ضمان أن سجلات سلامة الغذاء مقروءة ومكتملة ومؤرخة وسهلة الاسترجاع. Operational control of records control within the Core FSMS - All Sectors FSMS.',purposeAr:'ضمان أن سجلات سلامة الغذاء مقروءة ومكتملة ومؤرخة وسهلة الاسترجاع.',purposeEn:'This SOP defines the operational and control requirements for records control within the Core FSMS - All Sectors food safety management system.',scopeAr:'جميع السجلات الورقية والإلكترونية ذات الصلة بالنظام.',scopeEn:'This SOP applies to the activities, monitoring points, records, and related documents associated with records control.',referencesAr:'ISO 22000:2018\nCodex CXC 1-1969 General Principles of Food Hygiene and HACCP\nISO 22002-100:2025',referencesEn:'Use the standards and prerequisite-programme references listed above together with any site-specific legal and customer requirements.',responsibilitiesAr:'أصحاب العمليات يملؤون السجلات وقت التنفيذ.\nالمشرف يراجع اكتمال السجل.\nالجودة تدير مدد الحفظ والأرشفة.',responsibilitiesEn:'The process owner is responsible for implementation. Quality verifies compliance and record completion. Other relevant teams such as operations, stores, maintenance, laboratory, service, or purchasing support execution as applicable.',executionAr:'اعتماد سجل لكل نشاط يوضح الكود ومدة الحفظ والمسؤول عن الإنشاء.\nاستكمال السجل وقت التنفيذ دون ترك خانات حرجة فارغة.\nإجراء التصحيح بخط واحد مع توقيع وتاريخ دون طمس البيانات الأصلية.\nأرشفة السجلات بحسب المدة والموقع والصلاحيات المعتمدة.\nاختبار قدرة الاسترجاع للسجلات الحرجة بصورة دورية.',executionEn:'Perform approved pre-checks, operate within defined limits, monitor the relevant parameters, record results, manage deviations promptly, and release only conforming product or service.',controlPoints:[['المدخل/النشاط','جميع السجلات الورقية والإلكترونية ذات الصلة ب...','المشرف/صاحب العملية'],['السجل/الإثبات','قائمة مدد الحفظ؛ محاضر الإتلاف','الجودة/القسم'],['التعامل مع الانحراف','حجز/إيقاف/تصحيح/تحقيق/إعادة إطلاق حسب الحالة','المشرف + الجودة']],controlPointsEn:'Control points and monitoring requirements shall align with the approved flow diagram, hazard analysis, PRPs, OPRPs, CCPs, acceptance criteria, and escalation rules.',linkedForms:[['FSMS-FRM-004 سجل التحكم في السجلات','نموذج/سجل مرتبط'],['FSMS-FRM-005 طلب استرجاع سجل','نموذج/سجل مرتبط']],linkedFormsEn:'Use the listed forms and records to demonstrate implementation, monitoring, verification, deviation handling, traceability, and management review.',kpisAr:'اكتمال السجلات\nزمن الاسترجاع',kpisEn:'Track the listed indicators to confirm control effectiveness, compliance, and continual improvement.',notesAr:'يجب ربط هذا الإجراء بدراسة المخاطر ومخطط التدفق المعتمد للقطاع.\nأي تغيير في المعدات أو المنتج أو المورد أو طريقة التشغيل يتطلب مراجعة هذا الإجراء وما يرتبط به من نماذج.\nلا يُسمح بإطلاق المنتج أو الخدمة عند وجود سجل حرج غير مكتمل أو نتيجة غير مقبولة دون قرار موثق.',notesEn:'Apply this SOP together with the approved process flow, hazard study, document-control rules, and any sector-specific operational requirements.',revisionHistory:[['1.0','2026-04-12','إصدار أولي منظم ضمن حزمة SOP المنفصلة','يستكمل عند الاعتماد']],revisionHistoryEn:'Update this section whenever the SOP is revised, reissued, or reapproved after a change.',dynamicForms:[]},
+{code:'FSMS-SOP-003',ar:'التدريب والكفاءة والتوعية',en:'Training Competence Awareness',sector:'مشترك - جميع القطاعات Core FSMS - All Sectors',version:'1.0',issueDate:'2026-04-12',effectiveDate:'2026-04-12',primaryRef:'ISO 22000:2018',supportingRefs:'Codex CXC 1-1969 General Principles of Food Hygiene and HACCP؛ ISO 22002-100:2025',status:'سارية Active',briefPurpose:'التأكد من كفاءة جميع العاملين المؤثرين على سلامة الغذاء. Operational control of training competence awareness within the Core FSMS - All Sectors FSMS.',purposeAr:'التأكد من كفاءة جميع العاملين المؤثرين على سلامة الغذاء.',purposeEn:'This SOP defines the operational and control requirements for training competence awareness within the Core FSMS - All Sectors food safety management system.',scopeAr:'الموظفون الدائمون والمؤقتون والمقاولون والزوار المعنيون.',scopeEn:'This SOP applies to the activities, monitoring points, records, and related documents associated with training competence awareness.',referencesAr:'ISO 22000:2018\nCodex CXC 1-1969 General Principles of Food Hygiene and HACCP\nISO 22002-100:2025',referencesEn:'Use the standards and prerequisite-programme references listed above together with any site-specific legal and customer requirements.',responsibilitiesAr:'الموارد البشرية تنسق الخطة.\nالجودة تحدد موضوعات سلامة الغذاء.\nالمدير المباشر يقيم التطبيق الميداني.',responsibilitiesEn:'The process owner is responsible for implementation. Quality verifies compliance and record completion. Other relevant teams such as operations, stores, maintenance, laboratory, service, or purchasing support execution as applicable.',executionAr:'إعداد مصفوفة كفاءات مرتبطة بالوظائف والمخاطر.\nتنفيذ تهيئة أولية قبل مباشرة العمل تشمل النظافة الشخصية والطوارئ والحساسية والإبلاغ الصحي.\nتنفيذ تدريب تخصصي لوظائف مثل مراقبي CCP والاستلام والمختبر والصيانة.\nقياس الفاعلية بالاختبار والملاحظة الميدانية ومؤشرات الأداء.\nإعادة التدريب بعد التغيير أو الانحرافات المتكررة.',executionEn:'Perform approved pre-checks, operate within defined limits, monitor the relevant parameters, record results, manage deviations promptly, and release only conforming product or service.',controlPoints:[['المدخل/النشاط','الموظفون الدائمون والمؤقتون والمقاولون والزوا...','المشرف/صاحب العملية'],['السجل/الإثبات','خطط التدريب؛ نتائج التقييم','الجودة/القسم'],['التعامل مع الانحراف','حجز/إيقاف/تصحيح/تحقيق/إعادة إطلاق حسب الحالة','المشرف + الجودة']],controlPointsEn:'Control points and monitoring requirements shall align with the approved flow diagram, hazard analysis, PRPs, OPRPs, CCPs, acceptance criteria, and escalation rules.',linkedForms:[['FSMS-FRM-006 مصفوفة الكفاءة','نموذج/سجل مرتبط'],['FSMS-FRM-007 خطة التدريب السنوية','نموذج/سجل مرتبط'],['FSMS-FRM-008 سجل الحضور والتقييم','نموذج/سجل مرتبط']],linkedFormsEn:'Use the listed forms and records to demonstrate implementation, monitoring, verification, deviation handling, traceability, and management review.',kpisAr:'نسبة استكمال التدريب\nدرجات التقييم',kpisEn:'Track the listed indicators to confirm control effectiveness, compliance, and continual improvement.',notesAr:'يجب ربط هذا الإجراء بدراسة المخاطر ومخطط التدفق المعتمد للقطاع.\nأي تغيير في المعدات أو المنتج أو المورد أو طريقة التشغيل يتطلب مراجعة هذا الإجراء وما يرتبط به من نماذج.\nلا يُسمح بإطلاق المنتج أو الخدمة عند وجود سجل حرج غير مكتمل أو نتيجة غير مقبولة دون قرار موثق.',notesEn:'Apply this SOP together with the approved process flow, hazard study, document-control rules, and any sector-specific operational requirements.',revisionHistory:[['1.0','2026-04-12','إصدار أولي منظم ضمن حزمة SOP المنفصلة','يستكمل عند الاعتماد']],revisionHistoryEn:'Update this section whenever the SOP is revised, reissued, or reapproved after a change.',dynamicForms:[]},
+{code:'FSMS-SOP-004',ar:'اعتماد الموردين والاستلام وفحص المواد الواردة',en:'Supplier Approval Receiving',sector:'مشترك - جميع القطاعات Core FSMS - All Sectors',version:'1.0',issueDate:'2026-04-12',effectiveDate:'2026-04-12',primaryRef:'ISO 22000:2018',supportingRefs:'Codex CXC 1-1969 General Principles of Food Hygiene and HACCP؛ ISO 22002-100:2025',status:'سارية Active',briefPurpose:'التأكد من أن الموردين والمواد الواردة تستوفي متطلبات السلامة والجودة قبل الاستخدام. Operational control of supplier approval receiving within the Core FSMS - All Sectors FSMS.',purposeAr:'التأكد من أن الموردين والمواد الواردة تستوفي متطلبات السلامة والجودة قبل الاستخدام.',purposeEn:'This SOP defines the operational and control requirements for supplier approval receiving within the Core FSMS - All Sectors food safety management system.',scopeAr:'المواد الخام ومواد التعبئة والكيماويات والخدمات الحرجة.',scopeEn:'This SOP applies to the activities, monitoring points, records, and related documents associated with supplier approval receiving.',referencesAr:'ISO 22000:2018\nCodex CXC 1-1969 General Principles of Food Hygiene and HACCP\nISO 22002-100:2025',referencesEn:'Use the standards and prerequisite-programme references listed above together with any site-specific legal and customer requirements.',responsibilitiesAr:'المشتريات تجمع وثائق المورد.\nالجودة تعتمد المواصفات والمورد.\nالاستلام والمخزن يفحصان الشحنات.',responsibilitiesEn:'The process owner is responsible for implementation. Quality verifies compliance and record completion. Other relevant teams such as operations, stores, maintenance, laboratory, service, or purchasing support execution as applicable.',executionAr:'تقييم الموردين وفق الترخيص والقدرة الفنية والالتزام والمخاطر.\nمراجعة مواصفات المواد قبل الشراء والتوريد.\nفحص الشحنة عند الاستلام من حيث الهوية والعبوة والنظافة والحرارة والصلاحية.\nالحجر أو الرفض عند عدم المطابقة لحين قرار الجودة.\nإعادة تقييم الموردين دوريًا بناءً على الأداء والرفض والشكاوى.',executionEn:'Perform approved pre-checks, operate within defined limits, monitor the relevant parameters, record results, manage deviations promptly, and release only conforming product or service.',controlPoints:[['المدخل/النشاط','المواد الخام ومواد التعبئة والكيماويات والخدم...','المشرف/صاحب العملية'],['السجل/الإثبات','ملفات الموردين؛ سجل الرفض','الجودة/القسم'],['التعامل مع الانحراف','حجز/إيقاف/تصحيح/تحقيق/إعادة إطلاق حسب الحالة','المشرف + الجودة']],controlPointsEn:'Control points and monitoring requirements shall align with the approved flow diagram, hazard analysis, PRPs, OPRPs, CCPs, acceptance criteria, and escalation rules.',linkedForms:[['FSMS-FRM-009 قائمة الموردين المعتمدين','نموذج/سجل مرتبط'],['FSMS-FRM-010 نموذج تقييم المورد','نموذج/سجل مرتبط'],['FSMS-FRM-011 سجل الاستلام','نموذج/سجل مرتبط']],linkedFormsEn:'Use the listed forms and records to demonstrate implementation, monitoring, verification, deviation handling, traceability, and management review.',kpisAr:'نسبة قبول الشحنات\nعدد الموردين المعاد تقييمهم',kpisEn:'Track the listed indicators to confirm control effectiveness, compliance, and continual improvement.',notesAr:'يجب ربط هذا الإجراء بدراسة المخاطر ومخطط التدفق المعتمد للقطاع.\nأي تغيير في المعدات أو المنتج أو المورد أو طريقة التشغيل يتطلب مراجعة هذا الإجراء وما يرتبط به من نماذج.\nلا يُسمح بإطلاق المنتج أو الخدمة عند وجود سجل حرج غير مكتمل أو نتيجة غير مقبولة دون قرار موثق.',notesEn:'Apply this SOP together with the approved process flow, hazard study, document-control rules, and any sector-specific operational requirements.',revisionHistory:[['1.0','2026-04-12','إصدار أولي منظم ضمن حزمة SOP المنفصلة','يستكمل عند الاعتماد']],revisionHistoryEn:'Update this section whenever the SOP is revised, reissued, or reapproved after a change.',dynamicForms:[]},
+{code:'FSMS-SOP-005',ar:'الصيانة الوقائية وإدارة الأعطال',en:'Preventive Maintenance Breakdown',sector:'مشترك - جميع القطاعات Core FSMS - All Sectors',version:'1.0',issueDate:'2026-04-12',effectiveDate:'2026-04-12',primaryRef:'ISO 22000:2018',supportingRefs:'Codex CXC 1-1969 General Principles of Food Hygiene and HACCP؛ ISO 22002-100:2025',status:'سارية Active',briefPurpose:'ضمان جاهزية المباني والمرافق والمعدات ومنع التلوث الناتج عن الأعطال أو أعمال الصيانة. Operational control of preventive maintenance breakdown within the Core FSMS - All Sectors FSMS.',purposeAr:'ضمان جاهزية المباني والمرافق والمعدات ومنع التلوث الناتج عن الأعطال أو أعمال الصيانة.',purposeEn:'This SOP defines the operational and control requirements for preventive maintenance breakdown within the Core FSMS - All Sectors food safety management system.',scopeAr:'المعدات والخطوط والمرافق والخدمات المؤثرة على سلامة الغذاء.',scopeEn:'This SOP applies to the activities, monitoring points, records, and related documents associated with preventive maintenance breakdown.',referencesAr:'ISO 22000:2018\nCodex CXC 1-1969 General Principles of Food Hygiene and HACCP\nISO 22002-100:2025',referencesEn:'Use the standards and prerequisite-programme references listed above together with any site-specific legal and customer requirements.',responsibilitiesAr:'الصيانة تدير الخطة الوقائية.\nالتشغيل يبلغ عن الأعطال فورًا.\nالجودة تقيم أثر العطل على المنتج.',responsibilitiesEn:'The process owner is responsible for implementation. Quality verifies compliance and record completion. Other relevant teams such as operations, stores, maintenance, laboratory, service, or purchasing support execution as applicable.',executionAr:'إعداد قائمة أصول وخطة صيانة وقائية وتكرارات واضحة.\nتقييم المخاطر قبل الصيانة في مناطق المنتج المكشوف.\nتنفيذ تنظيف وفحص وتحقيق قبل إعادة التشغيل بعد الصيانة.\nعزل المنتج المتأثر عند حدوث عطل مؤثر على السلامة.\nتحليل الأعطال المتكررة واتخاذ إجراءات منع تكرار.',executionEn:'Perform approved pre-checks, operate within defined limits, monitor the relevant parameters, record results, manage deviations promptly, and release only conforming product or service.',controlPoints:[['المدخل/النشاط','المعدات والخطوط والمرافق والخدمات المؤثرة على...','المشرف/صاحب العملية'],['السجل/الإثبات','أوامر العمل؛ تقارير الأعطال','الجودة/القسم'],['التعامل مع الانحراف','حجز/إيقاف/تصحيح/تحقيق/إعادة إطلاق حسب الحالة','المشرف + الجودة']],controlPointsEn:'Control points and monitoring requirements shall align with the approved flow diagram, hazard analysis, PRPs, OPRPs, CCPs, acceptance criteria, and escalation rules.',linkedForms:[['FSMS-FRM-012 خطة الصيانة','نموذج/سجل مرتبط'],['FSMS-FRM-013 أمر عمل صيانة','نموذج/سجل مرتبط'],['FSMS-FRM-014 تصريح إعادة تشغيل','نموذج/سجل مرتبط']],linkedFormsEn:'Use the listed forms and records to demonstrate implementation, monitoring, verification, deviation handling, traceability, and management review.',kpisAr:'الالتزام بالخطة\nزمن توقف المعدات',kpisEn:'Track the listed indicators to confirm control effectiveness, compliance, and continual improvement.',notesAr:'يجب ربط هذا الإجراء بدراسة المخاطر ومخطط التدفق المعتمد للقطاع.\nأي تغيير في المعدات أو المنتج أو المورد أو طريقة التشغيل يتطلب مراجعة هذا الإجراء وما يرتبط به من نماذج.\nلا يُسمح بإطلاق المنتج أو الخدمة عند وجود سجل حرج غير مكتمل أو نتيجة غير مقبولة دون قرار موثق.',notesEn:'Apply this SOP together with the approved process flow, hazard study, document-control rules, and any sector-specific operational requirements.',revisionHistory:[['1.0','2026-04-12','إصدار أولي منظم ضمن حزمة SOP المنفصلة','يستكمل عند الاعتماد']],revisionHistoryEn:'Update this section whenever the SOP is revised, reissued, or reapproved after a change.',dynamicForms:[]},
+{code:'FSMS-SOP-006',ar:'المعايرة والتحقق من أجهزة القياس',en:'Calibration Measuring Devices',sector:'مشترك - جميع القطاعات Core FSMS - All Sectors',version:'1.0',issueDate:'2026-04-12',effectiveDate:'2026-04-12',primaryRef:'ISO 22000:2018',supportingRefs:'Codex CXC 1-1969 General Principles of Food Hygiene and HACCP؛ ISO 22002-100:2025',status:'سارية Active',briefPurpose:'ضمان موثوقية القياسات الحرجة المستخدمة لاتخاذ قرارات مرتبطة بسلامة الغذاء. Operational control of calibration measuring devices within the Core FSMS - All Sectors FSMS.',purposeAr:'ضمان موثوقية القياسات الحرجة المستخدمة لاتخاذ قرارات مرتبطة بسلامة الغذاء.',purposeEn:'This SOP defines the operational and control requirements for calibration measuring devices within the Core FSMS - All Sectors food safety management system.',scopeAr:'موازين وثرمومترات وحساسات وأجهزة فحص ومعايرة الموقع.',scopeEn:'This SOP applies to the activities, monitoring points, records, and related documents associated with calibration measuring devices.',referencesAr:'ISO 22000:2018\nCodex CXC 1-1969 General Principles of Food Hygiene and HACCP\nISO 22002-100:2025',referencesEn:'Use the standards and prerequisite-programme references listed above together with any site-specific legal and customer requirements.',responsibilitiesAr:'الجودة/المختبر يديران سجل الأجهزة.\nالأقسام تتحقق قبل الاستخدام.\nالجهة المؤهلة تنفذ المعايرة.',responsibilitiesEn:'The process owner is responsible for implementation. Quality verifies compliance and record completion. Other relevant teams such as operations, stores, maintenance, laboratory, service, or purchasing support execution as applicable.',executionAr:'حصر الأجهزة وإعطاؤها أرقام تعريفية وبطاقات حالة.\nتحديد تكرار المعايرة والتحقق بناءً على المخاطر وتوصية المصنع.\nإيقاف الجهاز غير الساري أو غير المطابق وتقييم أثر النتائج السابقة.\nتوثيق جميع أعمال المعايرة والتحقق والتصحيحات.\nمراجعة الاتجاهات لاتخاذ قرار زيادة التكرار أو الاستبدال.',executionEn:'Perform approved pre-checks, operate within defined limits, monitor the relevant parameters, record results, manage deviations promptly, and release only conforming product or service.',controlPoints:[['المدخل/النشاط','موازين وثرمومترات وحساسات وأجهزة فحص ومعايرة ...','المشرف/صاحب العملية'],['السجل/الإثبات','شهادات المعايرة؛ نتائج التحقق','الجودة/القسم'],['التعامل مع الانحراف','حجز/إيقاف/تصحيح/تحقيق/إعادة إطلاق حسب الحالة','المشرف + الجودة']],controlPointsEn:'Control points and monitoring requirements shall align with the approved flow diagram, hazard analysis, PRPs, OPRPs, CCPs, acceptance criteria, and escalation rules.',linkedForms:[['FSMS-FRM-015 سجل الأجهزة','نموذج/سجل مرتبط'],['FSMS-FRM-016 خطة المعايرة','نموذج/سجل مرتبط'],['FSMS-FRM-017 سجل التحقق اليومي','نموذج/سجل مرتبط']],linkedFormsEn:'Use the listed forms and records to demonstrate implementation, monitoring, verification, deviation handling, traceability, and management review.',kpisAr:'نسبة الأجهزة السارية\nعدد الأجهزة المنتهية',kpisEn:'Track the listed indicators to confirm control effectiveness, compliance, and continual improvement.',notesAr:'يجب ربط هذا الإجراء بدراسة المخاطر ومخطط التدفق المعتمد للقطاع.\nأي تغيير في المعدات أو المنتج أو المورد أو طريقة التشغيل يتطلب مراجعة هذا الإجراء وما يرتبط به من نماذج.\nلا يُسمح بإطلاق المنتج أو الخدمة عند وجود سجل حرج غير مكتمل أو نتيجة غير مقبولة دون قرار موثق.',notesEn:'Apply this SOP together with the approved process flow, hazard study, document-control rules, and any sector-specific operational requirements.',revisionHistory:[['1.0','2026-04-12','إصدار أولي منظم ضمن حزمة SOP المنفصلة','يستكمل عند الاعتماد']],revisionHistoryEn:'Update this section whenever the SOP is revised, reissued, or reapproved after a change.',dynamicForms:[]},
+{code:'FSMS-SOP-007',ar:'التنظيف والتطهير والتحقق من النظافة',en:'Cleaning Sanitation Hygiene Verification',sector:'مشترك - جميع القطاعات Core FSMS - All Sectors',version:'1.0',issueDate:'2026-04-12',effectiveDate:'2026-04-12',primaryRef:'ISO 22000:2018',supportingRefs:'Codex CXC 1-1969 General Principles of Food Hygiene and HACCP؛ ISO 22002-100:2025',status:'سارية Active',briefPurpose:'إزالة الأوساخ وبقايا الغذاء وتقليل الحمل الميكروبي إلى مستوى مقبول والتحقق من الفاعلية. Operational control of cleaning sanitation hygiene verification within the Core FSMS - All Sectors FSMS.',purposeAr:'إزالة الأوساخ وبقايا الغذاء وتقليل الحمل الميكروبي إلى مستوى مقبول والتحقق من الفاعلية.',purposeEn:'This SOP defines the operational and control requirements for cleaning sanitation hygiene verification within the Core FSMS - All Sectors food safety management system.',scopeAr:'المباني والمعدات والأدوات والأسطح ونقاط التلامس وغير التلامس.',scopeEn:'This SOP applies to the activities, monitoring points, records, and related documents associated with cleaning sanitation hygiene verification.',referencesAr:'ISO 22000:2018\nCodex CXC 1-1969 General Principles of Food Hygiene and HACCP\nISO 22002-100:2025',referencesEn:'Use the standards and prerequisite-programme references listed above together with any site-specific legal and customer requirements.',responsibilitiesAr:'الأقسام تنفذ الخطة المعتمدة.\nالجودة تتحقق من الفاعلية.\nالمخازن تضبط الكيماويات.',responsibilitiesEn:'The process owner is responsible for implementation. Quality verifies compliance and record completion. Other relevant teams such as operations, stores, maintenance, laboratory, service, or purchasing support execution as applicable.',executionAr:'إعداد جداول تنظيف تبين ماذا وكيف وبماذا ومن ومتى وكيف يتم التحقق.\nاستخدام كيماويات معتمدة وموسومة ومخزنة بشكل منفصل وآمن.\nتنفيذ تسلسل التنظيف الملائم للسطح والمعدة.\nالتحقق بالفحص البصري أو المسحات أو الاختبارات المناسبة.\nإعادة التنظيف والتحقيق عند فشل التحقق.',executionEn:'Perform approved pre-checks, operate within defined limits, monitor the relevant parameters, record results, manage deviations promptly, and release only conforming product or service.',controlPoints:[['المدخل/النشاط','المباني والمعدات والأدوات والأسطح ونقاط التلا...','المشرف/صاحب العملية'],['السجل/الإثبات','نتائج المسحات؛ سجلات الكيماويات','الجودة/القسم'],['التعامل مع الانحراف','حجز/إيقاف/تصحيح/تحقيق/إعادة إطلاق حسب الحالة','المشرف + الجودة']],controlPointsEn:'Control points and monitoring requirements shall align with the approved flow diagram, hazard analysis, PRPs, OPRPs, CCPs, acceptance criteria, and escalation rules.',linkedForms:[['FSMS-FRM-018 خطة التنظيف','نموذج/سجل مرتبط'],['FSMS-FRM-019 سجل تنفيذ التنظيف','نموذج/سجل مرتبط'],['FSMS-FRM-020 سجل التحقق','نموذج/سجل مرتبط']],linkedFormsEn:'Use the listed forms and records to demonstrate implementation, monitoring, verification, deviation handling, traceability, and management review.',kpisAr:'نجاح التحقق من أول مرة\nالالتزام بالخطة',kpisEn:'Track the listed indicators to confirm control effectiveness, compliance, and continual improvement.',notesAr:'يجب ربط هذا الإجراء بدراسة المخاطر ومخطط التدفق المعتمد للقطاع.\nأي تغيير في المعدات أو المنتج أو المورد أو طريقة التشغيل يتطلب مراجعة هذا الإجراء وما يرتبط به من نماذج.\nلا يُسمح بإطلاق المنتج أو الخدمة عند وجود سجل حرج غير مكتمل أو نتيجة غير مقبولة دون قرار موثق.',notesEn:'Apply this SOP together with the approved process flow, hazard study, document-control rules, and any sector-specific operational requirements.',revisionHistory:[['1.0','2026-04-12','إصدار أولي منظم ضمن حزمة SOP المنفصلة','يستكمل عند الاعتماد']],revisionHistoryEn:'Update this section whenever the SOP is revised, reissued, or reapproved after a change.',dynamicForms:[]},
+{code:'FSMS-SOP-008',ar:'مكافحة الآفات',en:'Pest Control',sector:'مشترك - جميع القطاعات Core FSMS - All Sectors',version:'1.0',issueDate:'2026-04-12',effectiveDate:'2026-04-12',primaryRef:'ISO 22000:2018',supportingRefs:'Codex CXC 1-1969 General Principles of Food Hygiene and HACCP؛ ISO 22002-100:2025',status:'سارية Active',briefPurpose:'منع دخول الآفات وتكاثرها وتقليل خطر التلوث. Operational control of pest control within the Core FSMS - All Sectors FSMS.',purposeAr:'منع دخول الآفات وتكاثرها وتقليل خطر التلوث.',purposeEn:'This SOP defines the operational and control requirements for pest control within the Core FSMS - All Sectors food safety management system.',scopeAr:'الموقع الداخلي والخارجي ونقاط المراقبة ومزود الخدمة.',scopeEn:'This SOP applies to the activities, monitoring points, records, and related documents associated with pest control.',referencesAr:'ISO 22000:2018\nCodex CXC 1-1969 General Principles of Food Hygiene and HACCP\nISO 22002-100:2025',referencesEn:'Use the standards and prerequisite-programme references listed above together with any site-specific legal and customer requirements.',responsibilitiesAr:'الإدارة توفر البرنامج.\nمزود الخدمة أو المسؤول الداخلي ينفذ الخطة.\nالجودة تراجع الاتجاهات.',responsibilitiesEn:'The process owner is responsible for implementation. Quality verifies compliance and record completion. Other relevant teams such as operations, stores, maintenance, laboratory, service, or purchasing support execution as applicable.',executionAr:'وضع تقييم مخاطر وخريطة مصائد/نقاط طعم حسب الحاجة.\nمنع الظروف الجاذبة مثل المخلفات المفتوحة والمياه الراكدة والفتحات.\nمراجعة النقاط دوريًا وتوثيق النشاط.\nمعالجة المشاهدات فورًا ورفع الحالات الحرجة.\nتحليل الاتجاهات الشهرية وتنفيذ إجراءات هيكلية أو تشغيلية.',executionEn:'Perform approved pre-checks, operate within defined limits, monitor the relevant parameters, record results, manage deviations promptly, and release only conforming product or service.',controlPoints:[['المدخل/النشاط','الموقع الداخلي والخارجي ونقاط المراقبة ومزود ...','المشرف/صاحب العملية'],['السجل/الإثبات','تقارير الزيارات؛ تحليل الاتجاهات','الجودة/القسم'],['التعامل مع الانحراف','حجز/إيقاف/تصحيح/تحقيق/إعادة إطلاق حسب الحالة','المشرف + الجودة']],controlPointsEn:'Control points and monitoring requirements shall align with the approved flow diagram, hazard analysis, PRPs, OPRPs, CCPs, acceptance criteria, and escalation rules.',linkedForms:[['FSMS-FRM-021 خريطة مكافحة الآفات','نموذج/سجل مرتبط'],['FSMS-FRM-022 سجل التفتيش','نموذج/سجل مرتبط'],['FSMS-FRM-023 سجل المشاهدات','نموذج/سجل مرتبط']],linkedFormsEn:'Use the listed forms and records to demonstrate implementation, monitoring, verification, deviation handling, traceability, and management review.',kpisAr:'عدد المشاهدات\nزمن الإغلاق',kpisEn:'Track the listed indicators to confirm control effectiveness, compliance, and continual improvement.',notesAr:'يجب ربط هذا الإجراء بدراسة المخاطر ومخطط التدفق المعتمد للقطاع.\nأي تغيير في المعدات أو المنتج أو المورد أو طريقة التشغيل يتطلب مراجعة هذا الإجراء وما يرتبط به من نماذج.\nلا يُسمح بإطلاق المنتج أو الخدمة عند وجود سجل حرج غير مكتمل أو نتيجة غير مقبولة دون قرار موثق.',notesEn:'Apply this SOP together with the approved process flow, hazard study, document-control rules, and any sector-specific operational requirements.',revisionHistory:[['1.0','2026-04-12','إصدار أولي منظم ضمن حزمة SOP المنفصلة','يستكمل عند الاعتماد']],revisionHistoryEn:'Update this section whenever the SOP is revised, reissued, or reapproved after a change.',dynamicForms:[]},
+{code:'FSMS-SOP-009',ar:'النظافة الشخصية وGMP والتحكم في الدخول',en:'Personal Hygiene GMP Access Control',sector:'مشترك - جميع القطاعات Core FSMS - All Sectors',version:'1.0',issueDate:'2026-04-12',effectiveDate:'2026-04-12',primaryRef:'ISO 22000:2018',supportingRefs:'Codex CXC 1-1969 General Principles of Food Hygiene and HACCP؛ ISO 22002-100:2025',status:'سارية Active',briefPurpose:'منع انتقال الملوثات من الأفراد أو الزوار أو الأدوات الشخصية. Operational control of personal hygiene gmp access control within the Core FSMS - All Sectors FSMS.',purposeAr:'منع انتقال الملوثات من الأفراد أو الزوار أو الأدوات الشخصية.',purposeEn:'This SOP defines the operational and control requirements for personal hygiene gmp access control within the Core FSMS - All Sectors food safety management system.',scopeAr:'العاملون والزوار والمقاولون والمناطق الإنتاجية والخدمية.',scopeEn:'This SOP applies to the activities, monitoring points, records, and related documents associated with personal hygiene gmp access control.',referencesAr:'ISO 22000:2018\nCodex CXC 1-1969 General Principles of Food Hygiene and HACCP\nISO 22002-100:2025',referencesEn:'Use the standards and prerequisite-programme references listed above together with any site-specific legal and customer requirements.',responsibilitiesAr:'كل فرد مسؤول عن التزامه الشخصي.\nالمشرف يراقب التطبيق.\nالموارد البشرية تدير الإقرار الصحي.',responsibilitiesEn:'The process owner is responsible for implementation. Quality verifies compliance and record completion. Other relevant teams such as operations, stores, maintenance, laboratory, service, or purchasing support execution as applicable.',executionAr:'تطبيق سياسة الإبلاغ عن المرض والجروح وإبعاد الحالات غير الملائمة.\nفرض الزي المناسب وغطاء الرأس/اللحية وغسل اليدين في النقاط المحددة.\nمنع الحلي والتدخين والأكل والشرب غير المصرح به في مناطق العمل.\nتنظيم دخول الزوار والمقاولين مع تسجيل ومرافقة وتعليمات واضحة.\nتسجيل المخالفات والتصحيح الفوري وإعادة التدريب عند الحاجة.',executionEn:'Perform approved pre-checks, operate within defined limits, monitor the relevant parameters, record results, manage deviations promptly, and release only conforming product or service.',controlPoints:[['المدخل/النشاط','العاملون والزوار والمقاولون والمناطق الإنتاجي...','المشرف/صاحب العملية'],['السجل/الإثبات','سجلات التفتيش؛ تقارير المخالفات','الجودة/القسم'],['التعامل مع الانحراف','حجز/إيقاف/تصحيح/تحقيق/إعادة إطلاق حسب الحالة','المشرف + الجودة']],controlPointsEn:'Control points and monitoring requirements shall align with the approved flow diagram, hazard analysis, PRPs, OPRPs, CCPs, acceptance criteria, and escalation rules.',linkedForms:[['FSMS-FRM-024 قائمة فحص GMP','نموذج/سجل مرتبط'],['FSMS-FRM-025 إقرار الحالة الصحية','نموذج/سجل مرتبط'],['FSMS-FRM-026 سجل دخول الزوار','نموذج/سجل مرتبط']],linkedFormsEn:'Use the listed forms and records to demonstrate implementation, monitoring, verification, deviation handling, traceability, and management review.',kpisAr:'مخالفات GMP\nالالتزام بالإقرار الصحي',kpisEn:'Track the listed indicators to confirm control effectiveness, compliance, and continual improvement.',notesAr:'يجب ربط هذا الإجراء بدراسة المخاطر ومخطط التدفق المعتمد للقطاع.\nأي تغيير في المعدات أو المنتج أو المورد أو طريقة التشغيل يتطلب مراجعة هذا الإجراء وما يرتبط به من نماذج.\nلا يُسمح بإطلاق المنتج أو الخدمة عند وجود سجل حرج غير مكتمل أو نتيجة غير مقبولة دون قرار موثق.',notesEn:'Apply this SOP together with the approved process flow, hazard study, document-control rules, and any sector-specific operational requirements.',revisionHistory:[['1.0','2026-04-12','إصدار أولي منظم ضمن حزمة SOP المنفصلة','يستكمل عند الاعتماد']],revisionHistoryEn:'Update this section whenever the SOP is revised, reissued, or reapproved after a change.',dynamicForms:[]},
+{code:'FSMS-SOP-010',ar:'التحكم في الزجاج والبلاستيك الهش والأجسام الغريبة',en:'Glass Brittle Plastic Foreign Bodies',sector:'مشترك - جميع القطاعات Core FSMS - All Sectors',version:'1.0',issueDate:'2026-04-12',effectiveDate:'2026-04-12',primaryRef:'ISO 22000:2018',supportingRefs:'Codex CXC 1-1969 General Principles of Food Hygiene and HACCP؛ ISO 22002-100:2025',status:'سارية Active',briefPurpose:'منع التلوث الفيزيائي الناتج عن الكسر أو التفتت أو فقدان أجزاء المعدات. Operational control of glass brittle plastic foreign bodies within the Core FSMS - All Sectors FSMS.',purposeAr:'منع التلوث الفيزيائي الناتج عن الكسر أو التفتت أو فقدان أجزاء المعدات.',purposeEn:'This SOP defines the operational and control requirements for glass brittle plastic foreign bodies within the Core FSMS - All Sectors food safety management system.',scopeAr:'الزجاج والبلاستيك الهش والأدوات الحادة ونقاط الكسر المحتملة.',scopeEn:'This SOP applies to the activities, monitoring points, records, and related documents associated with glass brittle plastic foreign bodies.',referencesAr:'ISO 22000:2018\nCodex CXC 1-1969 General Principles of Food Hygiene and HACCP\nISO 22002-100:2025',referencesEn:'Use the standards and prerequisite-programme references listed above together with any site-specific legal and customer requirements.',responsibilitiesAr:'الأقسام تدير الجرد.\nالمشرف يعالج الحوادث.\nالجودة توافق على إعادة التشغيل.',responsibilitiesEn:'The process owner is responsible for implementation. Quality verifies compliance and record completion. Other relevant teams such as operations, stores, maintenance, laboratory, service, or purchasing support execution as applicable.',executionAr:'إعداد قائمة جرد محدثة للعناصر الزجاجية والهشة.\nتطبيق حماية مناسبة للمصابيح والشاشات والنوافذ حيث يلزم.\nإيقاف النشاط وعزل المنطقة والمنتج عند الكسر أو الاشتباه.\nتنفيذ جمع آمن وتنظيف وفحص وتقييم الأثر على المنتج.\nتوثيق الحادث والموافقة على استئناف التشغيل بعد التحقق.',executionEn:'Perform approved pre-checks, operate within defined limits, monitor the relevant parameters, record results, manage deviations promptly, and release only conforming product or service.',controlPoints:[['المدخل/النشاط','الزجاج والبلاستيك الهش والأدوات الحادة ونقاط ...','المشرف/صاحب العملية'],['السجل/الإثبات','سجل الجرد؛ تقارير الحوادث','الجودة/القسم'],['التعامل مع الانحراف','حجز/إيقاف/تصحيح/تحقيق/إعادة إطلاق حسب الحالة','المشرف + الجودة']],controlPointsEn:'Control points and monitoring requirements shall align with the approved flow diagram, hazard analysis, PRPs, OPRPs, CCPs, acceptance criteria, and escalation rules.',linkedForms:[['FSMS-FRM-027 سجل الجرد','نموذج/سجل مرتبط'],['FSMS-FRM-028 محضر كسر','نموذج/سجل مرتبط'],['FSMS-FRM-029 تصريح إعادة تشغيل بعد الكسر','نموذج/سجل مرتبط']],linkedFormsEn:'Use the listed forms and records to demonstrate implementation, monitoring, verification, deviation handling, traceability, and management review.',kpisAr:'عدد حوادث الكسر\nزمن الاحتواء',kpisEn:'Track the listed indicators to confirm control effectiveness, compliance, and continual improvement.',notesAr:'يجب ربط هذا الإجراء بدراسة المخاطر ومخطط التدفق المعتمد للقطاع.\nأي تغيير في المعدات أو المنتج أو المورد أو طريقة التشغيل يتطلب مراجعة هذا الإجراء وما يرتبط به من نماذج.\nلا يُسمح بإطلاق المنتج أو الخدمة عند وجود سجل حرج غير مكتمل أو نتيجة غير مقبولة دون قرار موثق.',notesEn:'Apply this SOP together with the approved process flow, hazard study, document-control rules, and any sector-specific operational requirements.',revisionHistory:[['1.0','2026-04-12','إصدار أولي منظم ضمن حزمة SOP المنفصلة','يستكمل عند الاعتماد']],revisionHistoryEn:'Update this section whenever the SOP is revised, reissued, or reapproved after a change.',dynamicForms:[]},
+{code:'FSMS-SOP-011',ar:'إدارة مسببات الحساسية والتحقق من البطاقة',en:'Allergen Management Label Verification',sector:'مشترك - جميع القطاعات Core FSMS - All Sectors',version:'1.0',issueDate:'2026-04-12',effectiveDate:'2026-04-12',primaryRef:'ISO 22000:2018',supportingRefs:'Codex CXC 1-1969 General Principles of Food Hygiene and HACCP؛ ISO 22002-100:2025',status:'سارية Active',briefPurpose:'منع التلوث العرضي بالحساسية وضمان صحة الإفصاح على البطاقة أو العرض. Operational control of allergen management label verification within the Core FSMS - All Sectors FSMS.',purposeAr:'منع التلوث العرضي بالحساسية وضمان صحة الإفصاح على البطاقة أو العرض.',purposeEn:'This SOP defines the operational and control requirements for allergen management label verification within the Core FSMS - All Sectors food safety management system.',scopeAr:'المواد والوصفات والعمليات والتغيير بين المنتجات والبطاقات.',scopeEn:'This SOP applies to the activities, monitoring points, records, and related documents associated with allergen management label verification.',referencesAr:'ISO 22000:2018\nCodex CXC 1-1969 General Principles of Food Hygiene and HACCP\nISO 22002-100:2025',referencesEn:'Use the standards and prerequisite-programme references listed above together with any site-specific legal and customer requirements.',responsibilitiesAr:'التطوير/الوصفات تحدد الحساسية.\nالمشتريات تعتمد بيانات المورد.\nالتشغيل والجودة يضبطان الفصل والتنظيف والبطاقة.',responsibilitiesEn:'The process owner is responsible for implementation. Quality verifies compliance and record completion. Other relevant teams such as operations, stores, maintenance, laboratory, service, or purchasing support execution as applicable.',executionAr:'إعداد مصفوفة حساسية للموقع والمواد والمنتجات.\nتطبيق فصل أو تسلسل إنتاج مناسب للحد من الانتقال العرضي.\nتنفيذ تنظيف متحقق منه بعد التغيير بين المنتجات الحساسة وغير الحساسة.\nمراجعة البطاقة أو بطاقة الرف قبل كل تشغيل أو تعبئة.\nحجز أي منتج به خطأ بطاقة أو خطر تلوث عرضي حتى اتخاذ القرار.',executionEn:'Perform approved pre-checks, operate within defined limits, monitor the relevant parameters, record results, manage deviations promptly, and release only conforming product or service.',controlPoints:[['المدخل/النشاط','المواد والوصفات والعمليات والتغيير بين المنتج...','المشرف/صاحب العملية'],['السجل/الإثبات','مصفوفة الحساسية؛ سجل الحجز','الجودة/القسم'],['التعامل مع الانحراف','حجز/إيقاف/تصحيح/تحقيق/إعادة إطلاق حسب الحالة','المشرف + الجودة']],controlPointsEn:'Control points and monitoring requirements shall align with the approved flow diagram, hazard analysis, PRPs, OPRPs, CCPs, acceptance criteria, and escalation rules.',linkedForms:[['FSMS-FRM-030 مصفوفة الحساسية','نموذج/سجل مرتبط'],['FSMS-FRM-031 سجل التحقق من البطاقة','نموذج/سجل مرتبط'],['FSMS-FRM-032 سجل التغيير/التنظيف','نموذج/سجل مرتبط']],linkedFormsEn:'Use the listed forms and records to demonstrate implementation, monitoring, verification, deviation handling, traceability, and management review.',kpisAr:'أخطاء البطاقة\nحوادث الحساسية',kpisEn:'Track the listed indicators to confirm control effectiveness, compliance, and continual improvement.',notesAr:'يجب ربط هذا الإجراء بدراسة المخاطر ومخطط التدفق المعتمد للقطاع.\nأي تغيير في المعدات أو المنتج أو المورد أو طريقة التشغيل يتطلب مراجعة هذا الإجراء وما يرتبط به من نماذج.\nلا يُسمح بإطلاق المنتج أو الخدمة عند وجود سجل حرج غير مكتمل أو نتيجة غير مقبولة دون قرار موثق.',notesEn:'Apply this SOP together with the approved process flow, hazard study, document-control rules, and any sector-specific operational requirements.',revisionHistory:[['1.0','2026-04-12','إصدار أولي منظم ضمن حزمة SOP المنفصلة','يستكمل عند الاعتماد']],revisionHistoryEn:'Update this section whenever the SOP is revised, reissued, or reapproved after a change.',dynamicForms:[]},
+{code:'FSMS-SOP-012',ar:'تحليل المخاطر وبرامج PRP وتحديد OPRP وCCP',en:'Hazard Analysis PRP OPRP CCP',sector:'مشترك - جميع القطاعات Core FSMS - All Sectors',version:'1.0',issueDate:'2026-04-12',effectiveDate:'2026-04-12',primaryRef:'ISO 22000:2018',supportingRefs:'Codex CXC 1-1969 General Principles of Food Hygiene and HACCP؛ ISO 22002-100:2025',status:'سارية Active',briefPurpose:'تحديد المخاطر الهامة واختيار تدابير التحكم المناسبة وتوثيق خطة هاسب فعالة. Operational control of hazard analysis prp oprp ccp within the Core FSMS - All Sectors FSMS.',purposeAr:'تحديد المخاطر الهامة واختيار تدابير التحكم المناسبة وتوثيق خطة هاسب فعالة.',purposeEn:'This SOP defines the operational and control requirements for hazard analysis prp oprp ccp within the Core FSMS - All Sectors food safety management system.',scopeAr:'المنتجات والعمليات والمواد والمعدات والبيئة والتغليف والنقل.',scopeEn:'This SOP applies to the activities, monitoring points, records, and related documents associated with hazard analysis prp oprp ccp.',referencesAr:'ISO 22000:2018\nCodex CXC 1-1969 General Principles of Food Hygiene and HACCP\nISO 22002-100:2025',referencesEn:'Use the standards and prerequisite-programme references listed above together with any site-specific legal and customer requirements.',responsibilitiesAr:'فريق سلامة الغذاء يعد الدراسة.\nأصحاب العمليات يقدمون البيانات الفنية.\nالإدارة تعتمد الموارد والخطة.',responsibilitiesEn:'The process owner is responsible for implementation. Quality verifies compliance and record completion. Other relevant teams such as operations, stores, maintenance, laboratory, service, or purchasing support execution as applicable.',executionAr:'تحديد وصف المنتج والاستخدام المقصود ومخطط التدفق وتأكيده ميدانيًا.\nتحديد المخاطر البيولوجية والكيميائية والفيزيائية والحساسية وغيرها الملائمة.\nتقييم الخطورة والاحتمالية وتحديد الحاجة إلى PRP أو OPRP أو CCP.\nتحديد حدود أو معايير تشغيل ومراقبة وإجراءات انحراف لكل OPRP/CCP.\nمراجعة الدراسة عند أي تغيير أو حادث أو نتيجة تحقق غير مقبولة.',executionEn:'Perform approved pre-checks, operate within defined limits, monitor the relevant parameters, record results, manage deviations promptly, and release only conforming product or service.',controlPoints:[['المدخل/النشاط','المنتجات والعمليات والمواد والمعدات والبيئة و...','المشرف/صاحب العملية'],['السجل/الإثبات','تحليل المخاطر؛ خطة الهاسب','الجودة/القسم'],['التعامل مع الانحراف','حجز/إيقاف/تصحيح/تحقيق/إعادة إطلاق حسب الحالة','المشرف + الجودة']],controlPointsEn:'Control points and monitoring requirements shall align with the approved flow diagram, hazard analysis, PRPs, OPRPs, CCPs, acceptance criteria, and escalation rules.',linkedForms:[['FSMS-FRM-033 تحليل المخاطر','نموذج/سجل مرتبط'],['FSMS-FRM-034 ورقة قرار OPRP/CCP','نموذج/سجل مرتبط'],['FSMS-FRM-035 خطة HACCP','نموذج/سجل مرتبط']],linkedFormsEn:'Use the listed forms and records to demonstrate implementation, monitoring, verification, deviation handling, traceability, and management review.',kpisAr:'مراجعة الخطة في موعدها\nعدد التعديلات المحدثة',kpisEn:'Track the listed indicators to confirm control effectiveness, compliance, and continual improvement.',notesAr:'يجب ربط هذا الإجراء بدراسة المخاطر ومخطط التدفق المعتمد للقطاع.\nأي تغيير في المعدات أو المنتج أو المورد أو طريقة التشغيل يتطلب مراجعة هذا الإجراء وما يرتبط به من نماذج.\nلا يُسمح بإطلاق المنتج أو الخدمة عند وجود سجل حرج غير مكتمل أو نتيجة غير مقبولة دون قرار موثق.',notesEn:'Apply this SOP together with the approved process flow, hazard study, document-control rules, and any sector-specific operational requirements.',revisionHistory:[['1.0','2026-04-12','إصدار أولي منظم ضمن حزمة SOP المنفصلة','يستكمل عند الاعتماد']],revisionHistoryEn:'Update this section whenever the SOP is revised, reissued, or reapproved after a change.',dynamicForms:[]},
+{code:'FSMS-SOP-013',ar:'مراقبة OPRP وCCP والانحراف والمنتج غير المطابق وCAPA',en:'Monitoring OPRP CCP Deviation NC CAPA',sector:'مشترك - جميع القطاعات Core FSMS - All Sectors',version:'1.0',issueDate:'2026-04-12',effectiveDate:'2026-04-12',primaryRef:'ISO 22000:2018',supportingRefs:'Codex CXC 1-1969 General Principles of Food Hygiene and HACCP؛ ISO 22002-100:2025',status:'سارية Active',briefPurpose:'ضمان مراقبة نقاط التحكم والاستجابة الفورية للانحراف والسيطرة على المنتج المتأثر ومنع التكرار. Operational control of monitoring oprp ccp deviation nc capa within the Core FSMS - All Sectors FSMS.',purposeAr:'ضمان مراقبة نقاط التحكم والاستجابة الفورية للانحراف والسيطرة على المنتج المتأثر ومنع التكرار.',purposeEn:'This SOP defines the operational and control requirements for monitoring oprp ccp deviation nc capa within the Core FSMS - All Sectors food safety management system.',scopeAr:'كل نقاط OPRP وCCP وكل حالات عدم المطابقة الحرجة والتشغيلية.',scopeEn:'This SOP applies to the activities, monitoring points, records, and related documents associated with monitoring oprp ccp deviation nc capa.',referencesAr:'ISO 22000:2018\nCodex CXC 1-1969 General Principles of Food Hygiene and HACCP\nISO 22002-100:2025',referencesEn:'Use the standards and prerequisite-programme references listed above together with any site-specific legal and customer requirements.',responsibilitiesAr:'المشغل ينفذ المراقبة.\nالمشرف يعزل المنتج المتأثر.\nالجودة تدير التحقيق وCAPA والتحرير.',responsibilitiesEn:'The process owner is responsible for implementation. Quality verifies compliance and record completion. Other relevant teams such as operations, stores, maintenance, laboratory, service, or purchasing support execution as applicable.',executionAr:'تنفيذ المراقبة بالتكرار والطريقة والأداة المحددة في الخطة.\nإيقاف العملية أو الخطوة الحرجة عند تجاوز الحد أو فقدان السيطرة.\nحجز المنتج منذ آخر نقطة مقبولة وتقييم مصيره.\nتوثيق الإجراء الفوري وتحليل السبب الجذري والإجراء التصحيحي.\nالتحقق من الفاعلية قبل إغلاق CAPA وإعادة التشغيل.',executionEn:'Perform approved pre-checks, operate within defined limits, monitor the relevant parameters, record results, manage deviations promptly, and release only conforming product or service.',controlPoints:[['المدخل/النشاط','كل نقاط OPRP وCCP وكل حالات عدم المطابقة الحر...','المشرف/صاحب العملية'],['السجل/الإثبات','سجلات المراقبة؛ تقارير التحقيق','الجودة/القسم'],['التعامل مع الانحراف','حجز/إيقاف/تصحيح/تحقيق/إعادة إطلاق حسب الحالة','المشرف + الجودة']],controlPointsEn:'Control points and monitoring requirements shall align with the approved flow diagram, hazard analysis, PRPs, OPRPs, CCPs, acceptance criteria, and escalation rules.',linkedForms:[['FSMS-FRM-036 سجل مراقبة OPRP/CCP','نموذج/سجل مرتبط'],['FSMS-FRM-037 تقرير الانحراف والتحقيق','نموذج/سجل مرتبط'],['FSMS-FRM-038 سجل CAPA والحجز','نموذج/سجل مرتبط']],linkedFormsEn:'Use the listed forms and records to demonstrate implementation, monitoring, verification, deviation handling, traceability, and management review.',kpisAr:'عدد الانحرافات\nزمن الاستجابة\nمعدل التكرار بعد الإغلاق',kpisEn:'Track the listed indicators to confirm control effectiveness, compliance, and continual improvement.',notesAr:'يجب ربط هذا الإجراء بدراسة المخاطر ومخطط التدفق المعتمد للقطاع.\nأي تغيير في المعدات أو المنتج أو المورد أو طريقة التشغيل يتطلب مراجعة هذا الإجراء وما يرتبط به من نماذج.\nلا يُسمح بإطلاق المنتج أو الخدمة عند وجود سجل حرج غير مكتمل أو نتيجة غير مقبولة دون قرار موثق.',notesEn:'Apply this SOP together with the approved process flow, hazard study, document-control rules, and any sector-specific operational requirements.',revisionHistory:[['1.0','2026-04-12','إصدار أولي منظم ضمن حزمة SOP المنفصلة','يستكمل عند الاعتماد']],revisionHistoryEn:'Update this section whenever the SOP is revised, reissued, or reapproved after a change.',dynamicForms:[]},
+{code:'FSMS-SOP-014',ar:'التحقق والتتبع والاستدعاء والشكاوى',en:'Verification Traceability Recall Complaints',sector:'مشترك - جميع القطاعات Core FSMS - All Sectors',version:'1.0',issueDate:'2026-04-12',effectiveDate:'2026-04-12',primaryRef:'ISO 22000:2018',supportingRefs:'Codex CXC 1-1969 General Principles of Food Hygiene and HACCP؛ ISO 22002-100:2025',status:'سارية Active',briefPurpose:'التأكد من فعالية النظام وقدرة المنشأة على التتبع والسحب/الاستدعاء والاستجابة للشكاوى والحوادث. Operational control of verification traceability recall complaints within the Core FSMS - All Sectors FSMS.',purposeAr:'التأكد من فعالية النظام وقدرة المنشأة على التتبع والسحب/الاستدعاء والاستجابة للشكاوى والحوادث.',purposeEn:'This SOP defines the operational and control requirements for verification traceability recall complaints within the Core FSMS - All Sectors food safety management system.',scopeAr:'أنشطة التحقق الدورية وملفات التتبع والشكاوى والاستدعاء.',scopeEn:'This SOP applies to the activities, monitoring points, records, and related documents associated with verification traceability recall complaints.',referencesAr:'ISO 22000:2018\nCodex CXC 1-1969 General Principles of Food Hygiene and HACCP\nISO 22002-100:2025',referencesEn:'Use the standards and prerequisite-programme references listed above together with any site-specific legal and customer requirements.',responsibilitiesAr:'الجودة تضع خطة التحقق.\nالعمليات والمخازن تحفظ روابط التتبع.\nفريق الاستدعاء يقود الحدث عند التفعيل.',responsibilitiesEn:'The process owner is responsible for implementation. Quality verifies compliance and record completion. Other relevant teams such as operations, stores, maintenance, laboratory, service, or purchasing support execution as applicable.',executionAr:'تنفيذ مراجعة سجلات واختبارات وتدقيقات وتحاليل تحقق حسب خطة مبنية على المخاطر.\nإطلاق المنتج فقط بعد اكتمال مراجعة السجلات والنتائج المطلوبة.\nالحفاظ على نظام تتبع خطوة للأمام والخلف للمواد والمنتجات.\nإجراء سحب/استدعاء تجريبي وقياس زمن الاستجابة ودقة البيانات.\nتحليل الشكاوى والحوادث وربطها بالإجراءات التصحيحية وتحديث تقييم المخاطر.',executionEn:'Perform approved pre-checks, operate within defined limits, monitor the relevant parameters, record results, manage deviations promptly, and release only conforming product or service.',controlPoints:[['المدخل/النشاط','أنشطة التحقق الدورية وملفات التتبع والشكاوى و...','المشرف/صاحب العملية'],['السجل/الإثبات','تقارير التحقق؛ تقارير الاستدعاء','الجودة/القسم'],['التعامل مع الانحراف','حجز/إيقاف/تصحيح/تحقيق/إعادة إطلاق حسب الحالة','المشرف + الجودة']],controlPointsEn:'Control points and monitoring requirements shall align with the approved flow diagram, hazard analysis, PRPs, OPRPs, CCPs, acceptance criteria, and escalation rules.',linkedForms:[['FSMS-FRM-039 خطة التحقق','نموذج/سجل مرتبط'],['FSMS-FRM-040 خطة الاستدعاء','نموذج/سجل مرتبط'],['FSMS-FRM-041 سجل الشكاوى والحوادث','نموذج/سجل مرتبط']],linkedFormsEn:'Use the listed forms and records to demonstrate implementation, monitoring, verification, deviation handling, traceability, and management review.',kpisAr:'نجاح السحب التجريبي\nزمن التتبع\nإغلاق الشكاوى',kpisEn:'Track the listed indicators to confirm control effectiveness, compliance, and continual improvement.',notesAr:'يجب ربط هذا الإجراء بدراسة المخاطر ومخطط التدفق المعتمد للقطاع.\nأي تغيير في المعدات أو المنتج أو المورد أو طريقة التشغيل يتطلب مراجعة هذا الإجراء وما يرتبط به من نماذج.\nلا يُسمح بإطلاق المنتج أو الخدمة عند وجود سجل حرج غير مكتمل أو نتيجة غير مقبولة دون قرار موثق.',notesEn:'Apply this SOP together with the approved process flow, hazard study, document-control rules, and any sector-specific operational requirements.',revisionHistory:[['1.0','2026-04-12','إصدار أولي منظم ضمن حزمة SOP المنفصلة','يستكمل عند الاعتماد']],revisionHistoryEn:'Update this section whenever the SOP is revised, reissued, or reapproved after a change.',dynamicForms:[]},
+{code:'FSMS-SOP-015',ar:'التدقيق الداخلي ومراجعة الإدارة والطوارئ والدفاع الغذائي',en:'Internal Audit Management Review Emergency Food Defense',sector:'مشترك - جميع القطاعات Core FSMS - All Sectors',version:'1.0',issueDate:'2026-04-12',effectiveDate:'2026-04-12',primaryRef:'ISO 22000:2018',supportingRefs:'Codex CXC 1-1969 General Principles of Food Hygiene and HACCP؛ ISO 22002-100:2025',status:'سارية Active',briefPurpose:'ضمان المراجعة المنهجية للنظام والاستعداد للطوارئ والتهديدات المتعمدة وغير المتعمدة والتحسين المستمر. Operational control of internal audit management review emergency food defense within the Core FSMS - All Sectors FSMS.',purposeAr:'ضمان المراجعة المنهجية للنظام والاستعداد للطوارئ والتهديدات المتعمدة وغير المتعمدة والتحسين المستمر.',purposeEn:'This SOP defines the operational and control requirements for internal audit management review emergency food defense within the Core FSMS - All Sectors food safety management system.',scopeAr:'جميع عناصر النظام والمناطق والعمليات وخطط الطوارئ والدفاع الغذائي.',scopeEn:'This SOP applies to the activities, monitoring points, records, and related documents associated with internal audit management review emergency food defense.',referencesAr:'ISO 22000:2018\nCodex CXC 1-1969 General Principles of Food Hygiene and HACCP\nISO 22002-100:2025',referencesEn:'Use the standards and prerequisite-programme references listed above together with any site-specific legal and customer requirements.',responsibilitiesAr:'قائد التدقيق يضع البرنامج.\nالإدارة العليا تراجع النتائج وتتخذ القرارات.\nفريق الطوارئ يدير السيناريوهات الحرجة.',responsibilitiesEn:'The process owner is responsible for implementation. Quality verifies compliance and record completion. Other relevant teams such as operations, stores, maintenance, laboratory, service, or purchasing support execution as applicable.',executionAr:'إعداد برنامج تدقيق داخلي قائم على المخاطر والنتائج السابقة.\nتنفيذ التدقيق وإصدار التقارير ومتابعة الإغلاقات.\nعقد مراجعة إدارة دورية تشمل الأداء والموارد والتغييرات والفرص.\nتحديد سيناريوهات طوارئ ودفاع غذائي وغش غذائي وتدريب الفرق عليها.\nاختبار الخطط وتحديثها بعد التمارين أو الأحداث أو التغيرات الجوهرية.',executionEn:'Perform approved pre-checks, operate within defined limits, monitor the relevant parameters, record results, manage deviations promptly, and release only conforming product or service.',controlPoints:[['المدخل/النشاط','جميع عناصر النظام والمناطق والعمليات وخطط الط...','المشرف/صاحب العملية'],['السجل/الإثبات','تقارير التدقيق؛ محاضر المراجعة','الجودة/القسم'],['التعامل مع الانحراف','حجز/إيقاف/تصحيح/تحقيق/إعادة إطلاق حسب الحالة','المشرف + الجودة']],controlPointsEn:'Control points and monitoring requirements shall align with the approved flow diagram, hazard analysis, PRPs, OPRPs, CCPs, acceptance criteria, and escalation rules.',linkedForms:[['FSMS-FRM-042 برنامج التدقيق الداخلي','نموذج/سجل مرتبط'],['FSMS-FRM-043 محضر مراجعة الإدارة','نموذج/سجل مرتبط'],['FSMS-FRM-044 تقييم الطوارئ والدفاع الغذائي','نموذج/سجل مرتبط']],linkedFormsEn:'Use the listed forms and records to demonstrate implementation, monitoring, verification, deviation handling, traceability, and management review.',kpisAr:'تنفيذ برنامج التدقيق\nإغلاق مخرجات المراجعة\nجاهزية الطوارئ',kpisEn:'Track the listed indicators to confirm control effectiveness, compliance, and continual improvement.',notesAr:'يجب ربط هذا الإجراء بدراسة المخاطر ومخطط التدفق المعتمد للقطاع.\nأي تغيير في المعدات أو المنتج أو المورد أو طريقة التشغيل يتطلب مراجعة هذا الإجراء وما يرتبط به من نماذج.\nلا يُسمح بإطلاق المنتج أو الخدمة عند وجود سجل حرج غير مكتمل أو نتيجة غير مقبولة دون قرار موثق.',notesEn:'Apply this SOP together with the approved process flow, hazard study, document-control rules, and any sector-specific operational requirements.',revisionHistory:[['1.0','2026-04-12','إصدار أولي منظم ضمن حزمة SOP المنفصلة','يستكمل عند الاعتماد']],revisionHistoryEn:'Update this section whenever the SOP is revised, reissued, or reapproved after a change.',dynamicForms:[]}
+],
+
+    get activeSop(){
+      return this.coreSOPs.find(s=>s.code===this.activeCode) || null;
+    },
+
+    toggle(key){ this.open[key] = !this.open[key]; },
+
+    startEdit(){ this.editSnapshot = JSON.parse(JSON.stringify(this.activeSop)); this.editMode = true; },
+    cancelEdit(){
+      const i = this.coreSOPs.findIndex(s=>s.code===this.editSnapshot.code);
+      if(i>-1 && this.editSnapshot) this.coreSOPs[i] = this.editSnapshot;
+      this.activeCode = this.editSnapshot.code;
+      this.editMode = false; this.editSnapshot = null;
+    },
+    saveEdit(){ this.editMode = false; this.editSnapshot = null; },
+
+    openLinkForm(sop){
+      this.linkDraft = {titleAr:'', titleEn:'', frequency:'يومي'};
+      this.linkFormOpen = true;
+    },
+    saveLinkedForm(){
+      if(!this.linkDraft.titleAr) return;
+      this.activeSop.dynamicForms.push({
+        id: 'f_'+Date.now(),
+        titleAr: this.linkDraft.titleAr,
+        titleEn: this.linkDraft.titleEn || this.linkDraft.titleAr,
+        frequency: this.linkDraft.frequency,
+        icon: 'fa-solid fa-file-lines',
+      });
+      this.linkFormOpen = false;
+    },
+
+    openAddSop(){
+      const nextNum = this.coreSOPs.length + 1;
+      this.newSop = { code: 'FSMS-SOP-'+String(nextNum).padStart(3,'0'), ar:'', en:'' };
+      this.addSopOpen = true;
+    },
+    saveNewSop(){
+      if(!this.newSop.code || !this.newSop.ar) return;
+      this.coreSOPs.push({
+        code:this.newSop.code, ar:this.newSop.ar, en:this.newSop.en,
+        sector:'مشترك - جميع القطاعات Core FSMS - All Sectors', version:'1.0',
+        issueDate:new Date().toISOString().slice(0,10), effectiveDate:new Date().toISOString().slice(0,10),
+        primaryRef:'ISO 22000:2018', supportingRefs:'', status:'سارية Active', briefPurpose:'',
+        purposeAr:'', purposeEn:'', scopeAr:'', scopeEn:'', referencesAr:'', referencesEn:'',
+        responsibilitiesAr:'', responsibilitiesEn:'', executionAr:'', executionEn:'',
+        controlPoints:[], controlPointsEn:'', linkedForms:[], linkedFormsEn:'',
+        kpisAr:'', kpisEn:'', notesAr:'', notesEn:'', revisionHistory:[], revisionHistoryEn:'',
+        dynamicForms:[],
+      });
+      this.activeCode = this.newSop.code;
+      this.addSopOpen = false;
+    },
+    deleteSop(code){
+      if(!confirm('حذف هذا الإجراء الأساسي؟ سيتم حذفه من كل القطاعات فوراً لأنه مصدر مشترك.')) return;
+      this.coreSOPs = this.coreSOPs.filter(s=>s.code!==code);
+      this.activeCode = this.coreSOPs[0]?.code || '';
+    },
+  }
+}
+</script>
+</body>
+</html>

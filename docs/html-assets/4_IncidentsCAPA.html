@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مركز البلاغات وCAPA | SAFORA</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 47'%3E%3Crect width='35' height='35' rx='8' fill='%23F02B18'/%3E%3Crect x='13' y='12' width='35' height='35' rx='8' fill='%23FD8118' fill-opacity='.92'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Montserrat:wght@700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { cairo: ['Cairo','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+    colors: {
+        ink: { DEFAULT:'#071A2A', elev:'#0E2A40', border:'#1A3A55', soft:'#11304A', mist:'#9FB2BF' },
+        canvas: '#F3F5F8',
+        brand: { DEFAULT:'#FD8118', deep:'#B8560A', soft:'#FFF1E3', red:'#F02B18', cream:'#F6F2E8' },
+        emerald: { DEFAULT:'#0FA968', deep:'#066B41', soft:'#E4F6ED' },
+        rose: { DEFAULT:'#E11D48', deep:'#9F1239', soft:'#FDECEF' },
+        amber: { DEFAULT:'#C58B00', deep:'#7A5700', soft:'#FBF3D6' },
+        teal: { DEFAULT:'#0E86B4', deep:'#0A5F80', soft:'#E2F2F9' },
+      },
+    boxShadow: { card: '0 1px 2px rgba(7,26,42,0.06), 0 8px 24px -12px rgba(7,26,42,0.12)' }
+  }}
+}
+</script>
+<style>
+  body{ font-family:'Cairo',sans-serif; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+  .wordmark{ font-family:'Montserrat','Cairo',sans-serif; font-weight:800; letter-spacing:.015em; }
+  ::selection{ background:#FFE2C4; color:#071A2A; }
+  ::-webkit-scrollbar{ width:8px; height:8px; } ::-webkit-scrollbar-thumb{ background:#D3DAE3; border-radius:99px; }
+  [x-cloak]{ display:none !important; }
+  .kanban-col.drag-over{ background:#E2F2F9; }
+  .kcard{ cursor:grab; } .kcard:active{ cursor:grabbing; }
+  .kcard.dragging{ opacity:.4; }
+</style>
+</head>
+<body class="bg-canvas text-ink font-cairo antialiased" x-data="capa()">
+
+<div class="min-h-screen">
+  <header class="flex items-center gap-3 px-5 py-3 bg-ink text-white">
+    <a href="1_Dashboard.html" class="flex items-center gap-2 shrink-0" aria-label="SAFORA">
+    <svg class="w-7 h-7" viewBox="0 0 48 47" aria-hidden="true"><defs><clipPath id="sfMarkTop"><rect width="35" height="35" rx="8"/></clipPath></defs><rect width="35" height="35" rx="8" fill="#F02B18"/><rect x="13" y="12" width="35" height="35" rx="8" fill="#E17F1A"/><rect x="13" y="12" width="35" height="35" rx="8" fill="#FD8118" clip-path="url(#sfMarkTop)"/></svg>
+    <span dir="ltr" class="wordmark text-[17px] text-brand-cream hidden sm:inline">SAFORA</span>
+  </a>
+  <span class="w-px h-5 bg-white/15 hidden sm:block"></span>
+    <a href="1_Dashboard.html" class="text-white/50 hover:text-white text-sm"><i class="fa-solid fa-arrow-right ms-1"></i> لوحة القيادة</a>
+    <span class="text-white/20">/</span>
+    <h1 class="font-bold text-sm">مركز البلاغات والإجراءات التصحيحية</h1>
+
+    <div class="ms-auto flex items-center gap-2">
+      <div class="flex bg-white/10 rounded-lg p-0.5 text-xs font-semibold">
+        <button @click="view='kanban'" :class="view==='kanban' ? 'bg-white text-ink' : 'text-white/60'" class="px-3 py-1.5 rounded-md transition">لوحة كانبان</button>
+        <button @click="view='table'" :class="view==='table' ? 'bg-white text-ink' : 'text-white/60'" class="px-3 py-1.5 rounded-md transition">عرض جدولي</button>
+      </div>
+      <button @click="openNew()" class="px-4 py-2 rounded-lg bg-rose hover:bg-rose-deep text-xs font-bold"><i class="fa-solid fa-plus"></i> بلاغ جديد</button>
+    </div>
+  </header>
+
+  <main class="p-5 space-y-5">
+
+    <!-- Summary Counters -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card p-4 flex items-center gap-3">
+        <span class="w-10 h-10 rounded-xl bg-rose-soft text-rose flex items-center justify-center"><i class="fa-solid fa-folder-open"></i></span>
+        <div><p class="mono text-2xl font-bold" x-text="countBy('open')"></p><p class="text-[11px] text-ink/45 font-semibold">بلاغات مفتوحة</p></div>
+      </div>
+      <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card p-4 flex items-center gap-3">
+        <span class="w-10 h-10 rounded-xl bg-amber-soft text-amber flex items-center justify-center"><i class="fa-solid fa-magnifying-glass"></i></span>
+        <div><p class="mono text-2xl font-bold" x-text="countBy('review')"></p><p class="text-[11px] text-ink/45 font-semibold">قيد المراجعة</p></div>
+      </div>
+      <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card p-4 flex items-center gap-3">
+        <span class="w-10 h-10 rounded-xl bg-teal-soft text-teal flex items-center justify-center"><i class="fa-solid fa-clipboard-check"></i></span>
+        <div><p class="mono text-2xl font-bold" x-text="countBy('resolved')"></p><p class="text-[11px] text-ink/45 font-semibold">تم الحل</p></div>
+      </div>
+      <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card p-4 flex items-center gap-3">
+        <span class="w-10 h-10 rounded-xl bg-emerald-soft text-emerald flex items-center justify-center"><i class="fa-solid fa-box-archive"></i></span>
+        <div><p class="mono text-2xl font-bold" x-text="countBy('closed')"></p><p class="text-[11px] text-ink/45 font-semibold">مغلقة</p></div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap items-center gap-2">
+      <button @click="filter='all'" :class="filter==='all' ? 'bg-ink text-white' : 'bg-white text-ink/50 border border-black/10'" class="px-3 py-1.5 rounded-lg text-xs font-semibold">الكل</button>
+      <button @click="filter='pest'" :class="filter==='pest' ? 'bg-ink text-white' : 'bg-white text-ink/50 border border-black/10'" class="px-3 py-1.5 rounded-lg text-xs font-semibold"><i class="fa-solid fa-bug"></i> بلاغات آفات (P-19-F04)</button>
+      <button @click="filter='ccp'" :class="filter==='ccp' ? 'bg-ink text-white' : 'bg-white text-ink/50 border border-black/10'" class="px-3 py-1.5 rounded-lg text-xs font-semibold"><i class="fa-solid fa-temperature-three-quarters"></i> انحرافات CCP</button>
+      <button @click="filter='hygiene'" :class="filter==='hygiene' ? 'bg-ink text-white' : 'bg-white text-ink/50 border border-black/10'" class="px-3 py-1.5 rounded-lg text-xs font-semibold"><i class="fa-solid fa-soap"></i> نظافة وتعقيم</button>
+    </div>
+
+    <!-- KANBAN VIEW -->
+    <div x-show="view==='kanban'" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <template x-for="col in columns" :key="col.key">
+        <div class="kanban-col bg-black/[0.025] rounded-2xl border border-black/[0.06] p-3 min-h-[200px] transition-colors"
+             @dragover.prevent="$el.classList.add('drag-over')" @dragleave="$el.classList.remove('drag-over')"
+             @drop.prevent="$el.classList.remove('drag-over'); drop(col.key)">
+          <div class="flex items-center gap-2 px-1 mb-3">
+            <span class="w-2 h-2 rounded-full" :class="col.dot"></span>
+            <p class="text-xs font-extrabold" x-text="col.label"></p>
+            <span class="ms-auto mono text-[11px] text-ink/40" x-text="filtered.filter(t=>t.status===col.key).length"></span>
+          </div>
+          <div class="space-y-2.5">
+            <template x-for="t in filtered.filter(t=>t.status===col.key)" :key="t.id">
+              <div draggable="true" @dragstart="dragId=t.id; $el.classList.add('dragging')" @dragend="$el.classList.remove('dragging')"
+                   @click="openTicket(t)"
+                   class="kcard bg-white rounded-xl border border-black/[0.06] p-3.5 shadow-sm hover:shadow-card hover:border-teal/30 transition">
+                <div class="flex items-start gap-2 mb-2">
+                  <span class="mono text-[10px] font-bold text-ink/35" x-text="t.code"></span>
+                  <span class="ms-auto px-2 py-0.5 rounded-md text-[10px] font-bold" :class="sevClass(t.severity)" x-text="t.severity"></span>
+                </div>
+                <p class="text-[13px] font-bold leading-snug" x-text="t.title"></p>
+                <p class="text-[11px] text-ink/45 mt-1" x-text="t.location"></p>
+                <template x-if="t.photo">
+                  <div class="mt-2 h-20 rounded-lg overflow-hidden bg-black/5">
+                    <img :src="t.photo" class="w-full h-full object-cover" alt="">
+                  </div>
+                </template>
+                <div class="flex items-center gap-2 mt-3 pt-2.5 border-t border-black/[0.05]">
+                  <img :src="t.avatar" class="w-6 h-6 rounded-full">
+                  <span class="text-[11px] font-semibold text-ink/60 truncate" x-text="t.assignee"></span>
+                  <span class="ms-auto mono text-[10px] text-ink/35" x-text="t.time"></span>
+                </div>
+              </div>
+            </template>
+            <template x-if="filtered.filter(t=>t.status===col.key).length === 0">
+              <div class="text-center text-[11px] text-ink/25 py-6 border-2 border-dashed border-black/[0.06] rounded-xl">لا توجد بطاقات</div>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- TABLE VIEW -->
+    <div x-show="view==='table'" x-cloak class="bg-white rounded-2xl border border-black/[0.06] shadow-card overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm min-w-[820px]">
+          <thead>
+            <tr class="text-right text-ink/40 text-xs border-b border-black/[0.06]">
+              <th class="font-semibold px-5 py-3">الكود</th>
+              <th class="font-semibold px-5 py-3">الوصف</th>
+              <th class="font-semibold px-5 py-3">الخطورة</th>
+              <th class="font-semibold px-5 py-3">المشرف المكلف</th>
+              <th class="font-semibold px-5 py-3">الحالة</th>
+              <th class="font-semibold px-5 py-3">التوقيت</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-black/[0.05]">
+            <template x-for="t in filtered" :key="t.id">
+              <tr class="hover:bg-canvas/60 cursor-pointer" @click="openTicket(t)">
+                <td class="px-5 py-3.5 mono text-xs font-bold text-teal-deep" x-text="t.code"></td>
+                <td class="px-5 py-3.5"><p class="font-semibold" x-text="t.title"></p><p class="text-[11px] text-ink/40" x-text="t.location"></p></td>
+                <td class="px-5 py-3.5"><span class="px-2.5 py-1 rounded-full text-xs font-bold" :class="sevClass(t.severity)" x-text="t.severity"></span></td>
+                <td class="px-5 py-3.5"><div class="flex items-center gap-2"><img :src="t.avatar" class="w-6 h-6 rounded-full"><span x-text="t.assignee"></span></div></td>
+                <td class="px-5 py-3.5"><span class="px-2.5 py-1 rounded-full text-xs font-bold" :class="statusClass(t.status)" x-text="statusLabel(t.status)"></span></td>
+                <td class="px-5 py-3.5 mono text-ink/45 text-xs" x-text="t.time"></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <footer class="text-center text-[11px] text-ink/30 mono py-2">SAFORA™ · INCIDENT &amp; NON-CONFORMANCE MANAGEMENT · CAPA</footer>
+  </main>
+</div>
+
+<!-- Ticket Detail Modal -->
+<div x-show="ticketOpen" x-cloak x-transition.opacity class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div x-show="ticketOpen" x-transition @click.outside="ticketOpen=false" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
+    <template x-if="active">
+      <div class="flex flex-col min-h-0">
+        <div class="px-5 py-4 flex items-start gap-3 border-b border-black/[0.06]">
+          <div>
+            <p class="mono text-[11px] text-teal-deep font-bold" x-text="active.code"></p>
+            <p class="font-extrabold mt-0.5" x-text="active.title"></p>
+          </div>
+          <span class="ms-auto px-2.5 py-1 rounded-full text-[11px] font-bold" :class="sevClass(active.severity)" x-text="active.severity"></span>
+          <button @click="ticketOpen=false" class="text-ink/30 hover:text-ink"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-5 space-y-4 overflow-y-auto">
+          <template x-if="active.photo">
+            <img :src="active.photo" class="w-full h-40 object-cover rounded-xl">
+          </template>
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div class="px-3 py-2.5 rounded-lg bg-canvas"><p class="text-ink/40 font-semibold mb-0.5">الموقع</p><p class="font-bold" x-text="active.location"></p></div>
+            <div class="px-3 py-2.5 rounded-lg bg-canvas"><p class="text-ink/40 font-semibold mb-0.5">المشرف المكلف</p><p class="font-bold" x-text="active.assignee"></p></div>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-ink/50 mb-2">خطوات الحل</p>
+            <div class="space-y-2">
+              <template x-for="(s,i) in active.steps" :key="i">
+                <label class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-canvas text-sm">
+                  <input type="checkbox" x-model="s.done" class="w-4 h-4 rounded accent-emerald">
+                  <span :class="s.done && 'line-through text-ink/35'" x-text="s.text"></span>
+                </label>
+              </template>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-bold text-ink/50">نقل الحالة إلى</label>
+            <select x-model="active.status" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-teal">
+              <option value="open">مفتوح</option>
+              <option value="review">قيد المراجعة</option>
+              <option value="resolved">تم الحل</option>
+              <option value="closed">مغلق</option>
+            </select>
+          </div>
+        </div>
+        <div class="px-5 py-4 border-t border-black/[0.06] flex gap-2">
+          <button @click="ticketOpen=false" class="flex-1 py-2.5 rounded-lg border border-black/10 text-sm font-semibold text-ink/60 hover:bg-canvas">إغلاق</button>
+          <button @click="ticketOpen=false" class="flex-1 py-2.5 rounded-lg bg-ink text-white text-sm font-bold hover:bg-ink-elev">حفظ التحديثات</button>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+
+<script>
+function capa(){
+  return {
+    view:'kanban', filter:'all', dragId:null, ticketOpen:false, active:null,
+    columns: [
+      {key:'open', label:'مفتوحة', dot:'bg-rose'},
+      {key:'review', label:'قيد المراجعة', dot:'bg-amber'},
+      {key:'resolved', label:'تم الحل', dot:'bg-teal'},
+      {key:'closed', label:'مغلقة', dot:'bg-emerald'},
+    ],
+    tickets: [
+      { id:1, code:'P-19-F04 · #0231', type:'pest', title:'آثار قوارض بجوار أرفف المواد الخام', location:'مستودع الخامات', severity:'حرج', status:'open',
+        assignee:'مصطفى الشريف', avatar:'https://i.pravatar.cc/64?img=45', time:'قبل 22 دقيقة',
+        photo:'https://images.unsplash.com/photo-1580672354355-d78dd8f5e2a1?q=80&w=600&auto=format&fit=crop',
+        steps:[{text:'إخطار شركة مكافحة الآفات المتعاقدة', done:true},{text:'عزل المنطقة المتأثرة', done:false},{text:'إعادة فحص خلال 24 ساعة', done:false}] },
+      { id:2, code:'CCP-TEMP · #1187', type:'ccp', title:'تجاوز حد الطهي — 61°م بدلاً من 74°م', location:'خط التعبئة 2', severity:'حرج', status:'open',
+        assignee:'أحمد صلاح', avatar:'https://i.pravatar.cc/64?img=32', time:'قبل 4 دقائق', photo:null,
+        steps:[{text:'إيقاف الخط فوراً', done:true},{text:'حجر الدفعة المتأثرة', done:false},{text:'معايرة جهاز القياس', done:false}] },
+      { id:3, code:'P-19-F07 · #0459', type:'hygiene', title:'بقايا دهون على سطح عمل بعد التعقيم', location:'صالة التعبئة B', severity:'متوسط', status:'review',
+        assignee:'هند فتحي', avatar:'https://i.pravatar.cc/64?img=15', time:'قبل ساعة', photo:null,
+        steps:[{text:'إعادة تنظيف السطح بالماء الساخن', done:true},{text:'تدريب العامل المسؤول', done:true},{text:'اعتماد التصحيح', done:false}] },
+      { id:4, code:'P-19-F04 · #0225', type:'pest', title:'حشرات طائرة قرب باب صالة الإنتاج', location:'صالة الإنتاج A', severity:'عالي', status:'review',
+        assignee:'كريم ناجي', avatar:'https://i.pravatar.cc/64?img=8', time:'قبل 3 ساعات',
+        photo:'https://images.unsplash.com/photo-1550985543-19c5b7cdb0ba?q=80&w=600&auto=format&fit=crop',
+        steps:[{text:'تركيب صاعقة حشرات إضافية', done:true},{text:'فحص ستائر الهواء', done:false}] },
+      { id:5, code:'P-19-F15 · #0098', type:'hygiene', title:'تسرب مياه بجوار الفلتر الرملي', location:'محطة التحلية', severity:'متوسط', status:'resolved',
+        assignee:'عمر يوسف', avatar:'https://i.pravatar.cc/64?img=51', time:'قبل ساعتين', photo:null,
+        steps:[{text:'استبدال الوصلة التالفة', done:true},{text:'فحص الضغط', done:true}] },
+      { id:6, code:'CCP-COLD · #1092', type:'ccp', title:'ارتفاع حرارة غرفة التبريد إلى 8°م', location:'مخزن المبردات', severity:'عالي', status:'resolved',
+        assignee:'أحمد صلاح', avatar:'https://i.pravatar.cc/64?img=32', time:'أمس', photo:null,
+        steps:[{text:'صيانة الضاغط', done:true},{text:'رصد الحرارة كل ساعة لمدة يوم', done:true}] },
+      { id:7, code:'P-19-F04 · #0201', type:'pest', title:'صراصير داخل دورة مياه العمال', location:'دورة مياه العمال', severity:'عالي', status:'closed',
+        assignee:'مصطفى الشريف', avatar:'https://i.pravatar.cc/64?img=45', time:'منذ يومين', photo:null,
+        steps:[{text:'رش المبيد المعتمد', done:true},{text:'إغلاق الفجوات في الجدران', done:true},{text:'فحص ختامي', done:true}] },
+      { id:8, code:'P-19-F08 · #0450', type:'hygiene', title:'عدم توافر مطهر أيدٍ عند مدخل الصالة', location:'صالة الإنتاج A', severity:'منخفض', status:'closed',
+        assignee:'هند فتحي', avatar:'https://i.pravatar.cc/64?img=15', time:'منذ 3 أيام', photo:null,
+        steps:[{text:'تزويد الموقع بمطهر', done:true}] },
+    ],
+    get filtered(){
+      if(this.filter==='all') return this.tickets;
+      return this.tickets.filter(t=>t.type===this.filter);
+    },
+    countBy(status){ return this.tickets.filter(t=>t.status===status).length; },
+    sevClass(sev){
+      return { 'حرج':'bg-rose text-white', 'عالي':'bg-rose-soft text-rose-deep', 'متوسط':'bg-amber-soft text-amber-deep', 'منخفض':'bg-black/5 text-ink/50' }[sev] || 'bg-black/5';
+    },
+    statusClass(s){
+      return { open:'bg-rose-soft text-rose-deep', review:'bg-amber-soft text-amber-deep', resolved:'bg-teal-soft text-teal-deep', closed:'bg-emerald-soft text-emerald-deep' }[s];
+    },
+    statusLabel(s){
+      return { open:'مفتوحة', review:'قيد المراجعة', resolved:'تم الحل', closed:'مغلقة' }[s];
+    },
+    drop(colKey){
+      const t = this.tickets.find(t=>t.id===this.dragId);
+      if(t) t.status = colKey;
+      this.dragId = null;
+    },
+    openTicket(t){ this.active = t; this.ticketOpen = true; },
+    openNew(){
+      this.active = { id:0, code:'P-19-F04 · #NEW', title:'بلاغ جديد', location:'—', severity:'متوسط', status:'open',
+        assignee:'غير معين', avatar:'https://i.pravatar.cc/64?img=1', time:'الآن', photo:null, steps:[{text:'تحديد نوع الآفة أو الانحراف', done:false}] };
+      this.ticketOpen = true;
+    }
+  }
+}
+</script>
+</body>
+</html>

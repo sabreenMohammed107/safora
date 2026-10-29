@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مركز قيادة ISO 22000:2018 | SAFORA</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 47'%3E%3Crect width='35' height='35' rx='8' fill='%23F02B18'/%3E%3Crect x='13' y='12' width='35' height='35' rx='8' fill='%23FD8118' fill-opacity='.92'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Montserrat:wght@700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { cairo: ['Cairo','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+      colors: {
+        ink: { DEFAULT:'#071A2A', elev:'#0E2A40', border:'#1A3A55', soft:'#11304A', mist:'#9FB2BF' },
+        canvas: '#F3F5F8',
+        brand: { DEFAULT:'#FD8118', deep:'#B8560A', soft:'#FFF1E3', red:'#F02B18', cream:'#F6F2E8' },
+        emerald: { DEFAULT:'#0FA968', deep:'#066B41', soft:'#E4F6ED' },
+        rose: { DEFAULT:'#E11D48', deep:'#9F1239', soft:'#FDECEF' },
+        amber: { DEFAULT:'#C58B00', deep:'#7A5700', soft:'#FBF3D6' },
+        teal: { DEFAULT:'#0E86B4', deep:'#0A5F80', soft:'#E2F2F9' },
+      },
+      boxShadow: { card: '0 1px 2px rgba(7,26,42,0.06), 0 8px 24px -12px rgba(7,26,42,0.12)' }
+    }
+  }
+}
+</script>
+<style>
+  body{ font-family:'Cairo',sans-serif; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+  .wordmark{ font-family:'Montserrat','Cairo',sans-serif; font-weight:800; letter-spacing:.015em; }
+  ::selection{ background:#FFE2C4; color:#071A2A; }
+  ::-webkit-scrollbar{ width:8px; height:8px; }
+  ::-webkit-scrollbar-thumb{ background:#D3DAE3; border-radius:99px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  [x-cloak]{ display:none !important; }
+
+  .ledger{
+    position:relative;
+    background:
+      radial-gradient(circle at 100% 50%, transparent 6px, #fff 6.5px) right/14px 100%,
+      radial-gradient(circle at 0% 50%, transparent 6px, #fff 6.5px) left/14px 100%;
+  }
+  .ledger-item{ border-bottom:1px dashed #E2E7EE; }
+  .ledger-item:last-child{ border-bottom:none; }
+
+  .pulse-dot{ box-shadow:0 0 0 0 rgba(225,29,72,.55); animation:pulseDot 1.8s infinite; }
+  @keyframes pulseDot{
+    0%{ box-shadow:0 0 0 0 rgba(225,29,72,.55); }
+    70%{ box-shadow:0 0 0 8px rgba(225,29,72,0); }
+    100%{ box-shadow:0 0 0 0 rgba(225,29,72,0); }
+  }
+
+  .nav-link{ position:relative; }
+  .nav-link.active::before{
+    content:''; position:absolute; right:-14px; top:50%; transform:translateY(-50%);
+    width:4px; height:22px; border-radius:99px; background:#FD8118;
+  }
+
+  .proc-chip.active{ background:#071A2A; color:#fff; border-color:#071A2A; }
+  .proc-chip:not(.active):hover{ border-color:#0E86B4; }
+
+  .ring-progress{ transform: rotate(-90deg); }
+
+  .modal-backdrop{ backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+
+  /* ---------------- PRINT (form preview) ---------------- */
+  @page{ size:A4 landscape; margin:12mm; }
+  @media print{
+    body *{ visibility:hidden; }
+    #printArea, #printArea *{ visibility:visible; }
+    #printArea{ position:absolute; inset:0; width:100%; margin:0; box-shadow:none !important; border:none !important; }
+    .no-print{ display:none !important; }
+  }
+  .gcell{ width:22px; height:26px; }
+
+  @keyframes toastIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
+  .toast-item{ animation:toastIn .25s ease-out; }
+</style>
+</head>
+<body class="bg-canvas text-ink font-cairo antialiased" x-data="haccpAdmin()">
+
+<div class="min-h-screen flex">
+
+  <!-- Sidebar -->
+  <aside :class="sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'"
+         class="fixed lg:static inset-y-0 right-0 z-40 w-72 bg-ink text-white transition-transform duration-300 flex flex-col shrink-0">
+    <div class="flex items-center gap-3 px-6 py-6 border-b border-ink-border">
+      <a href="1_Dashboard.html" class="flex items-center gap-3 min-w-0" aria-label="SAFORA — by Elite Integrated Business">
+        <svg class="w-11 h-11 shrink-0" viewBox="0 0 48 47" aria-hidden="true"><defs><clipPath id="sfMarkSide"><rect width="35" height="35" rx="8"/></clipPath></defs><rect width="35" height="35" rx="8" fill="#F02B18"/><rect x="13" y="12" width="35" height="35" rx="8" fill="#E17F1A"/><rect x="13" y="12" width="35" height="35" rx="8" fill="#FD8118" clip-path="url(#sfMarkSide)"/></svg>
+        <div dir="ltr" class="text-left leading-none">
+          <p class="wordmark text-[23px] text-brand-cream">SAFORA<sup class="text-[9px] font-bold ms-0.5 align-super">TM</sup></p>
+          <p class="text-[9.5px] font-semibold tracking-[.08em] text-ink-mist mt-1.5">by ELITE INTEGRATED BUSINESS</p>
+        </div>
+      </a>
+      <button @click="sidebarOpen=false" class="lg:hidden ms-auto text-white/60 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+
+      <!-- Group H: HACCP Command Center (جداول منفصلة: safora.haccp.v1) -->
+      <a href="0_HACCPCenter.html" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/85 hover:bg-white/[0.06] font-bold text-sm transition">
+        <i class="fa-solid fa-shield-heart w-5 text-brand"></i> مركز قيادة الهاسب
+      </a>
+      <div class="ps-8 me-3 mt-1 space-y-0.5 border-e border-white/10">
+        <a href="0_HACCPCenter.html#prp" class="flex items-center gap-2 px-3 py-2 rounded-lg text-white/60 hover:bg-white/[0.06] hover:text-white text-[13px] transition">
+          <i class="fa-solid fa-layer-group w-4 text-xs"></i> برامج المتطلبات الأولية <span class="text-white/30 text-[10px] mono">PRPs</span>
+        </a>
+        <a href="2_FormBuilder.html?std=haccp" class="flex items-center gap-2 px-3 py-2 rounded-lg text-white/60 hover:bg-white/[0.06] hover:text-white text-[13px] transition">
+          <i class="fa-solid fa-table-list w-4 text-xs"></i> منشئ نماذج الهاسب <span class="text-white/30 text-[10px] mono">Forms</span>
+        </a>
+        <a href="5_HACCPPlans.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-white/60 hover:bg-white/[0.06] hover:text-white text-[13px] transition">
+          <i class="fa-regular fa-file-lines w-4 text-xs"></i> قوالب خطط الهاسب <span class="text-white/30 text-[10px] mono">HACCP Plan</span>
+        </a>
+        <a href="6_TraceabilityRecall.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-white/60 hover:bg-white/[0.06] hover:text-white text-[13px] transition">
+          <i class="fa-solid fa-route w-4 text-xs"></i> التتبع والاستدعاء <span class="text-white/30 text-[10px] mono">Traceability</span>
+        </a>
+        <a href="9_CriticalLimits.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-white/60 hover:bg-white/[0.06] hover:text-white text-[13px] transition">
+          <i class="fa-solid fa-temperature-half w-4 text-xs"></i> الحدود الحرجة والحرارة <span class="text-white/30 text-[10px] mono">Critical Limits</span>
+        </a>
+        <a href="10_CCPLibrary.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-white/60 hover:bg-white/[0.06] hover:text-white text-[13px] transition">
+          <i class="fa-solid fa-crosshairs w-4 text-xs"></i> نقاط التحكم CCP / OPRP <span class="text-white/30 text-[10px] mono">Control Points</span>
+        </a>
+      </div>
+
+      <!-- Group A: ISO 22000:2018 Command Center (جداول ISO: P-01…P-28 ونماذجها) -->
+      <div class="pt-3 mt-2 border-t border-ink-border">
+      <a href="1_Dashboard.html" class="nav-link active flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white/[0.07] text-white font-bold text-sm">
+        <i class="fa-solid fa-gauge-high w-5 text-brand"></i> مركز قيادة ISO 22000:2018
+      </a>
+      <div class="ps-8 me-3 mt-1 space-y-0.5 border-e border-white/10">
+        <a href="#" @click.prevent="scrollToProcesses()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-white/60 hover:bg-white/[0.06] hover:text-white text-[13px] transition">
+          <i class="fa-solid fa-file-signature w-4 text-xs"></i> إدارة الإجراءات <span class="text-white/30 text-[10px] mono">SOPs</span>
+        </a>
+        <a href="2_FormBuilder.html?std=iso" class="flex items-center gap-2 px-3 py-2 rounded-lg text-white/60 hover:bg-white/[0.06] hover:text-white text-[13px] transition">
+          <i class="fa-solid fa-layer-group w-4 text-xs"></i> منشئ النماذج <span class="text-white/30 text-[10px] mono">Forms Builder</span>
+        </a>
+      </div>
+      </div>
+
+      <!-- Dropdown: الملفات الكاملة — Core-SOPs (shared, freely editable) + Sectors (own the sector-specific SOPs) -->
+      <div class="pt-3 mt-2 border-t border-ink-border">
+        <button type="button" @click="filesMenuOpen = !filesMenuOpen" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/85 hover:bg-white/[0.06] font-bold text-sm transition">
+          <i class="fa-solid fa-folder-tree w-5 text-brand"></i> الملفات الكاملة
+          <i class="fa-solid fa-chevron-down ms-auto text-[10px] text-white/40 transition" :class="filesMenuOpen && 'rotate-180'"></i>
+        </button>
+        <div x-show="filesMenuOpen" x-cloak class="ps-8 me-3 mt-1 space-y-0.5 border-e border-white/10">
+          <a href="8_CoreSOPs.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-white/60 hover:bg-white/[0.06] hover:text-white text-[13px] transition">
+            <i class="fa-solid fa-layer-group w-4 text-xs"></i> الإجراءات الأساسية <span class="text-white/30 text-[10px] mono">Core · 15</span>
+          </a>
+          <a href="7_SectorManagement.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-white/60 hover:bg-white/[0.06] hover:text-white text-[13px] transition">
+            <i class="fa-solid fa-industry w-4 text-xs"></i> القطاعات <span class="text-white/30 text-[10px] mono">Sectors</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Group B: Customers Center (مخفي من القائمة: داشبورد الامتثال، صفحة تسجيل العميل، شاشة دخول العميل) -->
+      <div class="pt-5 mt-4 border-t border-ink-border">
+        <a href="11_ClientCenter.html" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/85 hover:bg-white/[0.06] font-bold text-sm transition">
+          <i class="fa-solid fa-people-group w-5 text-teal"></i> مركز العملاء
+        </a>
+        <div class="ps-8 me-3 mt-1 space-y-0.5 border-e border-white/10">
+          <a href="11_ClientCenter.html" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-white/60 hover:bg-white/[0.06] hover:text-white text-[13px] transition">
+            <i class="fa-solid fa-address-book w-4 text-xs"></i> إدارة العملاء <span class="text-white/30 text-[10px] mono">Clients</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="px-4 py-4 border-t border-ink-border">
+      <div class="flex items-center gap-3 px-2 py-2">
+        <img src="data:image/jpeg;base64,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" class="w-9 h-9 rounded-full object-cover ring-2 ring-brand/50" alt="">
+        <div class="leading-tight">
+          <p class="text-sm font-semibold" data-admin-name>مدير النظام</p>
+          <p class="text-[11px] text-white/45" data-admin-title>مدير النظام — Admin</p>
+        </div>
+        <button type="button" onclick="safAdmin.logout()" class="ms-auto text-white/40 hover:text-rose" aria-label="تسجيل الخروج"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+      </div>
+    </div>
+  </aside>
+  <div x-show="sidebarOpen" @click="sidebarOpen=false" x-cloak class="fixed inset-0 bg-black/40 z-30 lg:hidden"></div>
+
+  <!-- Main -->
+  <div class="flex-1 min-w-0 flex flex-col">
+
+    <!-- Topbar -->
+    <header class="sticky top-0 z-20 bg-white/85 backdrop-blur border-b border-black/[0.06]">
+      <div class="flex items-center gap-3 px-5 py-3.5">
+        <button @click="sidebarOpen=true" class="lg:hidden text-ink/70"><i class="fa-solid fa-bars text-lg"></i></button>
+
+        <div class="hidden md:flex items-center gap-2 ms-2 px-3 py-2 rounded-lg bg-canvas border border-black/5 text-ink/40 text-sm flex-1 max-w-md">
+          <i class="fa-solid fa-magnifying-glass text-xs"></i>
+          <input type="text" placeholder="بحث عن إجراء أو نموذج..." class="bg-transparent outline-none w-full text-ink placeholder:text-ink/35">
+        </div>
+
+        <div class="ms-auto flex items-center gap-2">
+          <div class="relative">
+            <button @click="notifOpen=!notifOpen" class="relative w-10 h-10 rounded-lg hover:bg-canvas flex items-center justify-center text-ink/60">
+              <i class="fa-regular fa-bell text-lg"></i>
+              <span class="absolute top-1.5 left-1.5 w-4 h-4 mono text-[10px] font-bold bg-rose text-white rounded-full flex items-center justify-center">5</span>
+            </button>
+            <div x-show="notifOpen" @click.outside="notifOpen=false" x-cloak x-transition class="absolute left-0 mt-2 w-80 bg-white rounded-xl shadow-card border border-black/5 z-30 overflow-hidden">
+              <div class="px-4 py-3 border-b border-black/5 font-bold text-sm">التنبيهات الحية</div>
+              <div class="max-h-72 overflow-y-auto">
+                <div class="px-4 py-3 border-b border-black/5 flex gap-3 hover:bg-canvas">
+                  <span class="w-2 h-2 mt-1.5 rounded-full bg-rose shrink-0"></span>
+                  <div><p class="text-sm font-medium">نشاط آفات غير محسوم — P-19-F04</p><p class="text-[11px] text-ink/40 mono">منذ 22 دقيقة</p></div>
+                </div>
+                <div class="px-4 py-3 border-b border-black/5 flex gap-3 hover:bg-canvas">
+                  <span class="w-2 h-2 mt-1.5 rounded-full bg-amber shrink-0"></span>
+                  <div><p class="text-sm font-medium">3 نماذج بانتظار اعتمادك</p><p class="text-[11px] text-ink/40 mono">منذ ساعة</p></div>
+                </div>
+                <div class="px-4 py-3 flex gap-3 hover:bg-canvas">
+                  <span class="w-2 h-2 mt-1.5 rounded-full bg-teal shrink-0"></span>
+                  <div><p class="text-sm font-medium">تمت إضافة إجراء جديد P-28</p><p class="text-[11px] text-ink/40 mono">أمس</p></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative">
+            <button @click="profileOpen=!profileOpen" class="flex items-center gap-2 pe-1 ps-2 py-1 rounded-lg hover:bg-canvas">
+              <img src="data:image/jpeg;base64,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" class="w-8 h-8 rounded-full object-cover" alt="">
+              <i class="fa-solid fa-chevron-down text-[10px] text-ink/40 hidden sm:block"></i>
+            </button>
+            <div x-show="profileOpen" @click.outside="profileOpen=false" x-cloak x-transition class="absolute left-0 mt-2 w-52 bg-white rounded-xl shadow-card border border-black/5 p-1.5 z-30">
+              <a href="javascript:void(0)" onclick="safAdmin.open()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-canvas"><i class="fa-regular fa-user w-4 text-ink/40"></i> الملف الشخصي</a>
+              <a href="javascript:void(0)" onclick="safAdmin.open()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-canvas"><i class="fa-solid fa-gear w-4 text-ink/40"></i> الإعدادات</a>
+              <div class="h-px bg-black/5 my-1"></div>
+              <a href="javascript:void(0)" onclick="safAdmin.logout()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-rose hover:bg-rose-soft"><i class="fa-solid fa-arrow-right-from-bracket w-4"></i> تسجيل الخروج</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="p-5 lg:p-7 space-y-6">
+
+      <!-- Page header -->
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p class="mono text-[11px] text-teal font-semibold tracking-widest">الأحد، 30 أغسطس 2026 · FSMS · ISO 22000:2018</p>
+          <h1 class="text-2xl lg:text-[26px] font-extrabold tracking-tight mt-1">مركز قيادة ISO 22000:2018</h1>
+          <p class="text-sm text-ink/45 mt-1">إدارة الإجراءات والنماذج المرتبطة بها وفق ISO 22000:2018</p>
+        </div>
+        <button @click="newProcessOpen=true" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand text-ink text-sm font-bold hover:bg-brand-deep hover:text-white transition shadow-card">
+          <i class="fa-solid fa-plus"></i> إضافة إجراء جديد
+        </button>
+      </div>
+
+      <!-- Process picker -->
+      <div id="processes" class="bg-white rounded-2xl border border-black/[0.06] shadow-card p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <p class="text-xs font-extrabold text-ink/60">إدارة الإجراءات</p>
+          <span class="mono text-[11px] text-ink/35" x-text="'P-01 → P-'+String(processes.length).padStart(2,'0')"></span>
+          <span class="ms-auto mono text-[11px] text-teal-deep font-bold" x-text="processes.length + ' إجراء مسجل'"></span>
+        </div>
+        <div class="flex gap-2 overflow-x-auto pb-1">
+          <template x-for="p in processes" :key="p.code">
+            <button @click="activeCode = p.code"
+                    :class="activeCode===p.code && 'active'"
+                    class="proc-chip shrink-0 flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-black/10 bg-canvas text-right transition">
+              <span class="mono text-[11px] font-bold" :class="activeCode===p.code ? 'text-emerald' : 'text-teal-deep'" x-text="p.code"></span>
+              <span class="text-xs font-semibold whitespace-nowrap max-w-[140px] truncate" x-text="p.title"></span>
+            </button>
+          </template>
+        </div>
+      </div>
+
+      <!-- Active Process header card -->
+      <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card overflow-hidden">
+        <div class="grid grid-cols-1 xl:grid-cols-3">
+          <div class="xl:col-span-2 p-6 border-b xl:border-b-0 xl:border-l border-black/[0.06]">
+            <div class="flex flex-wrap items-center gap-2 mb-3">
+              <span class="w-11 h-11 rounded-xl bg-emerald-soft text-emerald flex items-center justify-center text-lg">
+                <i class="fa-solid fa-bug"></i>
+              </span>
+              <div>
+                <p class="mono text-[11px] text-teal-deep font-bold tracking-widest" x-text="activeProcess.code"></p>
+                <h2 class="text-xl font-extrabold" x-text="activeProcess.title"></h2>
+              </div>
+              <span class="ms-auto sm:ms-3 px-2.5 py-1 rounded-full text-[11px] font-bold"
+                    :class="activeProcess.status==='Active' ? 'bg-emerald-soft text-emerald-deep' : 'bg-black/5 text-ink/40'"
+                    x-text="activeProcess.status==='Active' ? 'نشطة' : 'مسودة'"></span>
+              <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-soft text-teal-deep mono" x-text="activeProcess.standard"></span>
+            </div>
+
+            <p class="text-sm text-ink/60 leading-relaxed" x-text="activeProcess.description"></p>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-5">
+              <div class="px-3 py-2.5 rounded-lg bg-canvas">
+                <p class="text-[10px] font-bold text-ink/40 mb-0.5">القسم / نطاق التطبيق</p>
+                <p class="text-xs font-bold" x-text="activeProcess.scope"></p>
+              </div>
+              <div class="px-3 py-2.5 rounded-lg bg-canvas">
+                <p class="text-[10px] font-bold text-ink/40 mb-0.5">الدور المسؤول</p>
+                <p class="text-xs font-bold" x-text="activeProcess.responsible"></p>
+              </div>
+              <div class="px-3 py-2.5 rounded-lg bg-canvas">
+                <p class="text-[10px] font-bold text-ink/40 mb-0.5">آخر تحديث للإجراء</p>
+                <p class="text-xs font-bold mono" x-text="activeProcess.updated"></p>
+              </div>
+            </div>
+
+            <div x-show="processFiles[activeCode]" class="flex items-center gap-2 mt-4 px-3 py-2 rounded-lg bg-teal-soft text-teal-deep text-xs font-semibold w-fit max-w-full">
+              <i class="fa-solid fa-paperclip shrink-0"></i>
+              <span class="truncate" x-text="processFiles[activeCode]"></span>
+              <button @click="toast('جاري فتح المستند...', 'info')" class="underline hover:no-underline shrink-0">عرض الملف</button>
+            </div>
+
+            <div class="flex flex-wrap gap-2 mt-3">
+              <button class="px-3.5 py-2 rounded-lg bg-ink text-white text-xs font-bold hover:bg-ink-elev transition"><i class="fa-regular fa-pen-to-square"></i> تعديل بيانات الإجراء</button>
+              <button class="px-3.5 py-2 rounded-lg border border-black/10 text-xs font-semibold text-ink/60 hover:bg-canvas transition"><i class="fa-solid fa-file-export"></i> تصدير ملف الإجراء</button>
+            </div>
+          </div>
+
+          <div class="p-6 flex flex-col justify-center gap-4 bg-canvas/50">
+            <div class="flex items-center gap-4">
+              <svg viewBox="0 0 64 64" class="w-16 h-16 ring-progress shrink-0">
+                <circle cx="32" cy="32" r="27" fill="none" stroke="#E7ECE9" stroke-width="7"/>
+                <circle x-show="activeProcess.compliance!==null" cx="32" cy="32" r="27" fill="none" stroke="#0FA968" stroke-width="7" stroke-linecap="round"
+                        stroke-dasharray="169.6" :stroke-dashoffset="169.6 - (169.6*(activeProcess.compliance||0)/100)"/>
+              </svg>
+              <div>
+                <p x-show="activeProcess.compliance!==null" class="mono text-2xl font-bold" x-text="activeProcess.compliance+'%'"></p>
+                <p x-show="activeProcess.compliance===null" class="mono text-2xl font-bold text-ink/25">—</p>
+                <p class="text-[11px] text-ink/45 font-semibold" x-text="activeProcess.compliance!==null ? 'نسبة الالتزام لهذا الإجراء' : 'لا توجد بيانات كافية بعد'"></p>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-white rounded-xl border border-black/[0.06] px-3 py-3 text-center">
+                <p class="mono text-xl font-bold text-ink" x-text="activeForms.length"></p>
+                <p class="text-[10px] text-ink/40 font-semibold mt-0.5">إجمالي النماذج المرتبطة</p>
+              </div>
+              <div class="bg-white rounded-xl border border-black/[0.06] px-3 py-3 text-center">
+                <p class="mono text-xl font-bold text-teal-deep" x-text="activeForms.filter(f=>f.status==='Active').length"></p>
+                <p class="text-[10px] text-ink/40 font-semibold mt-0.5">نماذج مفعّلة</p>
+              </div>
+              <div class="bg-white rounded-xl border border-black/[0.06] px-3 py-3 text-center">
+                <p class="mono text-xl font-bold text-emerald-deep" x-text="totalEntriesToday"></p>
+                <p class="text-[10px] text-ink/40 font-semibold mt-0.5">إدخالات اليوم</p>
+              </div>
+              <div class="bg-white rounded-xl border border-black/[0.06] px-3 py-3 text-center">
+                <p class="mono text-xl font-bold text-rose" x-text="activeProcess.openAlerts"></p>
+                <p class="text-[10px] text-ink/40 font-semibold mt-0.5">تنبيهات مفتوحة</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Forms Management Panel -->
+      <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card overflow-hidden">
+        <div class="flex flex-wrap items-center gap-3 px-5 py-4 border-b border-black/[0.06]">
+          <div>
+            <h2 class="font-extrabold">النماذج التابعة للإجراء</h2>
+            <p class="text-[11px] text-ink/40 mono mt-0.5" x-text="activeProcess.code + ' — ' + activeProcess.title"></p>
+          </div>
+          <span class="mono text-[11px] px-2.5 py-1 rounded-full bg-teal-soft text-teal-deep font-bold" x-text="activeForms.length + ' نموذج'"></span>
+          <div class="ms-auto flex items-center gap-2">
+            <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-canvas border border-black/[0.06] text-xs text-ink/40 w-56">
+              <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+              <input type="text" x-model="formSearch" placeholder="بحث برقم أو اسم النموذج..." class="bg-transparent outline-none w-full text-ink placeholder:text-ink/35">
+            </div>
+            <button @click="openLinkForm()" class="px-3 py-2 rounded-lg bg-teal text-white text-xs font-bold hover:bg-teal-deep transition"><i class="fa-solid fa-plus"></i> ربط نموذج</button>
+          </div>
+        </div>
+
+        <template x-if="activeForms.length === 0">
+          <div class="py-14 text-center text-ink/30">
+            <i class="fa-regular fa-folder-open text-2xl mb-3"></i>
+            <p class="text-sm font-semibold">لا توجد نماذج مرتبطة بهذا الإجراء بعد</p>
+            <p class="text-xs mt-1">استخدم زر "ربط نموذج" لإضافة أول نموذج إلى <span class="mono" x-text="activeProcess.code"></span></p>
+          </div>
+        </template>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 p-5">
+          <template x-for="f in filteredForms" :key="f.code">
+            <div class="rounded-xl border border-black/[0.06] hover:border-teal/40 transition p-4 flex flex-col gap-3">
+              <div class="flex items-start gap-2">
+                <span class="w-9 h-9 rounded-lg bg-teal-soft text-teal-deep flex items-center justify-center shrink-0"><i :class="f.icon"></i></span>
+                <div class="min-w-0">
+                  <p class="mono text-[11px] font-bold text-teal-deep" x-text="f.code"></p>
+                  <p class="text-[13px] font-bold leading-snug truncate" x-text="f.titleAr"></p>
+                  <p class="text-[10px] text-ink/40 truncate" x-text="f.titleEn"></p>
+                </div>
+                <span class="ms-auto px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0"
+                      :class="f.status==='Active' ? 'bg-emerald-soft text-emerald-deep' : 'bg-amber-soft text-amber-deep'"
+                      x-text="f.status==='Active' ? 'مفعّل' : 'مسودة'"></span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 text-[11px]">
+                <div class="px-2.5 py-2 rounded-lg bg-canvas">
+                  <p class="text-ink/35 font-semibold">تاريخ آخر تعديل على النموذج</p>
+                  <p class="mono font-bold text-ink/70" x-text="f.lastSubmission"></p>
+                </div>
+                <div class="px-2.5 py-2 rounded-lg bg-canvas">
+                  <p class="text-ink/35 font-semibold">عدد العملاء المرتبطين بالنموذج</p>
+                  <p class="mono font-bold text-ink/70" x-text="f.todayEntries"></p>
+                </div>
+                <div class="col-span-2 px-2.5 py-2 rounded-lg flex items-center gap-2" :class="formTypeMeta(f.layoutType).chipBg">
+                  <span class="font-semibold" :class="formTypeMeta(f.layoutType).chipText">نوع النموذج</span>
+                  <span class="ms-auto font-bold" :class="formTypeMeta(f.layoutType).chipText" x-text="formTypeMeta(f.layoutType).label"></span>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-1.5 mt-auto pt-1">
+                <button @click="openPreviewPrint(f)" class="flex-1 px-2 py-2 rounded-lg bg-ink text-white text-[11px] font-bold hover:bg-ink-elev transition"><i class="fa-solid fa-print"></i> معاينة وطباعة النموذج</button>
+                <button @click="openEditTemplate(f)" class="w-9 h-9 shrink-0 rounded-lg border border-black/10 text-ink/50 hover:bg-canvas hover:text-teal-deep transition flex items-center justify-center" title="تعديل الحقول">
+                  <i class="fa-regular fa-pen-to-square text-xs"></i>
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Scoped critical alerts for the active process -->
+      <div class="ledger rounded-2xl shadow-card border border-black/[0.06] overflow-hidden">
+        <div class="flex items-center gap-2 px-5 py-4 border-b border-dashed border-black/10">
+          <span class="w-2.5 h-2.5 rounded-full bg-rose pulse-dot"></span>
+          <h2 class="font-extrabold">تنبيهات هذا الإجراء</h2>
+          <span class="mono text-[11px] text-ink/35" x-text="activeProcess.code"></span>
+          <span class="ms-auto mono text-[11px] text-ink/35">LIVE FEED</span>
+        </div>
+        <template x-if="activeAlerts.length === 0">
+          <div class="px-5 py-8 text-center text-ink/30 text-sm">لا توجد تنبيهات مفتوحة لهذا الإجراء حالياً</div>
+        </template>
+        <div>
+          <template x-for="a in activeAlerts" :key="a.title">
+            <div class="ledger-item flex flex-col sm:flex-row sm:items-center gap-3 px-5 py-4">
+              <div class="flex items-center gap-3 flex-1 min-w-0">
+                <span class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                      :class="a.level==='CRITICAL' ? 'bg-rose-soft text-rose' : 'bg-amber-soft text-amber'">
+                  <i :class="a.icon"></i>
+                </span>
+                <div class="min-w-0">
+                  <p class="text-sm font-bold" x-text="a.title"></p>
+                  <p class="text-[11px] mono text-ink/45 mt-0.5" x-text="a.meta"></p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="px-2 py-1 rounded-md text-white text-[10px] font-bold mono" :class="a.level==='CRITICAL' ? 'bg-rose' : 'bg-amber'" x-text="a.level"></span>
+                <button class="px-3 py-1.5 rounded-lg bg-ink text-white text-xs font-semibold hover:opacity-90 transition whitespace-nowrap">إجراء مطلوب</button>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <footer class="text-center text-[11px] text-ink/30 mono py-4">SAFORA™ · FSMS · ISO 22000:2018</footer>
+    </main>
+  </div>
+</div>
+
+<!-- ============================= MODALS ============================= -->
+
+<!-- New Process Modal -->
+<div x-show="newProcessOpen" x-cloak x-transition.opacity class="modal-backdrop fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" @keydown.escape.window="newProcessOpen=false">
+  <div x-show="newProcessOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+       @click.outside="newProcessOpen=false" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
+    <div class="bg-ink px-5 py-4 flex items-center gap-3 text-white shrink-0">
+      <i class="fa-solid fa-diagram-project text-brand-deep"></i>
+      <div>
+        <p class="font-extrabold">إضافة إجراء جديد</p>
+        <p class="text-[11px] text-white/50 mono">HACCP Process Registration</p>
+      </div>
+      <button @click="newProcessOpen=false" class="ms-auto w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/70 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-5 space-y-4 overflow-y-auto">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs font-bold text-ink/60">كود الإجراء</label>
+          <input type="text" x-model="draftProcess.code" placeholder="P-29" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm mono outline-none focus:border-emerald">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-ink/60">المرجعية</label>
+          <select class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-emerald bg-white">
+            <option>ISO 22000:2018 / HACCP</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="text-xs font-bold text-ink/60">عنوان الإجراء</label>
+        <input type="text" x-model="draftProcess.title" placeholder="مثال: مراقبة درجات حرارة التخزين" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-emerald">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-ink/60">الهدف / الوصف</label>
+        <textarea x-model="draftProcess.description" rows="3" placeholder="وصف موجز للغرض من هذا الإجراء ونطاق تطبيقه..." class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-emerald resize-none"></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs font-bold text-ink/60">القسم / نطاق التطبيق</label>
+          <input type="text" x-model="draftProcess.scope" placeholder="جميع أقسام المصنع" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-emerald">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-ink/60">الدور المسؤول</label>
+          <input type="text" x-model="draftProcess.responsible" placeholder="مدير الجودة" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-emerald">
+        </div>
+      </div>
+
+      <div>
+        <label class="text-xs font-bold text-ink/60">الوثيقة الكاملة للإجراء (Word / PDF)</label>
+        <label class="mt-1.5 flex items-center gap-3 w-full px-3 py-3 rounded-lg border-2 border-dashed border-black/15 hover:border-emerald/50 cursor-pointer text-ink/40 transition">
+          <span class="w-9 h-9 rounded-lg bg-emerald-soft text-emerald flex items-center justify-center shrink-0"><i class="fa-solid fa-file-arrow-up"></i></span>
+          <span class="text-xs font-semibold truncate" x-text="draftProcess.fileName || 'اضغط لرفع ملف Word (.docx) أو PDF الخاص بهذا الإجراء بالكامل'"></span>
+          <span x-show="draftProcess.fileName" @click.stop.prevent="draftProcess.fileName=''; $refs.processFileInput.value=''" class="ms-auto text-rose text-xs"><i class="fa-solid fa-xmark"></i></span>
+          <input x-ref="processFileInput" type="file" accept=".doc,.docx,.pdf" class="hidden" @change="draftProcess.fileName = $event.target.files[0]?.name || ''">
+        </label>
+        <p class="text-[11px] text-ink/35 mt-1"><i class="fa-solid fa-circle-info"></i> سيتم إرفاق هذا المستند بالكامل مع بطاقة الإجراء ويمكن لأي مستخدم فتحه من رأس صفحة الإجراء.</p>
+      </div>
+    </div>
+    <div class="px-5 py-4 border-t border-black/[0.06] flex gap-2 shrink-0">
+      <button @click="newProcessOpen=false" class="flex-1 py-2.5 rounded-lg border border-black/10 text-sm font-semibold text-ink/60 hover:bg-canvas">إلغاء</button>
+      <button @click="createProcess()" class="flex-1 py-2.5 rounded-lg bg-brand text-ink text-sm font-bold hover:bg-brand-deep hover:text-white">حفظ الإجراء</button>
+    </div>
+  </div>
+</div>
+
+<!-- A) Link Form Modal -->
+<div x-show="linkFormOpen" x-cloak x-transition.opacity class="modal-backdrop fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" @keydown.escape.window="linkFormOpen=false">
+  <div x-show="linkFormOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+       @click.outside="linkFormOpen=false" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
+    <div class="bg-teal px-5 py-4 flex items-center gap-3 text-white shrink-0">
+      <i class="fa-solid fa-link"></i>
+      <div>
+        <p class="font-extrabold" x-text="'ربط نموذج جديد بالإجراء ' + activeProcess.code"></p>
+        <p class="text-[11px] text-white/70 mono">Link / Create Form</p>
+      </div>
+      <button @click="linkFormOpen=false" class="ms-auto w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/70 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-5 space-y-4 overflow-y-auto">
+      <div>
+        <label class="text-xs font-bold text-ink/60">اختر من مستودع النماذج العام</label>
+        <select x-model="linkDraft.repoChoice" @change="applyRepoChoice()" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-teal bg-white">
+          <option value="">— اختر نموذجاً من مستودع نماذج هذا الإجراء —</option>
+          <template x-for="tpl in formRepo" :key="tpl.code">
+            <option :value="tpl.code" x-text="tpl.code + ' — ' + tpl.titleAr"></option>
+          </template>
+        </select>
+        <p class="text-[11px] text-ink/35 mt-1"><i class="fa-solid fa-circle-info"></i> يتم الربط فقط بالنماذج المسجّلة مسبقاً ضمن مستودع الإجراء <span class="mono" x-text="activeProcess.code"></span>.</p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs font-bold text-ink/60">كود النموذج</label>
+          <input type="text" x-model="linkDraft.code" placeholder="P-19-F18" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm mono outline-none focus:border-teal">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-ink/60">التكرار</label>
+          <select x-model="linkDraft.frequency" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-teal bg-white">
+            <option>يومي</option>
+            <option>أسبوعي</option>
+            <option>شهري</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-xs font-bold text-ink/60">عنوان النموذج</label>
+        <input type="text" x-model="linkDraft.titleAr" placeholder="مثال: فحص درجة حرارة الفرن" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-teal">
+      </div>
+
+      <div>
+        <label class="text-xs font-bold text-ink/60">الفريق / الدور المكلف بالتعبئة</label>
+        <select x-model="linkDraft.role" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-teal bg-white">
+          <option>النظافة والتعقيم (Sanitation)</option>
+          <option>فريق الطهاة (Cooks)</option>
+          <option>مراقبة الجودة (QC)</option>
+          <option>الصيانة (Maintenance)</option>
+          <option>مكافحة الآفات (Pest Control)</option>
+        </select>
+      </div>
+
+      <p class="text-[11px] text-ink/40 leading-relaxed"><i class="fa-solid fa-circle-info text-teal"></i> بعد الربط سيظهر النموذج فوراً كبطاقة جديدة ضمن لوحة النماذج التابعة للإجراء.</p>
+    </div>
+    <div class="px-5 py-4 border-t border-black/[0.06] flex gap-2 shrink-0">
+      <button @click="linkFormOpen=false" class="flex-1 py-2.5 rounded-lg border border-black/10 text-sm font-semibold text-ink/60 hover:bg-canvas">إلغاء</button>
+      <button @click="saveLinkedForm()" class="flex-1 py-2.5 rounded-lg bg-teal text-white text-sm font-bold hover:bg-teal-deep">حفظ وربط</button>
+    </div>
+  </div>
+</div>
+
+<!-- C) Preview & Print Modal (matches the Form Builder's preview exactly) -->
+<div x-show="previewOpen" x-cloak x-transition.opacity class="modal-backdrop fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" @keydown.escape.window="previewOpen=false">
+  <div x-show="previewOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+       @click.outside="previewOpen=false" class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden max-h-[92vh] flex flex-col">
+    <template x-if="previewTarget">
+      <div class="flex flex-col min-h-0">
+        <div class="no-print bg-ink px-5 py-4 flex items-center gap-3 text-white shrink-0">
+          <i class="fa-solid fa-print text-brand-deep"></i>
+          <div class="min-w-0">
+            <p class="font-extrabold truncate" x-text="'معاينة وطباعة النموذج — ' + previewTarget.titleAr"></p>
+            <p class="text-[11px] text-white/50 mono" x-text="previewTarget.code"></p>
+          </div>
+          <button @click="printNow()" class="ms-auto px-4 py-2 rounded-lg bg-brand text-ink text-xs font-bold hover:bg-brand-deep hover:text-white shrink-0"><i class="fa-solid fa-print"></i> طباعة / حفظ PDF</button>
+          <button @click="previewOpen=false" class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/70 hover:text-white shrink-0"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="overflow-y-auto p-5 bg-canvas">
+          <p class="no-print text-[11px] text-ink/40 mb-3">معاينة قابلة للطباعة — الحقول فارغة للاستخدام اليدوي وإدخال البيانات لاحقاً.</p>
+          <div id="printArea" class="max-w-3xl mx-auto bg-white border border-black/10 shadow-card rounded-2xl p-8">
+            <div class="flex items-center justify-between border-b-2 border-ink pb-4 mb-5">
+              <div>
+                <p class="mono text-[10px] text-ink/40 tracking-widest">SAFORA™ · ISO 22000:2018</p>
+                <h2 class="text-xl font-extrabold mt-1" x-text="previewTarget.titleAr"></h2>
+                <p class="text-xs text-ink/40" x-text="previewTarget.titleEn"></p>
+              </div>
+              <div class="text-left">
+                <p class="mono text-sm font-bold" x-text="previewTarget.code"></p>
+                <p class="text-[10px] text-ink/40" x-text="'الإجراء: ' + activeProcess.code"></p>
+              </div>
+            </div>
+            <div x-html="renderFormHTML(previewTarget, true)"></div>
+          </div>
+        </div>
+
+        <div class="no-print px-5 py-3.5 border-t border-black/[0.06] flex items-center justify-between shrink-0">
+          <p class="text-[11px] text-ink/35 mono">SAFORA™ · FORM PREVIEW</p>
+          <button @click="previewOpen=false" class="px-4 py-2 rounded-lg border border-black/10 text-xs font-semibold text-ink/60 hover:bg-canvas">إغلاق</button>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+
+
+<!-- D) Edit Template Modal -->
+<div x-show="editTemplateOpen" x-cloak x-transition.opacity class="modal-backdrop fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" @keydown.escape.window="editTemplateOpen=false">
+  <div x-show="editTemplateOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+       @click.outside="editTemplateOpen=false" class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden max-h-[90vh] flex flex-col">
+    <template x-if="editTarget">
+      <div class="flex flex-col min-h-0">
+        <div class="bg-ink px-5 py-4 flex items-center gap-3 text-white shrink-0">
+          <i class="fa-regular fa-pen-to-square text-amber"></i>
+          <div class="min-w-0">
+            <p class="font-extrabold truncate">تعديل قالب النموذج</p>
+            <p class="text-[11px] text-white/50 mono" x-text="editTarget.code"></p>
+          </div>
+          <button @click="editTemplateOpen=false" class="ms-auto w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/70 hover:text-white shrink-0"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-5 space-y-4 overflow-y-auto">
+          <div>
+            <label class="text-xs font-bold text-ink/60">عنوان النموذج</label>
+            <input type="text" x-model="editDraft.titleAr" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-teal">
+          </div>
+
+          <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-canvas">
+            <div>
+              <p class="text-xs font-bold text-ink/70">حالة التفعيل</p>
+              <p class="text-[10px] text-ink/40 mt-0.5" x-text="editDraft.status==='Active' ? 'النموذج مفعّل ومتاح للتعبئة' : 'النموذج بحالة مسودة'"></p>
+            </div>
+            <button type="button" @click="editDraft.status = editDraft.status==='Active' ? 'Draft' : 'Active'"
+                    :class="editDraft.status==='Active' ? 'bg-emerald' : 'bg-black/15'"
+                    class="w-11 h-6 rounded-full relative transition-colors shrink-0">
+              <span :class="editDraft.status==='Active' ? '-translate-x-5' : '-translate-x-0.5'" class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"></span>
+            </button>
+          </div>
+
+          <template x-if="editTarget.fillType==='default'">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs font-bold text-ink/60">الحد الأدنى الحرج</label>
+                <div class="relative mt-1.5">
+                  <input type="number" x-model.number="editDraft.criticalMin" class="w-full px-3 py-2.5 rounded-lg border border-black/10 text-sm mono outline-none focus:border-teal">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-ink/30 text-xs mono">°م</span>
+                </div>
+              </div>
+              <div>
+                <label class="text-xs font-bold text-ink/60">الحد الأقصى الحرج</label>
+                <div class="relative mt-1.5">
+                  <input type="number" x-model.number="editDraft.criticalMax" class="w-full px-3 py-2.5 rounded-lg border border-black/10 text-sm mono outline-none focus:border-teal">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-ink/30 text-xs mono">°م</span>
+                </div>
+              </div>
+            </div>
+          </template>
+          <template x-if="editTarget.fillType!=='default'">
+            <p class="text-[11px] text-ink/40 leading-relaxed"><i class="fa-solid fa-circle-info text-teal"></i> هذا النموذج لا يحتوي على حدود حرجة رقمية قابلة للتعديل.</p>
+          </template>
+        </div>
+        <div class="px-5 py-4 border-t border-black/[0.06] flex gap-2 shrink-0">
+          <button @click="editTemplateOpen=false" class="flex-1 py-2.5 rounded-lg border border-black/10 text-sm font-semibold text-ink/60 hover:bg-canvas">إلغاء</button>
+          <button @click="saveEditTemplate()" class="flex-1 py-2.5 rounded-lg bg-ink text-white text-sm font-bold hover:bg-ink-elev">حفظ التعديلات</button>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+
+<!-- Toast stack -->
+<div class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[70] space-y-2 w-full max-w-sm px-4">
+  <template x-for="t in toasts" :key="t.id">
+    <div class="toast-item flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-2xl text-sm font-semibold text-white"
+         :class="t.type==='success' ? 'bg-emerald-deep' : (t.type==='error' ? 'bg-rose-deep' : 'bg-ink')">
+      <i :class="t.type==='success' ? 'fa-solid fa-circle-check' : (t.type==='error' ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-circle-info')"></i>
+      <span x-text="t.message"></span>
+    </div>
+  </template>
+</div>
+
+<script>
+function haccpAdmin(){
+  return {
+    sidebarOpen:false, notifOpen:false, profileOpen:false, newProcessOpen:false, filesMenuOpen:true,
+    formSearch:'',
+
+    activeCode: 'P-19',
+
+    draftProcess: {code:'', title:'', description:'', scope:'', responsible:'', fileName:''},
+
+    // documents attached to each process (code -> file name)
+    processFiles: { 'P-19': 'P-19-النظافة-ومكافحة-الآفات.docx' },
+
+    processTitles: [
+      'استلام المواد الخام','التخزين والمناولة','مراقبة درجات الحرارة','تحديد نقاط التحكم الحرجة',
+      'معايرة الأجهزة','تتبع المنتج','سحب واسترجاع المنتج','إدارة الموردين','التدريب والتأهيل',
+      'الصيانة الوقائية','مكافحة مسببات الحساسية','إدارة شكاوى العملاء','مراقبة التغليف','النقل والتوزيع',
+      'إدارة حالات الطوارئ','التحقق من نظام الهاسب','مراجعة الإدارة','الرقابة على مياه التصنيع',
+      'النظافة ومكافحة الآفات','إدارة المخلفات الصناعية','التحكم في الأجسام الغريبة','اعتماد الموردين الجدد',
+      'مراقبة الوزن والقياس','اختبار المنتج النهائي','إدارة الوثائق والسجلات','تقييم المخاطر',
+      'خطة الاستدعاء والسحب','التدقيق الداخلي'
+    ],
+
+    get processes(){
+      return this.processTitles.map((title,i)=>{
+        const num = String(i+1).padStart(2,'0');
+        const code = 'P-'+num;
+        const isPest = code==='P-19';
+        const formsHere = this.formsByProcess[code] || [];
+        const totalForms = formsHere.length;
+        const activeFormsCount = formsHere.filter(f=>f.status==='Active').length;
+        // compliance is only meaningful once the procedure actually has forms attached —
+        // a brand-new procedure with nothing linked yet has no data to compute from, so it
+        // stays null (shown as "no data yet") instead of a fabricated percentage.
+        const compliance = totalForms>0 ? Math.round((activeFormsCount/totalForms)*100) : null;
+        const openAlerts = (this.alertsByProcess[code] || []).length;
+        return {
+          code, title,
+          description: isPest
+            ? 'إجراء موثق لتحديد كيفية تنفيذ برنامج النظافة ومكافحة الآفات داخل المصنع، بهدف منع وصول أي نوع من الآفات إلى المنتج في جميع مراحل الإنتاج وضمان سلامة المستهلك.'
+            : 'إجراء موثق ضمن نظام الهاسب لضبط ومراقبة هذا النشاط وفق المتطلبات المعتمدة من الإدارة العليا.',
+          scope: isPest ? 'جميع الأقسام وجميع مناطق المصنع' : 'أقسام مختارة داخل المصنع',
+          responsible: isPest ? 'مدير الجودة / رئيس فريق سلامة الغذاء' : 'مدير الجودة',
+          standard: 'ISO 22000 / HACCP',
+          status: 'Active',
+          updated: isPest ? '2026-08-12' : '2026-0'+((i%6)+1)+'-1'+((i%9)+1),
+          compliance,
+          openAlerts,
+        };
+      });
+    },
+
+    get activeProcess(){
+      return this.processes.find(p=>p.code===this.activeCode) || this.processes[0];
+    },
+
+    formsByProcess: {
+      'P-19': [
+        {code:'P-19-F01', titleAr:'تنظيف وإدارة المخلفات', titleEn:'Cleaning & waste management', icon:'fa-solid fa-broom', status:'Active', lastSubmission:'2026-08-30', todayEntries:4, fillType:'default', criticalMin:2, criticalMax:5, layoutType:'dated_grid',
+          config:{ frequency:'يومي', rowCount:31, multiSection:false, sections:[], metaFields:['اسم الخط','اليوم','التاريخ','الصفحة'],
+            columns:[{id:'c1',label:'اسم المعدة/الماكينة',type:'text'},{id:'c2',label:'طريقة التنظيف',type:'text'},{id:'c3',label:'وقت التنظيف',type:'text'},{id:'c4',label:'كفاءة التنظيف',type:'check'},{id:'c5',label:'ملاحظات',type:'text'}] } },
+        {code:'P-19-F02', titleAr:'تفقد النظافة العامة ومكافحة الآفات', titleEn:'General cleaning & pest checklist', icon:'fa-solid fa-clipboard-check', status:'Active', lastSubmission:'2026-08-30', todayEntries:2, fillType:'default', criticalMin:2, criticalMax:5, layoutType:'dated_grid',
+          config:{ frequency:'شهري', rowCount:31, multiSection:false, sections:[], metaFields:['التاريخ'],
+            columns:[{id:'c1',label:'الأبواب',type:'check'},{id:'c2',label:'الأرض والجدران',type:'check'},{id:'c3',label:'الماكينات',type:'check'},{id:'c4',label:'الشبابيك والمناخل',type:'check'},{id:'c5',label:'سلة المهملات',type:'check'},{id:'c6',label:'خلو من الحشرات',type:'check'},{id:'c7',label:'مصايد الحشرات',type:'check'},{id:'c8',label:'مصائد القوارض',type:'check'}] } },
+        {code:'P-19-F03', titleAr:'خطة مكافحة الحشرات', titleEn:'Pest control plan', icon:'fa-solid fa-spray-can-sparkles', status:'Active', lastSubmission:'2026-08-24', todayEntries:0, fillType:'default', criticalMin:2, criticalMax:5, layoutType:'reference_table',
+          config:{ columns:['نوع الحشرة','المادة المستخدمة','التركيز','طريقة الاستخدام','معدل التغيير','القائم بالأمر'],
+            rows:[['طائرة (ذباب، ناموس)','','','','',''],['زاحفة (صراصير، نمل)','','','','',''],['قوارض (فئران)','','','','',''],['أخرى','','','','','']] } },
+        {code:'P-19-F04', titleAr:'بلاغ عن وجود إصابة بالآفات', titleEn:'Pest infestation report', icon:'fa-solid fa-bug', status:'Active', lastSubmission:'2026-08-30', todayEntries:3, fillType:'pest', layoutType:'report_entry',
+          config:{ fields:[{id:'f1',label:'العدد التقريبي',type:'number'},{id:'f2',label:'توقيت رؤيتها',type:'text'},{id:'f3',label:'الآفة',type:'select'},{id:'f4',label:'الموقع',type:'text'}], blankRows:8, hasSignature:true } },
+        {code:'P-19-F05', titleAr:'سجل أسبوعي لنشاط الآفات', titleEn:'Weekly pest activity log', icon:'fa-solid fa-calendar-week', status:'Active', lastSubmission:'2026-08-29', todayEntries:1, fillType:'default', criticalMin:2, criticalMax:5, layoutType:'dated_grid',
+          config:{ frequency:'أسبوعي', rowCount:31, multiSection:false, sections:[], metaFields:['المحطات'],
+            columns:[{id:'c1',label:'المصائد',type:'check'},{id:'c2',label:'حشرات طائرة',type:'check'},{id:'c3',label:'حشرات زاحفة',type:'check'},{id:'c4',label:'قوارض أو آثارها',type:'check'},{id:'c5',label:'طيور',type:'check'},{id:'c6',label:'القائم بالعمل',type:'signature'},{id:'c7',label:'ملاحظات',type:'text'}] } },
+        {code:'P-19-F06', titleAr:'سجل شهري لنشاط الآفات', titleEn:'Monthly pest activity log', icon:'fa-solid fa-calendar-days', status:'Active', lastSubmission:'2026-08-01', todayEntries:0, fillType:'default', criticalMin:2, criticalMax:5, layoutType:'dated_grid',
+          config:{ frequency:'شهري', rowCount:9, multiSection:false, sections:[], metaFields:['المحطات'],
+            columns:[{id:'c1',label:'الجهة المبلغة',type:'text'},{id:'c2',label:'إجمالي',type:'number'}] } },
+        {code:'P-19-F07', titleAr:'متابعة أعمال النظافة', titleEn:'Cleaning follow-up form', icon:'fa-solid fa-soap', status:'Active', lastSubmission:'2026-08-30', todayEntries:5, fillType:'default', criticalMin:2, criticalMax:5, layoutType:'audit_sections',
+          config:{ sections:[
+            {title:'1- شؤون صحة العاملين', criteria:['توافر الشهادات الصحية المجددة','الحالة الصحية والعامة للعاملين','تمييز أربطة الجروح إن وجدت','قص الأظافر','نظافة أيدي العاملين قبل العمل','توافر مطهرات الأيدي','ارتداء غطاء الرأس','الزي المصرح به']},
+            {title:'2- النظافة والتطهير', criteria:['إزالة الشحومات المتبقية','النظافة بالماء الساخن والمطهرات','التخلص من المخلفات والقاذورات','نظافة وتطهير الأرضيات والحوائط']},
+            {title:'3- المخازن', criteria:['النظافة العامة للمكان','التنظيم الجيد للمخزن','ظروف التخزين (جاف بارد)','سهولة الحركة داخل المخزن']},
+            {title:'4- مكافحة الحشرات الطائرة والزاحفة والقوارض', criteria:['وجود ستائر الهواء بالمدخل','وجود صواعق الحشرات الطائرة','عدم وجود حشرات طائرة أو زاحفة','توافر مصائد حول المباني']},
+          ] } },
+        {code:'P-19-F08', titleAr:'خطة النظافة والتعقيم الشهرية', titleEn:'Monthly cleaning & sanitizing plan', icon:'fa-solid fa-table-cells', status:'Active', lastSubmission:'2026-08-30', todayEntries:9, fillType:'grid', layoutType:'matrix_month',
+          config:{ categories:[
+            {name:'العاملين', items:['النظافة الشخصية للعاملين','نظافة الأيدي','ارتداء غطاء الرأس','الزي المصرح به']},
+            {name:'الأجهزة والأسطح', items:['نظافة وتطهير الأجهزة والأسطح']},
+            {name:'صالة الإنتاج والأرضيات', items:['صالة الإنتاج','الأرضيات','التخلص من المخلفات','الحوائط والشبابيك']},
+            {name:'المرافق', items:['دورات المياه والمرافق','التنظيف والتطهير','منظفات ومطهرات','ماء ساخن']},
+            {name:'المخازن', items:['النظافة العامة','التنظيم داخل المخزن','تقرير المخزون','سهولة الحركة داخل المخزن']},
+          ] } },
+        {code:'P-19-F09', titleAr:'متابعة النظافة اليومية', titleEn:'Daily hygiene follow-up', icon:'fa-solid fa-sun', status:'Active', lastSubmission:'2026-08-30', todayEntries:12, fillType:'default', criticalMin:2, criticalMax:5, layoutType:'dated_grid',
+          config:{ frequency:'يومي', rowCount:31, multiSection:false, sections:[], metaFields:['المعدة/المكان','الشهر'],
+            columns:[{id:'c1',label:'نظافة بواسطة (صباحي)',type:'signature'},{id:'c2',label:'تحقق بواسطة (صباحي)',type:'signature'},{id:'c3',label:'نظافة بواسطة (مسائي)',type:'signature'},{id:'c4',label:'تحقق بواسطة (مسائي)',type:'signature'}] } },
+        {code:'P-19-F10', titleAr:'متابعة النظافة الأسبوعية', titleEn:'Weekly hygiene follow-up', icon:'fa-solid fa-calendar-week', status:'Active', lastSubmission:'2026-08-28', todayEntries:0, fillType:'default', criticalMin:2, criticalMax:5, layoutType:'dated_grid',
+          config:{ frequency:'أسبوعي', rowCount:18, multiSection:false, sections:[], metaFields:['الشهر'],
+            columns:[{id:'c1',label:'المعدة/المكان',type:'text'},{id:'c2',label:'الحالة',type:'check'}] } },
+        {code:'P-19-F11', titleAr:'خطة النظافة والتعقيم الشهرية', titleEn:'Monthly sanitizing plan (follow-up)', icon:'fa-solid fa-table-list', status:'Draft', lastSubmission:'—', todayEntries:0, fillType:'default', criticalMin:2, criticalMax:5, layoutType:'matrix_month',
+          config:{ categories:[
+            {name:'العاملين', items:['النظافة الشخصية للعاملين','نظافة الأيدي']},
+            {name:'المخازن', items:['النظافة العامة','التنظيم داخل المخزن']},
+          ] } },
+        {code:'P-19-F12', titleAr:'التشييك اليومي على العاملين', titleEn:'Daily workers check', icon:'fa-solid fa-user-check', status:'Active', lastSubmission:'2026-08-30', todayEntries:14, fillType:'default', criticalMin:2, criticalMax:5, layoutType:'dated_grid',
+          config:{ frequency:'يومي', rowCount:31, multiSection:false, sections:[], metaFields:[],
+            columns:[{id:'c1',label:'مطابق',type:'check'},{id:'c2',label:'غير مطابق',type:'check'},{id:'c3',label:'الإجراء عند عدم المطابقة',type:'text'},{id:'c4',label:'توقيع المسؤول',type:'signature'}] } },
+        {code:'P-19-F13', titleAr:'تقرير زيارات شركة الصرف الصحي', titleEn:'Sewage company visit report', icon:'fa-solid fa-truck', status:'Draft', lastSubmission:'2026-07-30', todayEntries:0, fillType:'default', criticalMin:2, criticalMax:5, layoutType:'report_entry',
+          config:{ fields:[{id:'f1',label:'نوع الزيارة',type:'text'},{id:'f2',label:'الملاحظات',type:'text'}], blankRows:8, hasSignature:true } },
+        {code:'P-19-F14', titleAr:'توزيع مسؤولية نظافة الأقسام', titleEn:'Cleaning responsibility schedule', icon:'fa-solid fa-sitemap', status:'Active', lastSubmission:'2026-08-01', todayEntries:0, fillType:'default', criticalMin:2, criticalMax:5, layoutType:'reference_table',
+          config:{ columns:['الموقع','العامل المسؤول','التوقيت'],
+            rows:[['صالة الإنتاج','عامل التشغيل لكل ماكينة','نهاية الشفت'],['صالة التحلية','عمال النظافة','نهاية الشفت'],['المختبرات','عمال النظافة','نهاية الشفت'],['مستودع المنتج النهائي','عمال النظافة','نهاية الشفت'],['مستودع الخامات','عمال النظافة','نهاية الشفت'],['دورة مياه العمال','عمال النظافة','نهاية الشفت'],['المسجد','عمال النظافة','نهاية الشفت'],['موقف السيارات','عمال النظافة','نهاية الشفت'],['السور الخارجي','عمال النظافة','نهاية الشفت']] } },
+        {code:'P-19-F15', titleAr:'سجل تنظيف الفلاتر والخزانات', titleEn:'Filter & tank cleaning log', icon:'fa-solid fa-filter', status:'Active', lastSubmission:'2026-08-29', todayEntries:1, fillType:'default', criticalMin:2, criticalMax:5, layoutType:'dated_grid',
+          config:{ frequency:'شهري', rowCount:10, multiSection:true, sections:['خزان المياه الخام','الفلتر الرملي','الفلتر الكربوني','الفلتر الميكروني (1)','الفلتر الميكروني (2)'], metaFields:[],
+            columns:[{id:'c1',label:'غسيل الفلتر',type:'check'},{id:'c2',label:'الصيانة',type:'text'},{id:'c3',label:'المسؤول (توقيع)',type:'signature'}] } },
+        {code:'P-19-F16', titleAr:'سجل زيارات شركة المخلفات', titleEn:'Waste company visit log', icon:'fa-solid fa-dumpster', status:'Draft', lastSubmission:'2026-07-15', todayEntries:0, fillType:'default', criticalMin:2, criticalMax:5, layoutType:'report_entry',
+          config:{ fields:[{id:'f1',label:'نوع الزيارة',type:'text'},{id:'f2',label:'الملاحظات',type:'text'}], blankRows:8, hasSignature:true } },
+        {code:'P-19-F17', titleAr:'سجل زيارات شركة مكافحة الحشرات', titleEn:'Pest control company visit log', icon:'fa-solid fa-bug-slash', status:'Active', lastSubmission:'2026-08-27', todayEntries:0, fillType:'default', criticalMin:2, criticalMax:5, layoutType:'report_entry',
+          config:{ fields:[{id:'f1',label:'نوع الزيارة',type:'text'},{id:'f2',label:'الملاحظات',type:'text'}], blankRows:8, hasSignature:true } },
+      ]
+    },
+
+    // ---------- master repository offered inside the "Link Form" modal ----------
+    formRepo: [
+      {code:'P-19-F18', titleAr:'فحص درجة حرارة غرف التبريد', fillType:'default'},
+      {code:'P-19-F19', titleAr:'تقرير حادثة سلامة غذائية', fillType:'default'},
+      {code:'P-19-F20', titleAr:'قائمة تدقيق نظافة عامة', fillType:'default'},
+    ],
+
+    // matches the layout archetypes defined in the Form Builder studio
+    formTypeLabels: {
+      simple: { label:'نموذج حقول بسيط', chipBg:'bg-black/5', chipText:'text-ink/60' },
+      dated_grid: { label:'سجل بتواريخ', chipBg:'bg-emerald-soft', chipText:'text-emerald-deep' },
+      matrix_month: { label:'مصفوفة شهرية', chipBg:'bg-teal-soft', chipText:'text-teal-deep' },
+      audit_sections: { label:'قائمة تفتيش مقسّمة', chipBg:'bg-rose-soft', chipText:'text-rose-deep' },
+      report_entry: { label:'بلاغ / إدخال حر', chipBg:'bg-amber-soft', chipText:'text-amber-deep' },
+      reference_table: { label:'جدول مرجعي ثابت', chipBg:'bg-black/5', chipText:'text-ink/60' },
+    },
+    formTypeMeta(key){
+      return this.formTypeLabels[key] || { label:'—', chipBg:'bg-black/5', chipText:'text-ink/40' };
+    },
+
+    get activeForms(){
+      return this.formsByProcess[this.activeCode] || [];
+    },
+
+    get filteredForms(){
+      const q = this.formSearch.trim().toLowerCase();
+      if(!q) return this.activeForms;
+      return this.activeForms.filter(f =>
+        f.code.toLowerCase().includes(q) || f.titleAr.includes(q) || f.titleEn.toLowerCase().includes(q)
+      );
+    },
+
+    get totalEntriesToday(){
+      return this.activeForms.reduce((sum,f)=>sum+f.todayEntries, 0);
+    },
+
+    alertsByProcess: {
+      'P-19': [
+        {title:'نشاط آفات غير محسوم — نموذج P-19-F04', meta:'مستودع الخامات · آثار قوارض · قبل 22 دقيقة', level:'HIGH', icon:'fa-solid fa-bug'},
+        {title:'فشل تعقيم — سطح عمل غير مطابق', meta:'صالة التعبئة B · نموذج P-19-F07 · قبل 41 دقيقة', level:'CRITICAL', icon:'fa-solid fa-droplet-slash'},
+        {title:'نموذج P-19-F17 متأخر عن جدول الزيارة', meta:'شركة مكافحة الآفات المتعاقدة · قبل 3 أيام', level:'HIGH', icon:'fa-solid fa-calendar-xmark'},
+      ]
+    },
+    get activeAlerts(){
+      return this.alertsByProcess[this.activeCode] || [];
+    },
+
+    scrollToProcesses(){
+      document.getElementById('processes')?.scrollIntoView({behavior:'smooth', block:'start'});
+    },
+    soon(){
+      this.toast('هذه الميزة قيد التطوير وستكون متاحة قريباً', 'info');
+    },
+
+    createProcess(){
+      if(!this.draftProcess.title){ this.toast('يرجى إدخال عنوان الإجراء', 'error'); return; }
+      const nextNum = this.processTitles.length + 1;
+      const newCode = 'P-' + String(nextNum).padStart(2,'0');
+      this.processTitles.push(this.draftProcess.title);
+      if(this.draftProcess.fileName){ this.processFiles[newCode] = this.draftProcess.fileName; }
+      this.activeCode = newCode;
+      this.newProcessOpen = false;
+      this.toast('تم إنشاء الإجراء بنجاح', 'success');
+      this.draftProcess = {code:'', title:'', description:'', scope:'', responsible:'', fileName:''};
+    },
+
+    // =====================================================================
+    // A) LINK FORM MODAL
+    // =====================================================================
+    linkFormOpen:false,
+    linkDraft: {repoChoice:'', code:'', titleAr:'', role:'النظافة والتعقيم (Sanitation)', frequency:'يومي'},
+
+    openLinkForm(){
+      this.linkDraft = {repoChoice:'', code:'', titleAr:'', role:'النظافة والتعقيم (Sanitation)', frequency:'يومي'};
+      this.linkFormOpen = true;
+    },
+    applyRepoChoice(){
+      if(this.linkDraft.repoChoice === ''){ return; }
+      const tpl = this.formRepo.find(t=>t.code===this.linkDraft.repoChoice);
+      if(tpl){
+        this.linkDraft.code = tpl.code;
+        this.linkDraft.titleAr = tpl.titleAr;
+      }
+    },
+    saveLinkedForm(){
+      if(!this.linkDraft.repoChoice){
+        this.toast('يرجى اختيار نموذج من مستودع الإجراء', 'error');
+        return;
+      }
+      if(!this.linkDraft.code || !this.linkDraft.titleAr){
+        this.toast('يرجى إدخال كود وعنوان النموذج', 'error');
+        return;
+      }
+      if(!this.formsByProcess[this.activeCode]) this.formsByProcess[this.activeCode] = [];
+      this.formsByProcess[this.activeCode].push({
+        code: this.linkDraft.code,
+        titleAr: this.linkDraft.titleAr,
+        titleEn: 'Linked form · ' + this.linkDraft.frequency,
+        icon: 'fa-solid fa-file-circle-plus',
+        status: 'Active',
+        lastSubmission: '—',
+        todayEntries: 0,
+        fillType: 'default',
+        criticalMin: 2,
+        criticalMax: 5,
+        history: []
+      });
+      this.linkFormOpen = false;
+      this.toast('تم ربط النموذج بنجاح', 'success');
+    },
+
+    // =====================================================================
+    // C) PREVIEW & PRINT MODAL — identical rendering engine to the Form
+    // Builder studio (same 6 layout archetypes, same printable output).
+    // =====================================================================
+    previewOpen:false,
+    previewTarget:null,
+
+    openPreviewPrint(f){
+      this.previewTarget = f;
+      this.previewOpen = true;
+    },
+    printNow(){ window.print(); },
+    todayStr(){ return new Date().toISOString().slice(0,10); },
+
+    renderFormHTML(form, printable){
+      if(!form || !form.config) return '<p style="font-size:11px;color:#bbb;">لا توجد بنية معرّفة لهذا النموذج بعد.</p>';
+      const esc = (s)=> (s===undefined||s===null) ? '' : String(s).replace(/</g,'&lt;');
+      const th = 'style="border:1px solid #d4d4d4;background:#F3F5F8;padding:6px 8px;font-size:11px;font-weight:700;text-align:right;white-space:nowrap;"';
+      const td = 'style="border:1px solid #e2e2e2;padding:6px 8px;font-size:11px;height:26px;text-align:right;"';
+      const tdc = 'style="border:1px solid #e2e2e2;padding:6px 8px;font-size:11px;height:26px;text-align:center;width:34px;"';
+      let out = '';
+
+      switch(form.layoutType){
+
+        case 'simple': {
+          out += '<div style="display:flex;flex-direction:column;gap:10px;">';
+          form.config.fields.forEach(f=>{
+            out += '<div><div style="font-size:11px;font-weight:700;margin-bottom:4px;">'+esc(f.label)+(f.required?' *':'')+'</div>';
+            if(f.type==='passfail'){
+              out += '<div style="display:flex;gap:8px;"><span style="border:1px solid #ccc;border-radius:6px;padding:4px 10px;font-size:11px;">مطابق</span><span style="border:1px solid #ccc;border-radius:6px;padding:4px 10px;font-size:11px;">غير مطابق</span></div>';
+            } else if(f.type==='temp'){
+              out += '<div style="border:1px solid #ccc;border-radius:6px;padding:6px 10px;font-size:11px;color:#999;width:160px;">____ °م  (نطاق '+f.min+'—'+f.max+'°م)</div>';
+            } else if(f.type==='photo'){
+              out += '<div style="border:2px dashed #ccc;border-radius:8px;height:60px;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:11px;">مساحة إرفاق صورة</div>';
+            } else {
+              out += '<div style="border-bottom:1px solid #ccc;height:20px;width:100%;"></div>';
+            }
+            out += '</div>';
+          });
+          if(form.config.fields.length===0) out += '<p style="font-size:11px;color:#bbb;">لا توجد حقول بعد</p>';
+          out += '</div>';
+          break;
+        }
+
+        case 'dated_grid': {
+          if(form.config.metaFields && form.config.metaFields.length){
+            out += '<div style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:10px;">';
+            form.config.metaFields.forEach(m=>{
+              out += '<div style="font-size:11px;">'+esc(m)+': <span style="display:inline-block;border-bottom:1px solid #ccc;width:110px;">&nbsp;</span></div>';
+            });
+            out += '</div>';
+          }
+          const sectionsToRender = (form.config.multiSection && form.config.sections.length) ? form.config.sections : [null];
+          sectionsToRender.forEach(secName=>{
+            if(secName) out += '<p style="font-size:12px;font-weight:800;margin:10px 0 4px;color:#0A5F80;">'+esc(secName)+'</p>';
+            out += '<table style="border-collapse:collapse;width:100%;margin-bottom:10px;"><thead><tr>';
+            out += '<th '+th+'>اليوم / التاريخ</th>';
+            form.config.columns.forEach(c=>{ out += '<th '+th+'>'+esc(c.label)+'</th>'; });
+            out += '</tr></thead><tbody>';
+            const rc = Math.min(Math.max(form.config.rowCount||31,1),31);
+            for(let i=1;i<=(printable?rc:Math.min(rc,8));i++){
+              out += '<tr><td '+tdc+'>'+i+'</td>';
+              form.config.columns.forEach(c=>{
+                if(c.type==='check') out += '<td '+tdc+'><span style="display:inline-block;width:12px;height:12px;border:1px solid #bbb;"></span></td>';
+                else out += '<td '+td+'></td>';
+              });
+              out += '</tr>';
+            }
+            out += '</tbody></table>';
+            if(!printable && rc>8) out += '<p style="font-size:10px;color:#bbb;margin-top:-6px;">… ويستمر حتى '+rc+' صف في وضع الطباعة الكامل</p>';
+          });
+          break;
+        }
+
+        case 'matrix_month': {
+          out += '<table style="border-collapse:collapse;width:100%;font-size:9px;"><thead><tr>';
+          out += '<th '+th+' style="min-width:150px;">البند</th>';
+          const dayCount = printable ? 31 : 12;
+          for(let d=1; d<=dayCount; d++){ out += '<th '+th+' style="text-align:center;padding:4px 3px;">'+d+'</th>'; }
+          out += '</tr></thead><tbody>';
+          form.config.categories.forEach(cat=>{
+            cat.items.forEach((it,ii)=>{
+              out += '<tr>';
+              out += '<td style="border:1px solid #e2e2e2;padding:4px 6px;font-size:10px;'+(ii===0?'font-weight:800;background:#F3F5F8;':'')+'">'+(ii===0?esc(cat.name)+' — ':'')+esc(it)+'</td>';
+              for(let d=1; d<=dayCount; d++){ out += '<td style="border:1px solid #eee;width:16px;height:16px;"></td>'; }
+              out += '</tr>';
+            });
+          });
+          out += '</tbody></table>';
+          if(!printable && dayCount<31) out += '<p style="font-size:10px;color:#bbb;margin-top:6px;">… المصفوفة الكاملة تغطي 31 يوماً عند الطباعة</p>';
+          break;
+        }
+
+        case 'audit_sections': {
+          out += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">';
+          form.config.sections.forEach(sec=>{
+            out += '<div><p style="font-size:12px;font-weight:800;background:#F3F5F8;padding:5px 8px;border-radius:6px;">'+esc(sec.title)+'</p>';
+            out += '<table style="width:100%;border-collapse:collapse;margin-top:4px;">';
+            sec.criteria.forEach(c=>{
+              out += '<tr><td style="border-bottom:1px dashed #e2e2e2;padding:4px 2px;font-size:10.5px;">'+esc(c)+'</td><td style="border-bottom:1px dashed #e2e2e2;padding:4px 2px;width:60px;text-align:center;font-size:9px;color:#bbb;">( &nbsp; )</td></tr>';
+            });
+            out += '</table></div>';
+          });
+          out += '</div>';
+          out += '<p style="font-size:10px;color:#888;margin-top:12px;">بنود التقييم: منفّذ ( ) &nbsp;&nbsp; غير منفّذ ( ) &nbsp;&nbsp; لا ينطبق ( - )</p>';
+          break;
+        }
+
+        case 'report_entry': {
+          out += '<table style="border-collapse:collapse;width:100%;"><thead><tr>';
+          form.config.fields.forEach(f=>{ out += '<th '+th+'>'+esc(f.label)+'</th>'; });
+          out += '</tr></thead><tbody>';
+          const rows = printable ? (form.config.blankRows||6) : Math.min(form.config.blankRows||6,4);
+          for(let i=0;i<rows;i++){
+            out += '<tr>';
+            form.config.fields.forEach(()=>{ out += '<td '+td+'></td>'; });
+            out += '</tr>';
+          }
+          out += '</tbody></table>';
+          if(form.config.hasSignature){
+            out += '<div style="display:flex;gap:24px;margin-top:14px;font-size:11px;">';
+            out += '<div>القائم بالتبليغ: <span style="display:inline-block;border-bottom:1px solid #ccc;width:120px;">&nbsp;</span></div>';
+            out += '<div>التوقيع: <span style="display:inline-block;border-bottom:1px solid #ccc;width:120px;">&nbsp;</span></div>';
+            out += '</div>';
+          }
+          break;
+        }
+
+        case 'reference_table': {
+          out += '<table style="border-collapse:collapse;width:100%;"><thead><tr>';
+          form.config.columns.forEach(c=>{ out += '<th '+th+'>'+esc(c)+'</th>'; });
+          out += '</tr></thead><tbody>';
+          form.config.rows.forEach(row=>{
+            out += '<tr>';
+            row.forEach(cell=>{ out += '<td '+td+'>'+esc(cell)+'</td>'; });
+            out += '</tr>';
+          });
+          out += '</tbody></table>';
+          break;
+        }
+      }
+
+      if(printable){
+        out += '<div style="display:flex;justify-content:space-between;margin-top:28px;padding-top:14px;border-top:1px solid #e2e2e2;font-size:10px;color:#999;">';
+        out += '<span>'+esc(form.code)+' · SAFORA</span><span>تاريخ الطباعة: '+this.todayStr()+'</span>';
+        out += '</div>';
+      }
+      return out;
+    },
+
+    // =====================================================================
+    // D) EDIT TEMPLATE MODAL
+    // =====================================================================
+    editTemplateOpen:false,
+    editTarget:null,
+    editDraft:{titleAr:'', status:'Active', criticalMin:2, criticalMax:5},
+
+    openEditTemplate(f){
+      this.editTarget = f;
+      this.editDraft = { titleAr:f.titleAr, status:f.status, criticalMin:f.criticalMin ?? 2, criticalMax:f.criticalMax ?? 5 };
+      this.editTemplateOpen = true;
+    },
+    saveEditTemplate(){
+      const f = this.editTarget;
+      if(!f) return;
+      f.titleAr = this.editDraft.titleAr;
+      f.status = this.editDraft.status;
+      if(f.fillType === 'default'){
+        f.criticalMin = this.editDraft.criticalMin;
+        f.criticalMax = this.editDraft.criticalMax;
+      }
+      this.editTemplateOpen = false;
+      this.toast('تم تحديث بيانات النموذج', 'success');
+    },
+
+    // =====================================================================
+    // Toasts
+    // =====================================================================
+    toasts:[],
+    toast(message, type='success'){
+      const id = Date.now() + Math.random();
+      this.toasts.push({id, message, type});
+      setTimeout(()=>{ this.toasts = this.toasts.filter(t=>t.id!==id); }, 3200);
+    }
+  }
+}
+</script>
+<!-- ═══ ملف الأدمن (الاسم والمسمى) + تسجيل الخروج — مشترك بين صفحات الإدارة ═══ -->
+<div id="safAdminModal" class="hidden fixed inset-0 z-[90] items-center justify-center p-4 bg-black/40" role="dialog" aria-modal="true" aria-labelledby="safAdminT">
+  <div class="bg-white rounded-2xl w-full max-w-md p-5 space-y-3">
+    <p id="safAdminT" class="font-extrabold text-lg">الملف الشخصي والإعدادات</p>
+    <label class="block"><span class="text-[12px] font-bold text-ink/60">الاسم الكامل</span><input id="safAdminName" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-teal"></label>
+    <label class="block"><span class="text-[12px] font-bold text-ink/60">المسمى الوظيفي</span><input id="safAdminTitle" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-teal"></label>
+    <label class="block"><span class="text-[12px] font-bold text-ink/60">البريد الإلكتروني</span><input id="safAdminEmail" dir="ltr" class="w-full mt-1 px-3 py-2.5 rounded-lg border border-black/10 text-sm mono outline-none focus:border-teal"></label>
+    <div class="flex gap-2 pt-1">
+      <button type="button" onclick="safAdmin.close()" class="flex-1 py-2.5 rounded-lg border border-black/10 text-sm font-bold">إلغاء</button>
+      <button type="button" onclick="safAdmin.save()" class="flex-1 py-2.5 rounded-lg bg-ink text-white text-sm font-bold">حفظ</button>
+    </div>
+  </div>
+</div>
+<div id="safAdminLock" class="hidden fixed inset-0 z-[95] items-center justify-center p-4 bg-ink text-white">
+  <div class="text-center space-y-3 max-w-sm">
+    <i class="fa-solid fa-lock text-3xl text-brand"></i>
+    <p class="text-xl font-extrabold">تم تسجيل الخروج من لوحة الإدارة</p>
+    <p class="text-sm text-white/60">النسخة التجريبية بدون كلمة مرور للأدمن؛ اضغط للدخول مرة أخرى.</p>
+    <button type="button" onclick="safAdmin.unlock()" class="px-5 py-2.5 rounded-lg bg-brand text-ink font-bold">الدخول مرة أخرى</button>
+  </div>
+</div>
+<script>
+const safAdmin = {
+  KEY:"safora.admin.profile",
+  get(){ try { return JSON.parse(localStorage.getItem(this.KEY) || "null") || {}; } catch (e) { return {}; } },
+  apply(){ const p = this.get();
+    document.querySelectorAll("[data-admin-name]").forEach(el => el.textContent = p.name || "مدير النظام");
+    document.querySelectorAll("[data-admin-title]").forEach(el => el.textContent = p.title || "مدير النظام — Admin");
+    const lock = document.getElementById("safAdminLock"); if (lock){ const on = sessionStorage.getItem("safora.admin.locked") === "1"; lock.classList.toggle("hidden", !on); lock.classList.toggle("flex", on); } },
+  open(){ const p = this.get(); document.getElementById("safAdminName").value = p.name || ""; document.getElementById("safAdminTitle").value = p.title || ""; document.getElementById("safAdminEmail").value = p.email || "";
+    const m = document.getElementById("safAdminModal"); m.classList.remove("hidden"); m.classList.add("flex"); document.getElementById("safAdminName").focus(); },
+  close(){ const m = document.getElementById("safAdminModal"); m.classList.add("hidden"); m.classList.remove("flex"); },
+  save(){ localStorage.setItem(this.KEY, JSON.stringify({ name:document.getElementById("safAdminName").value.trim(), title:document.getElementById("safAdminTitle").value.trim(), email:document.getElementById("safAdminEmail").value.trim() })); this.close(); this.apply(); },
+  logout(){ sessionStorage.setItem("safora.admin.locked", "1"); this.apply(); },
+  unlock(){ sessionStorage.removeItem("safora.admin.locked"); this.apply(); },
+};
+document.addEventListener("DOMContentLoaded", () => safAdmin.apply());
+document.addEventListener("keydown", e => { if (e.key === "Escape") safAdmin.close(); });
+</script>
+</body>
+</html>

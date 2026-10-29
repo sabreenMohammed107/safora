@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>السجل الشهري التفاعلي | SAFORA</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 47'%3E%3Crect width='35' height='35' rx='8' fill='%23F02B18'/%3E%3Crect x='13' y='12' width='35' height='35' rx='8' fill='%23FD8118' fill-opacity='.92'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Montserrat:wght@700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { cairo: ['Cairo','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+    colors: {
+        ink: { DEFAULT:'#071A2A', elev:'#0E2A40', border:'#1A3A55', soft:'#11304A', mist:'#9FB2BF' },
+        canvas: '#F3F5F8',
+        brand: { DEFAULT:'#FD8118', deep:'#B8560A', soft:'#FFF1E3', red:'#F02B18', cream:'#F6F2E8' },
+        emerald: { DEFAULT:'#0FA968', deep:'#066B41', soft:'#E4F6ED' },
+        rose: { DEFAULT:'#E11D48', deep:'#9F1239', soft:'#FDECEF' },
+        amber: { DEFAULT:'#C58B00', deep:'#7A5700', soft:'#FBF3D6' },
+        teal: { DEFAULT:'#0E86B4', deep:'#0A5F80', soft:'#E2F2F9' },
+      },
+    boxShadow: { card: '0 1px 2px rgba(7,26,42,0.06), 0 8px 24px -12px rgba(7,26,42,0.12)' }
+  }}
+}
+</script>
+<style>
+  body{ font-family:'Cairo',sans-serif; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+  .wordmark{ font-family:'Montserrat','Cairo',sans-serif; font-weight:800; letter-spacing:.015em; }
+  ::selection{ background:#FFE2C4; color:#071A2A; }
+  ::-webkit-scrollbar{ width:8px; height:8px; } ::-webkit-scrollbar-thumb{ background:#D3DAE3; border-radius:99px; }
+  [x-cloak]{ display:none !important; }
+  .cell{ width:34px; height:34px; }
+  .grid-scroll{ scrollbar-gutter:stable; }
+  .cat-row td{ position:sticky; right:0; }
+  thead th.sticky-day{ position:sticky; top:0; z-index:10; }
+  th.sticky-col, td.sticky-col{ position:sticky; right:0; z-index:5; }
+</style>
+</head>
+<body class="bg-canvas text-ink font-cairo antialiased" x-data="gridLog()">
+
+<div class="min-h-screen">
+  <!-- Top strip -->
+  <header class="flex items-center gap-3 px-5 py-3 bg-ink text-white">
+    <a href="1_Dashboard.html" class="flex items-center gap-2 shrink-0" aria-label="SAFORA">
+    <svg class="w-7 h-7" viewBox="0 0 48 47" aria-hidden="true"><defs><clipPath id="sfMarkTop"><rect width="35" height="35" rx="8"/></clipPath></defs><rect width="35" height="35" rx="8" fill="#F02B18"/><rect x="13" y="12" width="35" height="35" rx="8" fill="#E17F1A"/><rect x="13" y="12" width="35" height="35" rx="8" fill="#FD8118" clip-path="url(#sfMarkTop)"/></svg>
+    <span dir="ltr" class="wordmark text-[17px] text-brand-cream hidden sm:inline">SAFORA</span>
+  </a>
+  <span class="w-px h-5 bg-white/15 hidden sm:block"></span>
+    <a href="1_Dashboard.html" class="text-white/50 hover:text-white text-sm"><i class="fa-solid fa-arrow-right ms-1"></i> لوحة القيادة</a>
+    <span class="text-white/20">/</span>
+    <h1 class="font-bold text-sm">مصفوفة النظافة والتعقيم الشهرية</h1>
+    <span class="mono text-[11px] text-white/40 ms-1">P-19-F08</span>
+
+    <div class="ms-auto flex items-center gap-2">
+      <span class="flex items-center gap-1.5 text-[11px] mono text-white/50"><span class="w-2.5 h-2.5 rounded-sm bg-emerald"></span> Pass</span>
+      <span class="flex items-center gap-1.5 text-[11px] mono text-white/50"><span class="w-2.5 h-2.5 rounded-sm bg-rose"></span> Fail</span>
+      <span class="flex items-center gap-1.5 text-[11px] mono text-white/50"><span class="w-2.5 h-2.5 rounded-sm bg-white/20"></span> N/A</span>
+      <button class="ms-3 px-3 py-1.5 rounded-lg bg-brand text-ink hover:bg-brand-deep hover:text-white text-xs font-bold">حفظ التغييرات</button>
+    </div>
+  </header>
+
+  <main class="p-5 space-y-4">
+    <!-- Header controls -->
+    <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card p-4 flex flex-wrap items-center gap-4">
+      <div>
+        <label class="text-[11px] font-bold text-ink/40 block mb-1">الشهر / السنة</label>
+        <select x-model="month" class="px-3 py-2 rounded-lg border border-black/10 text-sm font-semibold outline-none focus:border-teal">
+          <option>أغسطس 2026</option>
+          <option>سبتمبر 2026</option>
+          <option>أكتوبر 2026</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-[11px] font-bold text-ink/40 block mb-1">الفرع</label>
+        <select class="px-3 py-2 rounded-lg border border-black/10 text-sm font-semibold outline-none focus:border-teal">
+          <option>مصنع القاهرة الرئيسي</option>
+          <option>فرع العاشر من رمضان</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-[11px] font-bold text-ink/40 block mb-1">المشرف المسؤول</label>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-canvas border border-black/[0.06]">
+          <img src="https://i.pravatar.cc/40?img=33" class="w-6 h-6 rounded-full">
+          <span class="text-sm font-semibold">مشرف الإنتاج — كريم ناجي</span>
+        </div>
+      </div>
+
+      <div class="ms-auto flex items-center gap-4 mono text-xs">
+        <div class="text-center"><p class="text-emerald font-bold text-lg" x-text="counts.pass"></p><p class="text-ink/40">Pass</p></div>
+        <div class="text-center"><p class="text-rose font-bold text-lg" x-text="counts.fail"></p><p class="text-ink/40">Fail</p></div>
+        <div class="text-center"><p class="text-ink/50 font-bold text-lg" x-text="counts.na"></p><p class="text-ink/40">N/A</p></div>
+        <div class="text-center"><p class="text-teal font-bold text-lg" x-text="counts.pct+'%'"></p><p class="text-ink/40">Compliance</p></div>
+      </div>
+    </div>
+
+    <!-- Matrix -->
+    <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card overflow-hidden">
+      <div class="grid-scroll overflow-auto max-h-[68vh]">
+        <table class="border-collapse text-xs">
+          <thead>
+            <tr>
+              <th class="sticky-col sticky-day bg-ink text-white text-right px-4 py-3 min-w-[240px] font-bold text-xs">البند / الفئة</th>
+              <template x-for="d in days" :key="d">
+                <th class="sticky-day bg-ink text-white/70 font-semibold mono cell text-center" x-text="d"></th>
+              </template>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="(cat, ci) in categories" :key="cat.name">
+              <template x-for="(item, ii) in cat.items" :key="item.name">
+                <tr class="border-b border-black/[0.05] hover:bg-canvas/60">
+                  <td class="sticky-col bg-white px-4 py-2 whitespace-nowrap">
+                    <template x-if="ii===0">
+                      <p class="text-[10px] font-extrabold text-teal-deep tracking-wide mb-0.5" x-text="cat.name"></p>
+                    </template>
+                    <p class="text-[13px] font-semibold text-ink/80" x-text="item.name"></p>
+                  </td>
+                  <template x-for="(state, di) in item.days" :key="di">
+                    <td class="cell text-center p-0.5">
+                      <button @click="toggleCell(ci, ii, di)"
+                              :class="cellClass(state)"
+                              class="w-full h-full rounded-md flex items-center justify-center transition-all hover:scale-105">
+                        <i x-show="state==='pass'" class="fa-solid fa-check text-[10px]"></i>
+                        <i x-show="state==='fail'" class="fa-solid fa-xmark text-[10px]"></i>
+                      </button>
+                    </td>
+                  </template>
+                </tr>
+              </template>
+            </template>
+          </tbody>
+        </table>
+      </div>
+      <div class="px-4 py-2.5 border-t border-black/[0.06] text-[11px] text-ink/40 flex items-center gap-2">
+        <i class="fa-solid fa-circle-info text-teal"></i>
+        انقر على الخلية للتبديل بين الحالات: فارغ → مطابق → غير مطابق → غير منطبق. عند اختيار "غير مطابق" ستفتح نافذة لتسجيل الملاحظات وإصدار تذكرة تصحيحية تلقائياً.
+      </div>
+    </div>
+
+    <footer class="text-center text-[11px] text-ink/30 mono py-2">SAFORA™ · MONTHLY CLEANING &amp; SANITIZING MATRIX · P-19-F08</footer>
+  </main>
+</div>
+
+<!-- Failure Modal -->
+<div x-show="modalOpen" x-cloak x-transition.opacity class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" @keydown.escape.window="closeModal()">
+  <div x-show="modalOpen" x-transition @click.outside="closeModal()" class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div class="bg-rose px-5 py-4 flex items-center gap-3 text-white">
+      <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+      <div>
+        <p class="font-extrabold">تسجيل عدم مطابقة</p>
+        <p class="text-[11px] text-white/80 mono" x-text="modalContext"></p>
+      </div>
+      <button @click="closeModal()" class="ms-auto text-white/70 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-5 space-y-4">
+      <div>
+        <label class="text-xs font-bold text-ink/60">ملاحظات الفشل</label>
+        <textarea x-model="modalNotes" rows="3" placeholder="مثال: وجود بقايا دهون على سطح العمل بعد التنظيف..." class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-rose resize-none"></textarea>
+      </div>
+      <div>
+        <label class="text-xs font-bold text-ink/60">درجة الخطورة</label>
+        <div class="flex gap-2 mt-1.5">
+          <button @click="modalSeverity='متوسط'" :class="modalSeverity==='متوسط' ? 'bg-amber text-white border-amber' : 'border-black/10 text-ink/50'" class="flex-1 px-3 py-2 rounded-lg border text-xs font-bold transition">متوسط</button>
+          <button @click="modalSeverity='عالي'" :class="modalSeverity==='عالي' ? 'bg-rose text-white border-rose' : 'border-black/10 text-ink/50'" class="flex-1 px-3 py-2 rounded-lg border text-xs font-bold transition">عالي</button>
+          <button @click="modalSeverity='حرج'" :class="modalSeverity==='حرج' ? 'bg-rose-deep text-white border-rose-deep' : 'border-black/10 text-ink/50'" class="flex-1 px-3 py-2 rounded-lg border text-xs font-bold transition">حرج</button>
+        </div>
+      </div>
+      <label class="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-canvas text-xs text-ink/70">
+        <input type="checkbox" x-model="modalTicket" class="w-4 h-4 rounded accent-rose">
+        إصدار تذكرة إجراء تصحيحي (CAPA) تلقائياً إلى مركز البلاغات
+      </label>
+    </div>
+    <div class="px-5 py-4 border-t border-black/[0.06] flex gap-2">
+      <button @click="closeModal()" class="flex-1 py-2.5 rounded-lg border border-black/10 text-sm font-semibold text-ink/60 hover:bg-canvas">إلغاء</button>
+      <button @click="confirmFail()" class="flex-1 py-2.5 rounded-lg bg-rose text-white text-sm font-bold hover:bg-rose-deep">تأكيد وتسجيل</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function gridLog(){
+  return {
+    month: 'أغسطس 2026',
+    days: Array.from({length:31}, (_,i)=>i+1),
+    modalOpen:false, modalNotes:'', modalSeverity:'متوسط', modalTicket:true, modalTarget:null, modalContext:'',
+
+    categories: [
+      { name:'النظافة الشخصية للعاملين', items: [
+        {name:'النظافة الشخصية للعاملين', days: Array(31).fill(null)},
+        {name:'نظافة الأيدي', days: Array(31).fill(null)},
+        {name:'ارتداء غطاء الرأس', days: Array(31).fill(null)},
+        {name:'الزي المصرح به', days: Array(31).fill(null)},
+      ]},
+      { name:'الأجهزة والأسطح', items: [
+        {name:'نظافة وتطهير الأجهزة والأسطح', days: Array(31).fill(null)},
+      ]},
+      { name:'صالة الإنتاج والأرضيات', items: [
+        {name:'صالة الإنتاج', days: Array(31).fill(null)},
+        {name:'الأرضيات', days: Array(31).fill(null)},
+        {name:'التخلص من المخلفات', days: Array(31).fill(null)},
+        {name:'الحوائط والشبابيك', days: Array(31).fill(null)},
+      ]},
+      { name:'دورات المياه والمرافق', items: [
+        {name:'دورات المياه والمرافق', days: Array(31).fill(null)},
+        {name:'التنظيف والتطهير', days: Array(31).fill(null)},
+        {name:'منظفات ومطهرات', days: Array(31).fill(null)},
+        {name:'ماء ساخن', days: Array(31).fill(null)},
+      ]},
+      { name:'المخازن', items: [
+        {name:'النظافة العامة', days: Array(31).fill(null)},
+        {name:'التنظيم داخل المخزن', days: Array(31).fill(null)},
+        {name:'تقرير المخزون', days: Array(31).fill(null)},
+        {name:'سهولة الحركة داخل المخزن', days: Array(31).fill(null)},
+      ]},
+    ],
+
+    init(){
+      // Seed a realistic pattern so the matrix doesn't look empty on load
+      this.categories.forEach(cat=>{
+        cat.items.forEach(item=>{
+          for(let d=0; d<20; d++){
+            item.days[d] = Math.random() < 0.9 ? 'pass' : 'na';
+          }
+        });
+      });
+      this.categories[0].items[1].days[6] = 'fail';
+      this.categories[2].items[2].days[11] = 'fail';
+      this.categories[4].items[0].days[14] = 'fail';
+    },
+
+    cellClass(state){
+      if(state==='pass') return 'bg-emerald-soft text-emerald-deep border border-emerald/30';
+      if(state==='fail') return 'bg-rose text-white border border-rose-deep';
+      if(state==='na') return 'bg-black/[0.06] text-ink/25 border border-black/[0.04]';
+      return 'bg-white border border-dashed border-black/10 text-transparent';
+    },
+
+    toggleCell(ci, ii, di){
+      const item = this.categories[ci].items[ii];
+      const current = item.days[di];
+      const order = [null, 'pass', 'fail', 'na'];
+      const next = order[(order.indexOf(current)+1) % order.length];
+      if(next === 'fail'){
+        this.modalTarget = {ci, ii, di};
+        this.modalContext = this.categories[ci].items[ii].name + ' · اليوم ' + (di+1) + ' · ' + this.month;
+        this.modalNotes=''; this.modalSeverity='متوسط'; this.modalTicket=true;
+        this.modalOpen = true;
+      } else {
+        item.days[di] = next;
+      }
+    },
+    confirmFail(){
+      const {ci, ii, di} = this.modalTarget;
+      this.categories[ci].items[ii].days[di] = 'fail';
+      this.closeModal();
+    },
+    closeModal(){
+      if(this.modalOpen && this.modalTarget){
+        const {ci, ii, di} = this.modalTarget;
+        // if user cancels without confirming, revert to na instead of leaving mid-cycle
+        if(this.categories[ci].items[ii].days[di] !== 'fail'){
+          this.categories[ci].items[ii].days[di] = 'na';
+        }
+      }
+      this.modalOpen = false; this.modalTarget=null;
+    },
+
+    get counts(){
+      let pass=0, fail=0, na=0, total=0;
+      this.categories.forEach(cat=>cat.items.forEach(item=>item.days.forEach(s=>{
+        if(s){ total++; if(s==='pass') pass++; if(s==='fail') fail++; if(s==='na') na++; }
+      })));
+      const pct = total ? Math.round((pass/total)*100) : 0;
+      return {pass, fail, na, pct};
+    }
+  }
+}
+</script>
+</body>
+</html>

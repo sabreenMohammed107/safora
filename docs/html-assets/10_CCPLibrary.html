@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نقاط التحكم الحرجة والتشغيلية CCP / OPRP | SAFORA</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 47'%3E%3Crect width='35' height='35' rx='8' fill='%23F02B18'/%3E%3Crect x='13' y='12' width='35' height='35' rx='8' fill='%23FD8118' fill-opacity='.92'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Montserrat:wght@700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { cairo: ['Cairo','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+      colors: {
+        ink: { DEFAULT:'#071A2A', elev:'#0E2A40', border:'#1A3A55', soft:'#11304A', mist:'#9FB2BF' },
+        canvas: '#F3F5F8',
+        brand: { DEFAULT:'#FD8118', deep:'#B8560A', soft:'#FFF1E3', red:'#F02B18', cream:'#F6F2E8' },
+        emerald: { DEFAULT:'#0FA968', deep:'#066B41', soft:'#E4F6ED' },
+        rose: { DEFAULT:'#E11D48', deep:'#9F1239', soft:'#FDECEF' },
+        amber: { DEFAULT:'#C58B00', deep:'#7A5700', soft:'#FBF3D6' },
+        teal: { DEFAULT:'#0E86B4', deep:'#0A5F80', soft:'#E2F2F9' },
+      },
+      boxShadow: { card: '0 1px 2px rgba(7,26,42,0.06), 0 8px 24px -12px rgba(7,26,42,0.12)' }
+    }
+  }
+}
+</script>
+<style>
+  body{ font-family:'Cairo',sans-serif; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+  .wordmark{ font-family:'Montserrat','Cairo',sans-serif; font-weight:800; letter-spacing:.015em; }
+  ::selection{ background:#FFE2C4; color:#071A2A; }
+  ::-webkit-scrollbar{ width:8px; height:8px; } ::-webkit-scrollbar-thumb{ background:#D3DAE3; border-radius:99px; }
+  [x-cloak]{ display:none !important; }
+  .grp-chip.active{ background:#071A2A; border-color:#071A2A; }
+  .grp-chip.active .g-name{ color:#fff; } .grp-chip.active .g-sub{ color:rgba(255,255,255,.4); }
+  .grp-chip.active .g-count{ color:rgba(255,255,255,.55); } .grp-chip.active .g-temp{ color:#FBBF24; }
+  .ccp-card{ box-shadow: inset -3px 0 0 #E11D48, 0 1px 2px rgba(7,26,42,0.06), 0 8px 24px -12px rgba(7,26,42,0.12); }
+  details > summary{ list-style:none; } details > summary::-webkit-details-marker{ display:none; }
+  details[open] .chev{ transform: rotate(180deg); }
+  button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible, select:focus-visible, textarea:focus-visible{ outline:2px solid #0E86B4; outline-offset:2px; }
+  .fld{ width:100%; margin-top:4px; padding:9px 12px; border-radius:8px; border:1px solid rgba(0,0,0,.1); font-size:13.5px; outline:none; background:#fff; }
+  .fld:focus{ border-color:#0E86B4; }
+  .lbl{ font-size:12px; font-weight:700; color:rgba(7,26,42,.6); }
+  .grp-chip.active .g-ccp{ color:#FB7185; } .grp-chip.active .g-oprp{ color:#FACC15; }
+  .line-clamp-2{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+</style>
+</head>
+<body class="bg-canvas text-ink font-cairo antialiased" x-data="ctrlLibrary()" x-init="init()">
+
+<!-- Top strip -->
+<header class="flex items-center gap-3 px-5 py-3 bg-ink text-white sticky top-0 z-20">
+  <a href="1_Dashboard.html" class="flex items-center gap-2 shrink-0" aria-label="SAFORA">
+    <svg class="w-7 h-7" viewBox="0 0 48 47" aria-hidden="true"><defs><clipPath id="sfMarkTop"><rect width="35" height="35" rx="8"/></clipPath></defs><rect width="35" height="35" rx="8" fill="#F02B18"/><rect x="13" y="12" width="35" height="35" rx="8" fill="#E17F1A"/><rect x="13" y="12" width="35" height="35" rx="8" fill="#FD8118" clip-path="url(#sfMarkTop)"/></svg>
+    <span dir="ltr" class="wordmark text-[17px] text-brand-cream hidden sm:inline">SAFORA</span>
+  </a>
+  <span class="w-px h-5 bg-white/15 hidden sm:block"></span>
+  <a href="0_HACCPCenter.html" class="text-white/50 hover:text-white text-sm"><i class="fa-solid fa-arrow-right ms-1"></i> مركز قيادة الهاسب</a>
+  <span class="text-white/20">/</span>
+  <h1 class="font-bold text-sm">نقاط التحكم الحرجة والتشغيلية</h1>
+  <span class="mono text-[11px] text-white/40 ms-1 hidden sm:inline">CCP / OPRP</span>
+
+  <div class="ms-auto flex items-center gap-2">
+    <a href="9_CriticalLimits.html" class="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-[11px] font-bold text-white/70 transition">
+      <i class="fa-solid fa-temperature-half text-brand"></i> الحدود الحرجة
+    </a>
+    <a href="5_HACCPPlans.html" class="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-[11px] font-bold text-white/70 transition">
+      <i class="fa-regular fa-file-lines text-teal"></i> خطط الهاسب
+    </a>
+    <button @click="openAdd()" class="px-4 py-2 rounded-lg bg-brand text-ink hover:bg-brand-deep hover:text-white text-xs font-bold transition">
+      <i class="fa-solid fa-plus"></i> إضافة نقطة تحكم
+    </button>
+  </div>
+</header>
+
+<main class="p-5 lg:p-7 space-y-5">
+
+  <!-- Page header -->
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p class="mono text-[11px] text-teal font-semibold tracking-widest">HAZARD CONTROL PLAN · ISO 22000:2018 §8.5.4 · SFDA</p>
+      <h1 class="text-2xl lg:text-[26px] font-extrabold tracking-tight mt-1">نقاط التحكم الحرجة والتشغيلية (CCP / OPRP)</h1>
+      <p class="text-sm text-ink/65 mt-1 max-w-3xl">تعريف كل نقطة تحكم حسب القطاع والمنتج: نتيجة شجرة القرار، والخطر الذي تضبطه، وحدّها أو معيار الفعل، وكيف تُعالَج عند الخروج عنه. صفحة إعداد ومرجع، وليست مكان رصد القراءات.</p>
+    </div>
+    <details class="relative">
+      <summary class="cursor-pointer px-3 py-1.5 rounded-full bg-white border border-black/5 shadow-card text-[11px] font-bold text-ink/75 flex items-center gap-1.5"><i class="fa-solid fa-circle-info text-teal"></i> من أين تأتي البيانات؟ <i class="chev fa-solid fa-chevron-down text-[9px] transition"></i></summary>
+      <div class="absolute left-0 mt-2 z-30 w-[min(92vw,640px)] bg-white rounded-2xl border border-black/5 shadow-card p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <template x-for="src in sources" :key="src.key">
+          <div class="rounded-xl border p-3" :class="src.box">
+            <p class="text-[12.5px] font-extrabold"><i class="fa-solid me-1" :class="[src.icon, src.tagText]"></i> <span x-text="src.title"></span></p>
+            <p class="mono text-[10px] mt-1" :class="src.tagText" x-text="src.sheet"></p>
+            <p class="text-[11.5px] text-ink/75 leading-relaxed mt-1" x-text="src.desc"></p>
+          </div>
+        </template>
+      </div>
+    </details>
+  </div>
+
+  <div x-show="toast" x-cloak x-transition.opacity class="fixed bottom-5 left-5 z-50 rounded-xl bg-ink text-white px-4 py-3 text-sm font-bold shadow-card">
+    <i class="fa-solid fa-circle-check text-emerald"></i> <span x-text="toast"></span>
+  </div>
+
+  <!-- Main type filter -->
+  <div class="flex flex-wrap items-center gap-3">
+    <div class="inline-flex p-1 rounded-xl bg-white border border-black/5 shadow-card" role="tablist" aria-label="نوع نقطة التحكم">
+      <template x-for="t in typeTabs" :key="t.key">
+        <button role="tab" :aria-selected="typeFilter===t.key" @click="typeFilter=t.key" class="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition"
+                :class="typeFilter===t.key ? 'bg-ink text-white' : 'text-ink/70 hover:bg-canvas'">
+          <span class="w-2.5 h-2.5 rounded-full" :class="t.dot"></span>
+          <span x-text="t.label"></span>
+          <span class="mono text-[10px]" :class="typeFilter===t.key ? 'text-white/45' : 'text-ink/50'" x-text="countType(t.key)"></span>
+        </button>
+      </template>
+    </div>
+    <p class="text-[11.5px] text-ink/65" x-show="typeFilter==='OPRP'">OPRP تُدار بـ <b class="text-ink/70">معيار فعل</b> وليس حداً حرجاً، والخروج عنه «عدم مطابقة» يُقيَّم أثره.</p>
+    <p class="text-[11.5px] text-ink/65" x-show="typeFilter==='CCP'">CCP تُدار بـ <b class="text-ink/70">حد حرج</b> قابل للقياس، وتجاوزه يعني منتجاً غير آمن محتملاً يُعزل فوراً.</p>
+  </div>
+
+  <!-- Counters -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div class="bg-white rounded-2xl border border-black/5 shadow-card px-4 py-3">
+      <p class="text-[11px] font-bold text-ink/65">نقاط CCP</p>
+      <p class="mono text-2xl font-bold mt-0.5 text-rose" x-text="shown.filter(c => c.cls==='CCP').length"></p>
+    </div>
+    <div class="bg-white rounded-2xl border border-black/5 shadow-card px-4 py-3">
+      <p class="text-[11px] font-bold text-ink/65">برامج OPRP</p>
+      <p class="mono text-2xl font-bold mt-0.5 text-amber" x-text="shown.filter(c => c.cls==='OPRP').length"></p>
+    </div>
+    <div class="bg-white rounded-2xl border border-black/5 shadow-card px-4 py-3">
+      <p class="text-[11px] font-bold text-ink/65">غير محسوم</p>
+      <p class="mono text-2xl font-bold mt-0.5 text-ink/70" x-text="shown.filter(c => c.cls==='pending').length"></p>
+    </div>
+    <div class="bg-white rounded-2xl border border-black/5 shadow-card px-4 py-3">
+      <p class="text-[11px] font-bold text-ink/65">مكتملة ومعتمدة</p>
+      <p class="mono text-2xl font-bold mt-0.5"><span class="text-emerald" x-text="shown.filter(c => status(c)==='approved').length"></span><span class="text-ink/25 text-lg" x-text="' / ' + shown.length"></span></p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[290px_1fr] gap-5 items-start">
+
+    <!-- Sectors -->
+    <div class="bg-white rounded-2xl border border-black/5 shadow-card p-3 space-y-1 lg:sticky lg:top-[64px] max-h-[calc(100vh-90px)] overflow-y-auto">
+      <div class="flex items-center justify-between px-1 pb-1">
+        <p class="text-xs font-extrabold text-ink/75" x-text="allSectors.length + ' قطاع · ' + items.length + ' نقطة تحكم'"></p>
+        <span class="text-[10px] font-bold"><span class="text-rose">CCP</span> · <span class="text-amber-deep">OPRP</span> · <span class="text-ink/75">غير محسوم</span></span>
+      </div>
+      <p class="mx-1 mb-2 rounded-lg bg-canvas px-2.5 py-2 text-[11px] leading-relaxed text-ink/70">
+        <i class="fa-solid fa-circle-info text-teal"></i>
+        كل القطاعات الـ<span x-text="allSectors.length"></span> معروضة. <b x-text="activeSectors.length"></b> منها فقط فيها نقاط تحكم في ملف SAFORA؛ باقي القطاعات حدودها <b>حدود إفراج وتحقق</b> على المنتج النهائي وليست نقاط ضبط أثناء التصنيع.
+      </p>
+      <template x-for="s in [allRow, ...activeSectors]" :key="s.key">
+        <button @click="sectorKey = s.key" class="grp-chip w-full text-start flex items-center justify-between gap-2 p-2.5 rounded-xl border border-transparent hover:border-black/10 transition" :class="sectorKey === s.key && 'active'">
+          <span class="min-w-0">
+            <span class="g-name block text-xs font-bold leading-snug truncate" x-text="s.nameAr"></span>
+            <span x-show="s.key !== 'all'" class="g-sub block mono text-[10px] text-ink/70 truncate" x-text="s.key"></span>
+          </span>
+          <span class="shrink-0 flex items-center gap-2 mono text-[11px] font-bold">
+            <span x-show="s.ccp" class="g-ccp text-rose" x-text="s.ccp"></span>
+            <span x-show="s.oprp" class="g-oprp text-amber-deep" x-text="s.oprp"></span>
+            <span x-show="s.pending" class="g-count text-ink/75 px-1 rounded border border-dashed border-current" :title="s.pending + ' غير محسوم'" x-text="s.pending"></span>
+          </span>
+        </button>
+      </template>
+      <button @click="showInactive = !showInactive" class="w-full mt-2 pt-2 border-t border-black/5 flex items-center justify-between px-1 text-[11px] font-extrabold text-ink/75 hover:text-ink">
+        <span>قطاعات بدون نقاط تحكم <span class="mono" x-text="'(' + inactiveSectors.length + ')'"></span></span>
+        <i class="fa-solid fa-chevron-down text-[9px] transition" :class="showInactive && 'rotate-180'"></i>
+      </button>
+      <template x-for="s in (showInactive ? inactiveSectors : [])" :key="s.key">
+        <button @click="sectorKey = s.key" class="grp-chip w-full text-start flex items-center justify-between gap-2 p-2 rounded-xl border border-transparent hover:border-black/10 transition" :class="sectorKey === s.key && 'active'">
+          <span class="min-w-0">
+            <span class="g-name block text-xs font-semibold leading-snug truncate text-ink/70" x-text="s.nameAr"></span>
+            <span class="g-sub block mono text-[10px] text-ink/70 truncate" x-text="s.key"></span>
+          </span>
+          <span class="g-count shrink-0 text-[10.5px] text-ink/70" x-text="s.limits + ' حد'"></span>
+        </button>
+      </template>
+      <div x-show="modified" class="pt-2 mt-1 border-t border-black/5">
+        <button @click="confirmReset = true" class="w-full text-[11px] font-bold text-ink/65 hover:text-rose py-2"><i class="fa-solid fa-rotate-left"></i> استعادة البيانات الأصلية</button>
+      </div>
+    </div>
+
+    <div class="space-y-4 min-w-0">
+      <!-- Search / status -->
+      <div class="bg-white rounded-2xl border border-black/5 shadow-card p-3 flex flex-wrap items-center gap-2">
+        <label class="flex items-center gap-2 rounded-lg bg-canvas border border-black/5 px-3 py-2 w-full sm:w-72">
+          <i class="fa-solid fa-magnifying-glass text-ink/50 text-xs"></i>
+          <input x-model="query" placeholder="ابحث بالمنتج أو المرحلة أو الرمز" class="bg-transparent outline-none text-sm w-full placeholder:text-ink/50">
+        </label>
+        <template x-for="f in statusFilters" :key="f.key">
+          <button @click="statusFilter = f.key" class="px-3 py-1.5 rounded-full text-[11px] font-bold border transition"
+                  :class="statusFilter === f.key ? 'bg-ink text-white border-ink' : 'border-black/10 text-ink/70 hover:border-black/20'" x-text="f.label"></button>
+        </template>
+        <div class="ms-auto flex items-center gap-1 text-[11px] font-bold">
+          <button @click="setAll(false)" class="px-2.5 py-1.5 rounded-lg hover:bg-canvas text-ink/70"><i class="fa-solid fa-angles-down text-[10px]"></i> توسيع الكل</button>
+          <button @click="setAll(true)" class="px-2.5 py-1.5 rounded-lg hover:bg-canvas text-ink/70"><i class="fa-solid fa-angles-up text-[10px]"></i> طي الكل</button>
+        </div>
+      </div>
+
+      <div x-show="visibleProducts.length === 0" class="bg-white rounded-2xl border border-dashed border-black/10 p-10 text-center">
+        <i class="fa-solid fa-layer-group text-2xl text-ink/20"></i>
+        <template x-if="currentInactive">
+          <div>
+            <p class="font-bold mt-3" x-text="'قطاع ' + currentInactive.nameAr + ' ليس فيه نقاط CCP أو OPRP في ملف SAFORA'"></p>
+            <p class="text-sm text-ink/70 mt-1 max-w-xl mx-auto leading-relaxed">حدوده الـ<span x-text="currentInactive.limits"></span> في الملف مصنفة <b x-text="currentInactive.classes"></b>، أي معايير على المنتج النهائي أو المواد وليست ضبطاً لخطوة تصنيع. إذا كان لديكم خطوة ضبط فعلية في هذا القطاع أضيفوا حدها أولاً في صفحة الحدود ثم عرّفوها هنا.</p>
+            <div class="mt-4 flex justify-center gap-2">
+              <a href="9_CriticalLimits.html" class="px-4 py-2 rounded-lg border border-black/10 text-xs font-bold hover:bg-canvas">عرض حدود القطاع</a>
+              <button @click="openAdd()" class="px-4 py-2 rounded-lg bg-brand text-ink text-xs font-bold hover:bg-brand-deep hover:text-white"><i class="fa-solid fa-plus"></i> إضافة نقطة تحكم</button>
+            </div>
+          </div>
+        </template>
+        <template x-if="!currentInactive">
+          <div>
+            <p class="font-bold mt-3">لا توجد نقاط تحكم تطابق الفلاتر</p>
+            <p class="text-sm text-ink/70 mt-1">غيّر نوع النقطة أو الحالة، أو أضف نقطة تحكم جديدة.</p>
+          </div>
+        </template>
+      </div>
+
+      <!-- Products -->
+      <template x-for="p in visibleProducts" :key="p.key">
+        <section class="bg-white rounded-2xl border border-black/5 shadow-card">
+          <button @click="toggleProduct(p.key)" :aria-expanded="!collapsed[p.key]" class="w-full text-start flex flex-wrap items-center justify-between gap-2 p-5" :class="!collapsed[p.key] && 'pb-4'">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-chevron-down text-xs text-ink/75 transition" :class="collapsed[p.key] && 'rotate-90'"></i>
+              <div>
+                <h2 class="text-lg font-extrabold" x-text="p.nameAr"></h2>
+                <p class="text-xs text-ink/75 mt-0.5" x-text="p.sectorAr + ' · ' + p.items.length + (p.items.length === 1 ? ' نقطة' : ' نقاط')"></p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 text-[11px] font-bold">
+              <span x-show="p.items.filter(c => !['CCP','OPRP'].includes(c.cls)).length" class="px-2 py-1 rounded-full border border-dashed border-ink/40 text-ink/70" x-text="p.items.filter(c => !['CCP','OPRP'].includes(c.cls)).length + ' غير محسوم'"></span>
+              <span x-show="p.items.filter(c => c.cls==='CCP').length" class="px-2 py-1 rounded-full bg-rose-soft text-rose-deep" x-text="p.items.filter(c => c.cls==='CCP').length + ' CCP'"></span>
+              <span x-show="p.items.filter(c => c.cls==='OPRP').length" class="px-2 py-1 rounded-full bg-amber-soft text-amber-deep" x-text="p.items.filter(c => c.cls==='OPRP').length + ' OPRP'"></span>
+            </div>
+          </button>
+
+          <div x-show="!collapsed[p.key]" class="grid grid-cols-1 2xl:grid-cols-2 gap-4 px-5 pb-5">
+            <template x-for="c in p.items" :key="c.id">
+              <article class="rounded-xl border bg-white flex flex-col" :class="cardFrame(c)">
+                <!-- card header -->
+                <header class="flex items-start justify-between gap-3 px-4 pt-4">
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md mono text-[11.5px] font-bold" :class="clsMeta(c).badge">
+                        <span class="w-1.5 h-1.5 rounded-full" :class="clsMeta(c).dot"></span><span x-text="c.code || 'غير محسوم'"></span>
+                      </span>
+                      <span class="px-2 py-0.5 rounded-md text-[10.5px] font-bold" :class="statusMeta(c).chip" x-text="statusMeta(c).label"></span>
+                    </div>
+                    <h3 class="text-[15.5px] font-extrabold mt-1.5 leading-snug" x-text="lim(c) ? lim(c).stepAr : 'الحد المرتبط غير موجود'"></h3>
+                    <p class="mono text-[10.5px] text-ink/55 truncate" dir="ltr" style="text-align:right" x-text="lim(c) ? [lim(c).stepEn, lim(c).parameter].filter(Boolean).join(' · ') : c.limitId"></p>
+                  </div>
+                  <button @click="openEdit(c)" class="shrink-0 px-3 py-1.5 rounded-lg border border-black/10 text-[11px] font-bold hover:bg-canvas transition"><i class="fa-solid fa-pen text-[10px]"></i> تعديل</button>
+                </header>
+
+                <!-- 4 quadrants -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-4">
+                  <!-- Q1 decision tree -->
+                  <div class="rounded-lg bg-canvas p-3">
+                    <p class="text-[11px] font-extrabold text-ink/70"><span class="mono text-ink/50">١</span> شجرة القرار والتصنيف</p>
+                    <ul class="mt-2 space-y-1">
+                      <template x-for="q in tree" :key="q.k">
+                        <li x-show="!q.onlyIfNo || c.tree.designed === false" class="flex items-center justify-between gap-2 text-[11.5px]">
+                          <span class="text-ink/75" x-text="q.short"></span>
+                          <span class="px-1.5 rounded text-[10.5px] font-bold" :class="c.tree[q.k] === true ? 'bg-emerald-soft text-emerald-deep' : c.tree[q.k] === false ? 'bg-black/5 text-ink/75' : 'bg-white text-ink/50 border border-dashed border-black/15'" x-text="c.tree[q.k] === true ? 'نعم' : c.tree[q.k] === false ? 'لا' : '؟'"></span>
+                        </li>
+                      </template>
+                    </ul>
+                    <template x-if="['CCP','OPRP'].includes(c.cls)">
+                      <div class="mt-2 pt-2 border-t border-black/5 flex items-center justify-between gap-2">
+                        <p class="text-[12px] font-extrabold"><span class="text-ink/70">التصنيف:</span> <span :class="clsMeta(c).text" x-text="treeLabel(c)"></span></p>
+                        <button @click="openTree(c)" class="text-[10.5px] font-bold text-ink/75 hover:text-brand-deep underline underline-offset-2">مراجعة</button>
+                      </div>
+                    </template>
+                    <template x-if="!['CCP','OPRP'].includes(c.cls)">
+                      <button @click="openTree(c)" class="mt-2 w-full rounded-lg bg-ink text-white hover:bg-ink-elev px-3 py-2 text-[12px] font-bold flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-triangle-exclamation text-brand"></i> غير محسوم — أكمل الأسئلة
+                      </button>
+                    </template>
+                  </div>
+
+                  <!-- Q2 hazard -->
+                  <div class="rounded-lg bg-canvas p-3">
+                    <p class="text-[11px] font-extrabold text-ink/70"><span class="mono text-ink/50">٢</span> الخطر المحتمل</p>
+                    <div class="mt-2 flex flex-wrap gap-1">
+                      <template x-for="hid in c.hazards" :key="hid">
+                        <span class="px-1.5 py-0.5 rounded bg-rose-soft text-rose-deep text-[11px] font-bold" x-text="HAZ[hid] ? HAZ[hid].ar : hid"></span>
+                      </template>
+                      <span x-show="!c.hazards.length" class="text-[11.5px] text-ink/75"><span dir="ltr" x-text="lim(c) ? lim(c).hazardName : ''"></span> <span class="text-amber-deep font-bold">· حدّد الكائن المستهدف</span></span>
+                    </div>
+                    <p class="text-[11.5px] text-ink/70 mt-1.5 line-clamp-2" x-show="c.hazardCause" x-text="c.hazardCause"></p>
+                    <p class="mt-2 pt-2 border-t border-black/5 text-[12px] font-extrabold flex items-center justify-between">
+                      <span class="text-ink/70">S × L:</span>
+                      <span class="mono" :class="score(c) >= 8 ? 'text-rose' : 'text-ink/60'" x-text="score(c) ? (c.severity + ' × ' + c.likelihood + ' = ' + score(c)) : 'غير مُقيَّم'"></span>
+                    </p>
+                  </div>
+
+                  <!-- Q3 limit / action criterion + monitoring -->
+                  <div class="rounded-lg p-3" :class="c.cls==='OPRP' ? 'bg-amber-soft/50' : c.cls==='CCP' ? 'bg-rose-soft/50' : 'bg-canvas'">
+                    <p class="text-[11px] font-extrabold text-ink/70"><span class="mono text-ink/50">٣</span> <span x-text="c.cls==='OPRP' ? 'معيار الفعل' : c.cls==='CCP' ? 'الحد الحرج' : 'الحد'"></span></p>
+                    <template x-if="lim(c)">
+                      <div class="mt-2 space-y-1">
+                        <p class="flex items-baseline justify-between gap-2 text-[11.5px]"><span class="text-emerald-deep font-bold">مطابق</span><span class="mono font-bold text-[12.5px]" dir="ltr" x-text="describe(lim(c)).standard"></span></p>
+                        <p class="flex items-baseline justify-between gap-2 text-[11.5px]"><span class="text-rose-deep font-bold" x-text="c.cls==='OPRP' ? 'عدم مطابقة' : c.cls==='CCP' ? 'انحراف حرج' : 'خروج عن الحد'"></span><span class="mono font-bold text-[12.5px]" dir="ltr" x-text="describe(lim(c)).critical"></span></p>
+                        <p x-show="timeLabel(lim(c))" class="text-[11px] text-ink/70" x-text="timeLabel(lim(c))"></p>
+                      </div>
+                    </template>
+                  </div>
+
+                  <!-- Q4 treatment -->
+                  <div class="rounded-lg bg-canvas p-3">
+                    <p class="text-[11px] font-extrabold text-ink/70"><span class="mono text-ink/50">٤</span> <span x-text="c.cls==='OPRP' ? 'الإجراء عند عدم المطابقة' : 'العلاج عند الانحراف'"></span></p>
+                    <ol class="mt-2 space-y-1.5">
+                      <template x-for="(f, i) in treatFields" :key="f.k">
+                        <li class="flex items-start gap-2 text-[11.5px]">
+                          <span class="w-4 h-4 mt-0.5 rounded-full bg-ink text-white mono text-[9px] flex items-center justify-center shrink-0" x-text="i+1"></span>
+                          <span class="min-w-0">
+                            <span class="font-bold text-ink/70" x-text="f.label + ': '"></span>
+                            <span :class="!c[f.k] ? 'text-rose-deep' : isTemplate(c, f.k) ? 'text-amber-deep' : 'text-ink/75'" x-text="c[f.k] || 'غير محدد'"></span>
+                          </span>
+                        </li>
+                      </template>
+                    </ol>
+                  </div>
+                </div>
+
+                <!-- regulatory & source strip (02 columns) -->
+                <div class="mx-4 mb-3 rounded-lg border border-black/5 p-3 space-y-2">
+                  <p x-show="info(c).note" class="text-[12px] text-ink/80 leading-relaxed flex gap-2">
+                    <i class="fa-solid fa-person-digging text-teal mt-0.5"></i>
+                    <span><b class="text-ink">ملاحظة التطبيق الميداني:</b> <span x-text="info(c).note"></span></span>
+                  </p>
+                  <div class="flex flex-wrap gap-1.5 text-[10.5px] font-bold">
+                    <span class="px-2 py-1 rounded-md" :class="info(c).validation ? 'bg-amber-soft text-amber-deep' : 'bg-emerald-soft text-emerald-deep'" :title="'validation_required: ' + (info(c).validation ? 'Yes' : 'No')">
+                      <i class="fa-solid fa-flask"></i> تحقق علمي مسبق: <span x-text="info(c).validation ? 'مطلوب (Yes)' : 'غير مطلوب (No)'"></span>
+                    </span>
+                    <span class="px-2 py-1 rounded-md" :class="legal(c).cls" :title="info(c).legalStatus"><i class="fa-solid fa-scale-balanced"></i> <span x-text="legal(c).label"></span></span>
+                    <span class="px-2 py-1 rounded-md bg-canvas text-ink/80" :title="info(c).effective"><i class="fa-regular fa-calendar-check"></i> <span x-text="effectiveAr(info(c).effective)"></span></span>
+                    <span class="px-2 py-1 rounded-md bg-teal-soft text-teal-deep" :title="info(c).evidence"><i class="fa-solid fa-book"></i> <span class="mono" x-text="info(c).sourceId || '—'"></span> · <span x-text="evidenceAr(info(c).evidence)"></span></span>
+                  </div>
+                  <p x-show="info(c).legalStatus" class="text-[11px] text-ink/75 leading-relaxed" dir="ltr" style="text-align:right" x-text="info(c).legalStatus"></p>
+                </div>
+
+                <!-- footer: gates -->
+                <footer class="mt-auto px-4 pb-3 pt-2 border-t border-black/5 flex flex-wrap items-center gap-3">
+                  <div class="flex items-center gap-2 flex-1 min-w-[180px]">
+                    <div class="flex gap-0.5 flex-1" :aria-label="passed(c) + ' من ' + gates.length">
+                      <template x-for="gt in gates" :key="gt.id">
+                        <span class="h-1.5 flex-1 rounded-full" :title="gt.id + ' ' + gt.ar" :class="gateState(c, gt).ok ? 'bg-emerald' : 'bg-black/10'"></span>
+                      </template>
+                    </div>
+                    <span class="mono text-[11px] font-bold text-ink/70" x-text="passed(c) + '/' + gates.length"></span>
+                  </div>
+                  <span class="text-[11px] text-ink/60 truncate" x-text="nextStep(c)"></span>
+                  <span class="mono text-[10.5px] text-ink/55" x-text="c.limitId"></span>
+                </footer>
+              </article>
+            </template>
+          </div>
+        </section>
+      </template>
+    </div>
+  </div>
+</main>
+
+<!-- ═════ Editor modal ═════ -->
+<div x-show="draft" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @keydown.escape.window="closeEdit()">
+  <template x-if="draft">
+  <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[94vh] flex flex-col" @click.outside="closeEdit()">
+    <div class="px-5 pt-5 pb-3 border-b border-black/5 flex items-start justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md mono text-[12px] font-bold" :class="clsMeta(draftView).badge">
+            <span class="w-1.5 h-1.5 rounded-full" :class="clsMeta(draftView).dot"></span><span x-text="previewCode()"></span>
+          </span>
+          <span class="px-2 py-0.5 rounded-md text-[10.5px] font-bold" :class="statusMeta(draftView).chip" x-text="statusMeta(draftView).label"></span>
+        </div>
+        <p class="font-extrabold text-lg mt-1" x-text="lim(draft) ? lim(draft).productAr + ' · ' + lim(draft).stepAr : '—'"></p>
+      </div>
+      <button @click="closeEdit()" class="text-ink/60 hover:text-ink" aria-label="إغلاق"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="overflow-y-auto px-5 py-4 space-y-6">
+      <!-- 1 tree -->
+      <fieldset>
+        <legend class="text-[14px] font-extrabold">١ شجرة القرار <span class="text-[11px] font-bold text-ink/60">— من سجل قرار الضبط HACCP-06</span></legend>
+        <div class="mt-2 space-y-2">
+          <template x-for="q in tree" :key="q.k">
+            <div x-show="!q.onlyIfNo || draft.tree.designed === false" class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-black/5 px-3 py-2">
+              <div class="min-w-0">
+                <p class="text-[13px] font-bold" x-text="q.q"></p>
+                <p class="text-[11px] text-ink/65" x-text="q.help"></p>
+              </div>
+              <div class="flex rounded-lg overflow-hidden border border-black/10 text-[12px] font-bold shrink-0">
+                <button type="button" @click="draft.tree[q.k] = true" class="px-3 py-1.5" :class="draft.tree[q.k] === true ? 'bg-ink text-white' : 'hover:bg-canvas'">نعم</button>
+                <button type="button" @click="draft.tree[q.k] = false" class="px-3 py-1.5 border-r border-black/10" :class="draft.tree[q.k] === false ? 'bg-ink text-white' : 'hover:bg-canvas'">لا</button>
+              </div>
+            </div>
+          </template>
+          <p class="rounded-lg px-3 py-2.5 text-[13px] font-extrabold" :class="clsMeta(draftView).soft">
+            النتيجة: <span x-text="treeLabel(draftView)"></span>
+            <span class="font-semibold text-[11.5px] text-ink/70 block mt-0.5" x-text="treeWhy(draftView)"></span>
+          </p>
+        </div>
+      </fieldset>
+
+      <!-- 2 hazards -->
+      <fieldset>
+        <legend class="text-[14px] font-extrabold">٢ الخطر المحتمل <span class="text-[11px] font-bold text-ink/60">— مكتبة المخاطر 05</span></legend>
+        <p class="text-[11.5px] text-ink/65 mt-1">الخطر في ملف الحدود: <b dir="ltr" x-text="lim(draft) ? lim(draft).hazardName : ''"></b></p>
+        <div class="mt-2 rounded-xl bg-canvas p-3 space-y-2">
+          <template x-for="grp in hazardGroups" :key="grp.key">
+            <div>
+              <p class="text-[10.5px] font-bold text-ink/60 mb-1" x-text="grp.label"></p>
+              <div class="flex flex-wrap gap-1">
+                <template x-for="h in grp.items" :key="h.id">
+                  <button type="button" @click="toggleHazard(h.id)" class="px-2 py-1 rounded-md text-[11px] font-bold border transition"
+                          :class="draft.hazards.includes(h.id) ? 'bg-rose text-white border-rose' : 'bg-white border-black/10 text-ink/75 hover:border-rose/40'" x-text="h.ar"></button>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+        <div class="mt-3 grid grid-cols-1 sm:grid-cols-[1fr_130px_130px] gap-3">
+          <label class="block"><span class="lbl">السبب / مصدر الخطر في هذه الخطوة</span><input class="fld" x-model="draft.hazardCause"></label>
+          <label class="block"><span class="lbl">الشدة S</span><select class="fld" x-model.number="draft.severity"><option value="">—</option><template x-for="(t, i) in SEV" :key="i"><option :value="i+1" x-text="(i+1) + ' ' + t"></option></template></select></label>
+          <label class="block"><span class="lbl">الاحتمال L</span><select class="fld" x-model.number="draft.likelihood"><option value="">—</option><template x-for="(t, i) in LIK" :key="i"><option :value="i+1" x-text="(i+1) + ' ' + t"></option></template></select></label>
+        </div>
+      </fieldset>
+
+      <!-- 3 limit + monitoring -->
+      <fieldset>
+        <legend class="text-[14px] font-extrabold">٣ <span x-text="draftView.cls==='OPRP' ? 'معيار الفعل والمراقبة' : 'الحد الحرج والمراقبة'"></span></legend>
+        <template x-if="lim(draft)">
+          <div class="mt-2 rounded-lg bg-canvas px-3 py-2.5 flex flex-wrap items-center gap-x-6 gap-y-1 text-[12.5px]">
+            <span><b class="text-emerald-deep">مطابق</b> <span class="mono font-bold" dir="ltr" x-text="describe(lim(draft)).standard"></span></span>
+            <span><b class="text-rose-deep">خروج</b> <span class="mono font-bold" dir="ltr" x-text="describe(lim(draft)).critical"></span></span>
+            <span class="text-ink/70" x-text="timeLabel(lim(draft))"></span>
+            <a href="9_CriticalLimits.html" class="ms-auto text-[11px] font-bold text-brand-deep underline">تعديل الرقم في صفحة الحدود</a>
+          </div>
+        </template>
+        <label class="block mt-2"><span class="lbl">الحد المرتبط</span>
+          <select class="fld" x-model="draft.limitId"><template x-for="l in limits" :key="l.id"><option :value="l.id" x-text="l.id + ' — ' + l.productAr + ' / ' + l.stepAr"></option></template></select>
+        </label>
+        <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <template x-for="f in monitorFields" :key="f.k">
+            <label class="block"><span class="lbl" x-text="f.label"></span>
+              <input class="fld" x-model="draft[f.k]" :placeholder="f.ph" :class="isTemplate(draftView, f.k) && '!border-amber/60 !bg-amber-soft/40'">
+              <span x-show="isTemplate(draftView, f.k)" class="text-[10.5px] font-bold text-amber-deep">نص القالب العام — خصّصه لهذه النقطة</span>
+            </label>
+          </template>
+        </div>
+      </fieldset>
+
+      <!-- 4 treatment + verification -->
+      <fieldset>
+        <legend class="text-[14px] font-extrabold">٤ <span x-text="draftView.cls==='OPRP' ? 'الإجراء عند عدم المطابقة' : 'العلاج عند الانحراف'"></span> والتحقق</legend>
+        <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <template x-for="(f, i) in treatFields" :key="f.k">
+            <label class="block"><span class="lbl"><span class="mono" x-text="(i+1) + '. '"></span><span x-text="f.label"></span></span>
+              <textarea class="fld" rows="3" x-model="draft[f.k]" :placeholder="f.ph" :class="isTemplate(draftView, f.k) && '!border-amber/60 !bg-amber-soft/40'"></textarea>
+            </label>
+          </template>
+        </div>
+        <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <template x-for="f in verifyFields" :key="f.k">
+            <label class="block"><span class="lbl" x-text="f.label"></span>
+              <textarea class="fld" rows="2" x-model="draft[f.k]" :placeholder="f.ph" :class="isTemplate(draftView, f.k) && '!border-amber/60 !bg-amber-soft/40'"></textarea>
+            </label>
+          </template>
+        </div>
+        <button type="button" @click="applyTemplates()" class="mt-2 text-[11px] font-bold text-ink/65 hover:text-brand-deep"><i class="fa-solid fa-wand-magic-sparkles"></i> ملء الحقول الفارغة بقالب <span x-text="draftView.cls==='OPRP' ? 'خطة OPRP (HACCP-08)' : 'خطة CCP (HACCP-07)'"></span></button>
+      </fieldset>
+
+      <!-- 5 gates -->
+      <fieldset>
+        <legend class="text-[14px] font-extrabold">٥ بوابات الاعتماد <span class="text-[11px] font-bold text-ink/60">— 10_VALIDATION_GATE</span></legend>
+        <ul class="mt-2 divide-y divide-black/5 rounded-xl border border-black/5 px-3">
+          <template x-for="gt in gates" :key="gt.id">
+            <li class="py-2.5 flex items-start gap-3">
+              <span class="mt-0.5 w-5 h-5 rounded-full shrink-0 flex items-center justify-center text-[10px]"
+                    :class="gateState(draftView, gt).ok ? 'bg-emerald text-white' : (gateState(draftView, gt).locked ? 'bg-black/10 text-ink/60' : 'bg-amber-soft text-amber-deep')">
+                <i class="fa-solid" :class="gateState(draftView, gt).ok ? 'fa-check' : (gateState(draftView, gt).locked ? 'fa-lock' : 'fa-minus')"></i>
+              </span>
+              <div class="flex-1 min-w-0">
+                <p class="text-[13px] font-bold"><span class="mono text-[10.5px] text-ink/60" x-text="gt.id"></span> <span x-text="gt.ar"></span></p>
+                <p class="text-[11.5px]" :class="gateState(draftView, gt).ok ? 'text-ink/65' : 'text-amber-deep'" x-text="gateState(draftView, gt).why"></p>
+              </div>
+              <template x-if="gt.manual && !notApplicable(draftView, gt)">
+                <button type="button" @click="toggleManual(gt)" :disabled="!!gateState(draftView, gt).locked"
+                        class="shrink-0 px-2.5 py-1 rounded-md text-[11px] font-bold border transition disabled:opacity-40 disabled:cursor-not-allowed"
+                        :class="draft[gt.field] ? 'bg-emerald-soft text-emerald-deep border-emerald/30' : 'border-black/10 hover:bg-canvas'"
+                        x-text="draft[gt.field] ? 'مؤكَّد' : 'تأكيد'"></button>
+              </template>
+              <span x-show="!gt.manual || notApplicable(draftView, gt)" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-canvas text-ink/65 shrink-0" x-text="notApplicable(draftView, gt) ? 'لا ينطبق' : 'تلقائي'"></span>
+            </li>
+          </template>
+        </ul>
+      </fieldset>
+    </div>
+
+    <div class="px-5 py-3 border-t border-black/5 flex items-center gap-2">
+      <button x-show="editingId" @click="deleting = editingId" class="text-[12px] font-bold text-ink/60 hover:text-rose"><i class="fa-solid fa-trash-can"></i> حذف النقطة</button>
+      <div class="ms-auto flex gap-2">
+        <button @click="closeEdit()" class="px-5 py-2.5 rounded-lg border border-black/10 text-sm font-bold hover:bg-canvas transition">إلغاء</button>
+        <button @click="saveEdit()" class="px-5 py-2.5 rounded-lg bg-brand text-ink hover:bg-brand-deep hover:text-white text-sm font-bold transition" x-text="editingId ? 'حفظ التعديلات' : 'إضافة النقطة'"></button>
+      </div>
+    </div>
+  </div>
+  </template>
+</div>
+
+<!-- Tree quick modal -->
+<div x-show="treeFor" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @keydown.escape.window="treeFor=null">
+  <template x-if="treeFor">
+  <div class="bg-white rounded-2xl w-full max-w-xl p-5 space-y-4" @click.outside="treeFor=null">
+    <div>
+      <p class="mono text-[11px] font-bold text-teal-deep">DECISION TREE · HACCP-06</p>
+      <p class="font-extrabold text-lg mt-0.5" x-text="lim(treeFor) ? lim(treeFor).productAr + ' · ' + lim(treeFor).stepAr : ''"></p>
+      <p class="text-[12.5px] text-ink/70 mt-1" x-show="treeFor.cls === 'pending'">ملف SAFORA صنّف هذه الخطوة «OPRP/CCP» دون حسم. أجب عن الأسئلة ليتحدد التصنيف.</p>
+    </div>
+    <ol class="space-y-2">
+      <template x-for="(q, i) in tree" :key="q.k">
+        <li x-show="!q.onlyIfNo || treeDraft.designed === false" class="rounded-xl border px-3 py-2.5" :class="treeDraft[q.k] === null || treeDraft[q.k] === undefined ? 'border-brand/50 bg-brand-soft/40' : 'border-black/10'">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="min-w-0 flex gap-2">
+              <span class="w-5 h-5 mt-0.5 rounded-full bg-ink text-white mono text-[10px] flex items-center justify-center shrink-0" x-text="i + 1"></span>
+              <div>
+                <p class="text-[13px] font-bold text-ink" x-text="q.q"></p>
+                <p class="text-[11.5px] text-ink/75" x-text="q.help"></p>
+              </div>
+            </div>
+            <div class="flex rounded-lg overflow-hidden border border-black/15 text-[12px] font-bold shrink-0">
+              <button type="button" @click="treeDraft[q.k] = true" class="px-3.5 py-1.5" :class="treeDraft[q.k] === true ? 'bg-ink text-white' : 'hover:bg-canvas'">نعم</button>
+              <button type="button" @click="treeDraft[q.k] = false" class="px-3.5 py-1.5 border-r border-black/15" :class="treeDraft[q.k] === false ? 'bg-ink text-white' : 'hover:bg-canvas'">لا</button>
+            </div>
+          </div>
+        </li>
+      </template>
+    </ol>
+    <div class="rounded-xl px-4 py-3" :class="clsMeta({ cls:classFromTree(treeDraft) }).soft">
+      <p class="text-[14px] font-extrabold">النتيجة: <span x-text="treeLabel({ cls:classFromTree(treeDraft) })"></span></p>
+      <p class="text-[12px] font-semibold text-ink/75 mt-0.5" x-text="treeWhy({ cls:classFromTree(treeDraft) })"></p>
+    </div>
+    <div class="flex gap-2">
+      <button @click="treeFor=null" class="flex-1 py-2.5 rounded-lg border border-black/10 text-sm font-bold hover:bg-canvas transition">إلغاء</button>
+      <button @click="saveTree()" class="flex-1 py-2.5 rounded-lg bg-brand text-ink hover:bg-brand-deep hover:text-white text-sm font-bold transition">حفظ التصنيف</button>
+    </div>
+  </div>
+  </template>
+</div>
+
+<!-- Add: choose limit -->
+<div x-show="addOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @keydown.escape.window="addOpen=false">
+  <div class="bg-white rounded-2xl w-full max-w-lg p-5 space-y-3" @click.outside="addOpen=false">
+    <p class="font-extrabold"><i class="fa-solid fa-crosshairs text-brand-deep"></i> إضافة نقطة تحكم</p>
+    <p class="text-[12.5px] text-ink/70 leading-relaxed">كل نقطة تبدأ من مرحلة لها حد في صفحة الحدود الحرجة. بعد الاختيار تجيب على شجرة القرار فيتحدد هل هي CCP أم OPRP.</p>
+    <label class="block"><span class="lbl">المرحلة وحدّها *</span>
+      <select class="fld" x-model="newLimitId">
+        <option value="">— اختر —</option>
+        <template x-for="l in unlinkedLimits" :key="l.id"><option :value="l.id" x-text="l.id + ' — ' + l.productAr + ' / ' + l.stepAr"></option></template>
+      </select>
+    </label>
+    <div class="flex gap-2 pt-2">
+      <button @click="addOpen=false" class="flex-1 py-2.5 rounded-lg border border-black/10 text-sm font-bold hover:bg-canvas transition">إلغاء</button>
+      <button @click="startNew()" :disabled="!newLimitId" class="flex-1 py-2.5 rounded-lg bg-brand text-ink hover:bg-brand-deep hover:text-white text-sm font-bold transition disabled:opacity-30 disabled:cursor-not-allowed">متابعة</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete -->
+<div x-show="deleting" x-cloak class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40">
+  <div class="bg-white rounded-2xl w-full max-w-sm p-5 space-y-3">
+    <p class="font-extrabold"><i class="fa-solid fa-trash-can text-rose"></i> حذف نقطة التحكم</p>
+    <p class="text-sm text-ink/75 leading-relaxed">يُحذف تعريف النقطة (الشجرة والمراقبة والعلاج والبوابات). الحد نفسه يبقى في صفحة الحدود الحرجة.</p>
+    <div class="flex gap-2 pt-2">
+      <button @click="deleting=null" class="flex-1 py-2.5 rounded-lg border border-black/10 text-sm font-bold hover:bg-canvas transition">إلغاء</button>
+      <button @click="doDelete()" class="flex-1 py-2.5 rounded-lg bg-rose hover:bg-rose-deep text-white text-sm font-bold transition">حذف</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset -->
+<div x-show="confirmReset" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @keydown.escape.window="confirmReset=false">
+  <div class="bg-white rounded-2xl w-full max-w-sm p-5 space-y-3" @click.outside="confirmReset=false">
+    <p class="font-extrabold"><i class="fa-solid fa-rotate-left text-amber"></i> استعادة البيانات الأصلية</p>
+    <p class="text-sm text-ink/75 leading-relaxed">تعود النقاط الـ16 كما صنّفها ملف SAFORA بنصوص القالب فقط، وتُلغى كل التعديلات.</p>
+    <div class="flex gap-2 pt-2">
+      <button @click="confirmReset=false" class="flex-1 py-2.5 rounded-lg border border-black/10 text-sm font-bold hover:bg-canvas transition">إلغاء</button>
+      <button @click="resetData()" class="flex-1 py-2.5 rounded-lg bg-amber hover:bg-amber-deep text-white text-sm font-bold transition">استعادة</button>
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="seed-limits">[{"id":"CL-0001","sector":"Dairy","productAr":"الحليب السائل","productEn":"Fluid milk","stepAr":"البسترة HTST","stepEn":"HTST pasteurization","controlClass":"CCP (Critical Control Point): نقطة تحكم حرجة","parameter":"Temperature","operator":">=","v1":72,"unit":"°C","timeValue":15,"timeUnit":"s","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens مسببات الأمراض","criticalText":"≥72°C لمدة ≥15 ثانية.","note":"يجب أن يصل كل جزء من المنتج إلى المعاملة المكافئة.","reference":"Applicable Saudi/GSO dairy standard + Codex CXC 57-2004","effective":"Verify product standard","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0002","sector":"Dairy ألبان","productAr":"الحليب السائل","productEn":"Fluid milk","stepAr":"البسترة بالدفعات","stepEn":"Batch pasteurization","controlClass":"CCP","parameter":"Temperature","operator":">=","v1":63,"unit":"°C","timeValue":30,"timeUnit":"min","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"≥63°C لمدة ≥30 دقيقة.","reference":"Applicable Saudi/GSO dairy standard + Codex CXC 57-2004","effective":"Verify product standard","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0003","sector":"Dairy","productAr":"القشدة","productEn":"Cream","stepAr":"البسترة","stepEn":"Pasteurization","controlClass":"CCP","parameter":"Temperature","operator":">=","v1":75,"unit":"°C","timeValue":15,"timeUnit":"s","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"≥75°C لمدة ≥15 ثانية للقشدة.","reference":"Applicable Saudi/GSO dairy standard + Codex CXC 57-2004","effective":"Verify product standard","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0004","sector":"Dairy","productAr":"الحليب المبستر","productEn":"Pasteurized milk","stepAr":"التحقق من البسترة","stepEn":"Pasteurization verification","controlClass":"Verification","parameter":"Alkaline phosphatase","operator":"<","v1":10,"unit":"µg p-nitrophenol eq/mL","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"أقل من 10 µg p-nitrophenol equivalent/ml كمؤشر تحقق.","note":"مؤشر تحقق وليس CCP مستقلًا.","reference":"Applicable Saudi/GSO dairy standard + Codex CXC 57-2004","effective":"Verify product standard","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0005","sector":"RTE/Catering","productAr":"أغذية مطهية مبردة","productEn":"Cook-chilled foods","stepAr":"التبريد السريع","stepEn":"Rapid chilling","controlClass":"CCP","parameter":"Core temperature profile","operator":"60→10","v1":60,"v2":10,"unit":"°C","timeValue":2,"timeUnit":"h","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"من 60°C إلى 10°C في مركز الغذاء خلال أقل من ساعتين.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0006","sector":"RTE/Catering","productAr":"أغذية مطهية مبردة","productEn":"Cook-chilled foods","stepAr":"التخزين المبرد","stepEn":"Chilled storage","controlClass":"OPRP/CCP","parameter":"Product temperature","operator":"<=","v1":4,"unit":"°C","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"درجة المنتج ≤4°C حتى الاستخدام.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0007","sector":"RTE/Catering","productAr":"أغذية مطهية مبردة","productEn":"Cook-chilled foods","stepAr":"مدة التخزين","stepEn":"Storage duration","controlClass":"Operational limit","parameter":"Storage duration","operator":"<=","v1":5,"unit":"day","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"بحد أقصى 5 أيام، شامل يوم الطهي ويوم الاستهلاك عند 4°C.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0008","sector":"Frozen/RTE","productAr":"أغذية مطهية مجمدة","productEn":"Cooked-frozen foods","stepAr":"التخزين المجمد","stepEn":"Frozen storage","controlClass":"OPRP/CCP","parameter":"Product temperature","operator":"<=","v1":-18,"unit":"°C","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"الحفظ عند -18°C أو أقل.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0009","sector":"RTE/Catering","productAr":"أغذية ساخنة","productEn":"Hot foods","stepAr":"النقل الساخن","stepEn":"Hot transport","controlClass":"OPRP/CCP","parameter":"Product temperature","operator":">=","v1":60,"unit":"°C","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"أثناء النقل ≥60°C.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0010","sector":"RTE/Catering","productAr":"أغذية مبردة","productEn":"Chilled foods","stepAr":"النقل المبرد","stepEn":"Chilled transport","controlClass":"OPRP","parameter":"Product temperature","operator":"<=","v1":4,"v2":7,"unit":"°C","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"الهدف 4°C؛ يمكن الارتفاع إلى 7°C لفترة قصيرة أثناء النقل.","note":"القيمة 7°C سماح قصير وليست هدف التشغيل.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0011","sector":"Frozen/RTE","productAr":"أغذية مجمدة","productEn":"Frozen foods","stepAr":"النقل المجمد","stepEn":"Frozen transport","controlClass":"OPRP","parameter":"Product temperature","operator":"<=","v1":-18,"v2":-12,"unit":"°C","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"الهدف ≤-18°C؛ يمكن الارتفاع إلى -12°C لفترة قصيرة أثناء النقل.","note":"القيمة -12°C سماح قصير وليست هدف التشغيل.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0012","sector":"RTE/Catering","productAr":"أغذية معاد تسخينها","productEn":"Reheated foods","stepAr":"إعادة التسخين","stepEn":"Reheating","controlClass":"CCP","parameter":"Core temperature","operator":">=","v1":75,"unit":"°C","timeValue":1,"timeUnit":"h","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"الوصول إلى ≥75°C في مركز الغذاء خلال ساعة من إخراجه من التبريد.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0013","sector":"RTE/Catering","productAr":"أغذية ساخنة","productEn":"Hot foods","stepAr":"الحفظ/التقديم الساخن","stepEn":"Hot holding/service","controlClass":"OPRP","parameter":"Product temperature","operator":">=","v1":60,"unit":"°C","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"الحفظ والتقديم الساخن ≥60°C.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0014","sector":"RTE/Catering","productAr":"أغذية باردة بالخدمة الذاتية","productEn":"Cold self-service food","stepAr":"التقديم","stepEn":"Service","controlClass":"OPRP","parameter":"Product temperature","operator":"<=","v1":4,"unit":"°C","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"الخدمة الذاتية الباردة ≤4°C.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0015","sector":"RTE/Catering","productAr":"أغذية ساخنة بالخدمة الذاتية","productEn":"Hot self-service food","stepAr":"التقديم","stepEn":"Service","controlClass":"OPRP","parameter":"Product temperature","operator":">=","v1":60,"unit":"°C","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"الخدمة الذاتية الساخنة ≥60°C.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0016","sector":"Canned/Acidified","productAr":"أغذية حمضية طبيعيًا","productEn":"Naturally acid foods","stepAr":"التحكم بالحموضة","stepEn":"Acidity control","controlClass":"CCP","parameter":"Equilibrium pH","operator":"<=","v1":4.6,"unit":"pH","hazardClass":"B","hazardId":"HZ-B-008","hazardName":"Clostridium botulinum","criticalText":"pH اتزاني ≤4.6.","reference":"Applicable Saudi/GSO canned-food standard + Codex CXC 23-1979","effective":"Current scientific control; legal product mapping required","validationRequired":false,"autoUse":"NO if validation_required=Yes; otherwise Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0017","sector":"Canned/Acidified","productAr":"أغذية منخفضة الحموضة محمضة","productEn":"Acidified low-acid foods","stepAr":"التحميض","stepEn":"Acidification","controlClass":"CCP","parameter":"Equilibrium pH","operator":"<=","v1":4.6,"unit":"pH","hazardClass":"B","hazardId":"HZ-B-008","hazardName":"Clostridium botulinum","criticalText":"الوصول إلى pH اتزاني ≤4.6 بعد المعالجة الحرارية.","reference":"Applicable Saudi/GSO canned-food standard + Codex CXC 23-1979","effective":"Current scientific control; legal product mapping required","validationRequired":false,"autoUse":"NO if validation_required=Yes; otherwise Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0018","sector":"Canned/Low-acid","productAr":"معلبات منخفضة الحموضة","productEn":"Low-acid canned foods","stepAr":"المعالجة الحرارية","stepEn":"Thermal processing","controlClass":"CCP","parameter":"Scheduled process","operator":"Validated","hazardClass":"B","hazardId":"HZ-B-008","hazardName":"Clostridium botulinum","criticalText":"لا يوجد رقم عالمي واحد؛ يجب تطبيق Scheduled Process مثبت يحقق Commercial Sterility.","note":"يُثبت حسب المنتج وpH وaw والعبوة والحجم وانتقال الحرارة.","reference":"Applicable Saudi/GSO canned-food standard + Codex CXC 23-1979","effective":"Current scientific control; legal product mapping required","validationRequired":true,"autoUse":"NO if validation_required=Yes; otherwise Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0019","sector":"Fish/Seafood","productAr":"أسماك مكوِّنة للهيستامين","productEn":"Scombrotoxin-forming fish","stepAr":"التحكم في الهيستامين","stepEn":"Histamine control","controlClass":"Performance target","parameter":"Histamine","operator":"<","v1":15,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-011","hazardName":"Histamine","criticalText":"هدف أداء HACCP يمكن تحقيقه: <15 mg/kg؛ لا يُعامل كحد قانوني عالمي لكل الأسماك.","note":"طبّق مواصفة السلعة وخطة أخذ العينات الوطنية.","reference":"Applicable Saudi/GSO fish standard + Codex CXC 52-2003","effective":"Verify fishery product standard","validationRequired":true,"autoUse":"NO for legal ML; Conditional for process target","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0020","sector":"Fish/Seafood","productAr":"أسماك محصودة حديثًا","productEn":"Freshly harvested fish","stepAr":"مرجع أداء","stepEn":"Performance benchmark","controlClass":"Benchmark","parameter":"Histamine","operator":"<","v1":2,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-011","hazardName":"Histamine","criticalText":"الأسماك المحصودة حديثًا تكون عادةً <2 mg/kg كمرجع أداء.","reference":"Applicable Saudi/GSO fish standard + Codex CXC 52-2003","effective":"Verify fishery product standard","validationRequired":false,"autoUse":"NO for legal ML; Conditional for process target","sourceUrl":"https://mwasfah.sfda.gov.sa/"},{"id":"CL-0101","sector":"Nuts/Seeds","productAr":"الفول السوداني للتصنيع اللاحق","productEn":"Peanuts for further processing","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Total aflatoxins","operator":"<=","v1":15,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-001","hazardName":"Total aflatoxins","criticalText":"Total aflatoxins: ≤ 15 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0102","sector":"Nuts/Seeds","productAr":"اللوز الجاهز للأكل","productEn":"RTE almonds","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Total aflatoxins","operator":"<=","v1":10,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-001","hazardName":"Total aflatoxins","criticalText":"Total aflatoxins: ≤ 10 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0103","sector":"Nuts/Seeds","productAr":"اللوز للتصنيع اللاحق","productEn":"Almonds for further processing","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Total aflatoxins","operator":"<=","v1":15,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-001","hazardName":"Total aflatoxins","criticalText":"Total aflatoxins: ≤ 15 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0104","sector":"Nuts/Seeds","productAr":"البندق الجاهز للأكل","productEn":"RTE hazelnuts","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Total aflatoxins","operator":"<=","v1":10,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-001","hazardName":"Total aflatoxins","criticalText":"Total aflatoxins: ≤ 10 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0105","sector":"Nuts/Seeds","productAr":"البندق للتصنيع اللاحق","productEn":"Hazelnuts for further processing","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Total aflatoxins","operator":"<=","v1":15,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-001","hazardName":"Total aflatoxins","criticalText":"Total aflatoxins: ≤ 15 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0106","sector":"Nuts/Seeds","productAr":"الفستق الجاهز للأكل","productEn":"RTE pistachios","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Total aflatoxins","operator":"<=","v1":10,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-001","hazardName":"Total aflatoxins","criticalText":"Total aflatoxins: ≤ 10 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0107","sector":"Nuts/Seeds","productAr":"الفستق للتصنيع اللاحق","productEn":"Pistachios for further processing","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Total aflatoxins","operator":"<=","v1":15,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-001","hazardName":"Total aflatoxins","criticalText":"Total aflatoxins: ≤ 15 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0108","sector":"Dried Fruit","productAr":"التين المجفف الجاهز للأكل","productEn":"RTE dried figs","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Total aflatoxins","operator":"<=","v1":10,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-001","hazardName":"Total aflatoxins","criticalText":"Total aflatoxins: ≤ 10 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0109","sector":"Spices/Herbs","productAr":"الفلفل الحار وجوزة الطيب","productEn":"Chili pepper and nutmeg","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Total aflatoxins","operator":"<=","v1":20,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-001","hazardName":"Total aflatoxins","criticalText":"Total aflatoxins: ≤ 20 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0110","sector":"Cereals","productAr":"حبوب الذرة للتصنيع اللاحق","productEn":"Maize grain for further processing","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Total aflatoxins","operator":"<=","v1":15,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-001","hazardName":"Total aflatoxins","criticalText":"Total aflatoxins: ≤ 15 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0111","sector":"Dairy","productAr":"الحليب","productEn":"Milk","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Aflatoxin M1","operator":"<=","v1":0.5,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-002","hazardName":"Aflatoxin M1","criticalText":"Aflatoxin M1: ≤ 0.5 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0112","sector":"Infant/Dietetic","productAr":"أغذية حبوب للرضع وصغار الأطفال","productEn":"Cereal-based foods for infants/young children","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"DON","operator":"<=","v1":200,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-003","hazardName":"DON","criticalText":"DON: ≤ 200 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0113","sector":"Cereals","productAr":"دقيق/سميد/رقائق القمح والذرة والشعير","productEn":"Flour/meal/semolina/flakes of wheat/maize/barley","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"DON","operator":"<=","v1":1000,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-003","hazardName":"DON","criticalText":"DON: ≤ 1000 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0114","sector":"Cereals","productAr":"حبوب قمح/ذرة/شعير للتصنيع اللاحق","productEn":"Wheat/maize/barley grains for further processing","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"DON","operator":"<=","v1":2000,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-003","hazardName":"DON","criticalText":"DON: ≤ 2000 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0115","sector":"Cereals","productAr":"حبوب الذرة الخام","productEn":"Raw maize grain","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Fumonisins FB1+FB2","operator":"<=","v1":4000,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-004","hazardName":"Fumonisins FB1+FB2","criticalText":"Fumonisins FB1+FB2: ≤ 4000 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0116","sector":"Cereals","productAr":"دقيق ووجبة الذرة","productEn":"Maize flour and meal","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Fumonisins FB1+FB2","operator":"<=","v1":2000,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-004","hazardName":"Fumonisins FB1+FB2","criticalText":"Fumonisins FB1+FB2: ≤ 2000 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0117","sector":"Cereals","productAr":"القمح الخام","productEn":"Raw wheat","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Ochratoxin A","operator":"<=","v1":5,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-005","hazardName":"Ochratoxin A","criticalText":"Ochratoxin A: ≤ 5 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0118","sector":"Cereals","productAr":"الشعير الخام","productEn":"Raw barley","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Ochratoxin A","operator":"<=","v1":5,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-005","hazardName":"Ochratoxin A","criticalText":"Ochratoxin A: ≤ 5 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0119","sector":"Cereals","productAr":"الجاودار الخام","productEn":"Raw rye","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Ochratoxin A","operator":"<=","v1":5,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-005","hazardName":"Ochratoxin A","criticalText":"Ochratoxin A: ≤ 5 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0120","sector":"Spices/Herbs","productAr":"الفلفل الحار/البابريكا/جوزة الطيب","productEn":"Chili/paprika/nutmeg","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Ochratoxin A","operator":"<=","v1":20,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-005","hazardName":"Ochratoxin A","criticalText":"Ochratoxin A: ≤ 20 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0121","sector":"Beverages","productAr":"عصير التفاح","productEn":"Apple juice","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Patulin","operator":"<=","v1":50,"unit":"µg/kg","hazardClass":"C","hazardId":"HZ-C-006","hazardName":"Patulin","criticalText":"Patulin: ≤ 50 µg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0122","sector":"Fats/Oils","productAr":"الزيوت والدهون الصالحة للأكل","productEn":"Edible fats and oils","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Arsenic","operator":"<=","v1":0.1,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-009","hazardName":"Arsenic","criticalText":"Arsenic: ≤ 0.1 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0123","sector":"Water/Ice","productAr":"المياه المعدنية الطبيعية","productEn":"Natural mineral water","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Arsenic","operator":"<=","v1":0.01,"unit":"mg/L","hazardClass":"C","hazardId":"HZ-C-009","hazardName":"Arsenic","criticalText":"Arsenic: ≤ 0.01 mg/L وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0124","sector":"Cereals","productAr":"الأرز المقشور","productEn":"Husked rice","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Inorganic arsenic","operator":"<=","v1":0.35,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-009","hazardName":"Inorganic arsenic","criticalText":"Inorganic arsenic: ≤ 0.35 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0125","sector":"Cereals","productAr":"الأرز المصقول","productEn":"Polished rice","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Inorganic arsenic","operator":"<=","v1":0.2,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-009","hazardName":"Inorganic arsenic","criticalText":"Inorganic arsenic: ≤ 0.2 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0126","sector":"Ingredients","productAr":"ملح الطعام","productEn":"Food-grade salt","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Arsenic","operator":"<=","v1":0.5,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-009","hazardName":"Arsenic","criticalText":"Arsenic: ≤ 0.5 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0127","sector":"Vegetables","productAr":"خضروات براسيكا","productEn":"Brassica vegetables","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.05,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.05 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0128","sector":"Vegetables","productAr":"الخضروات البصلية","productEn":"Bulb vegetables","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.05,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.05 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0129","sector":"Vegetables","productAr":"الخضروات الثمرية","productEn":"Fruiting vegetables","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.05,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.05 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0130","sector":"Vegetables","productAr":"الخضروات الورقية","productEn":"Leafy vegetables","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.2,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.2 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0131","sector":"Legumes","productAr":"الخضروات البقولية","productEn":"Legume vegetables","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.1,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.1 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0132","sector":"Legumes","productAr":"البقول الجافة باستثناء الصويا","productEn":"Pulses except dry soybeans","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.1,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.1 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0133","sector":"Vegetables","productAr":"الخضروات الجذرية والدرنية","productEn":"Root and tuber vegetables","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.1,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.1 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0134","sector":"Cereals","productAr":"حبوب الحبوب مع استثناءات Codex","productEn":"Cereal grains - Codex exclusions apply","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.1,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.1 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0135","sector":"Cereals","productAr":"الأرز المصقول","productEn":"Polished rice","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.4,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.4 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0136","sector":"Cereals","productAr":"القمح","productEn":"Wheat","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.2,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.2 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0137","sector":"Cereals","productAr":"الكينوا","productEn":"Quinoa","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.15,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.15 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0138","sector":"Fish/Seafood","productAr":"الرخويات ثنائية المصراع البحرية","productEn":"Marine bivalve molluscs","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":2,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 2 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0139","sector":"Fish/Seafood","productAr":"رأسيات الأرجل","productEn":"Cephalopods","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":2,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 2 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0140","sector":"Water/Ice","productAr":"المياه المعدنية الطبيعية","productEn":"Natural mineral water","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.003,"unit":"mg/L","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.003 mg/L وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0141","sector":"Ingredients","productAr":"ملح الطعام","productEn":"Food-grade salt","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.5,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.5 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0142","sector":"Chocolate/Sweets","productAr":"شوكولاتة أقل من 30% مواد كاكاو صلبة","productEn":"Chocolate <30% cocoa solids","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.3,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.3 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0143","sector":"Chocolate/Sweets","productAr":"شوكولاتة 30-أقل من 50% كاكاو","productEn":"Chocolate 30-<50% cocoa solids","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.7,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.7 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0144","sector":"Chocolate/Sweets","productAr":"شوكولاتة 50-أقل من 70% كاكاو","productEn":"Chocolate 50-<70% cocoa solids","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.8,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.8 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0145","sector":"Chocolate/Sweets","productAr":"شوكولاتة 70% كاكاو فأكثر","productEn":"Chocolate ≥70% cocoa solids","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":0.9,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 0.9 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0146","sector":"Chocolate/Sweets","productAr":"مسحوق كاكاو 100%","productEn":"100% cocoa powder","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Cadmium","operator":"<=","v1":2,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-008","hazardName":"Cadmium","criticalText":"Cadmium: ≤ 2.0 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0147","sector":"Beverages","productAr":"عصائر الفاكهة الجاهزة للشرب","productEn":"Ready-to-drink fruit juices","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Lead","operator":"<=","v1":0.03,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-007","hazardName":"Lead","criticalText":"Lead: ≤ 0.03 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0148","sector":"Beverages","productAr":"عصائر التوت والثمار الصغيرة","productEn":"Berry/small-fruit juices","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Lead","operator":"<=","v1":0.05,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-007","hazardName":"Lead","criticalText":"Lead: ≤ 0.05 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0149","sector":"Beverages","productAr":"عصير العنب","productEn":"Grape juice","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Lead","operator":"<=","v1":0.04,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-007","hazardName":"Lead","criticalText":"Lead: ≤ 0.04 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0150","sector":"Cereals","productAr":"حبوب الحبوب","productEn":"Cereal grains","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Lead","operator":"<=","v1":0.2,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-007","hazardName":"Lead","criticalText":"Lead: ≤ 0.2 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0151","sector":"Infant/Dietetic","productAr":"أغذية حبوب للرضع وصغار الأطفال","productEn":"Cereal-based foods for infants/young children","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Lead","operator":"<=","v1":0.02,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-007","hazardName":"Lead","criticalText":"Lead: ≤ 0.02 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0152","sector":"Infant/Dietetic","productAr":"تركيبات الرضع والمتابعة","productEn":"Infant/follow-up formula","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Lead","operator":"<=","v1":0.01,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-007","hazardName":"Lead","criticalText":"Lead: ≤ 0.01 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0153","sector":"Infant/Dietetic","productAr":"وجبات جاهزة للرضع وصغار الأطفال","productEn":"RTE meals for infants/young children","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Lead","operator":"<=","v1":0.02,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-007","hazardName":"Lead","criticalText":"Lead: ≤ 0.02 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0154","sector":"Fish/Seafood","productAr":"الأسماك","productEn":"Fish","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Lead","operator":"<=","v1":0.3,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-007","hazardName":"Lead","criticalText":"Lead: ≤ 0.3 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0155","sector":"Fats/Oils","productAr":"الزيوت والدهون الصالحة للأكل","productEn":"Edible fats and oils","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Lead","operator":"<=","v1":0.08,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-007","hazardName":"Lead","criticalText":"Lead: ≤ 0.08 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0156","sector":"Dairy","productAr":"الحليب","productEn":"Milk","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Lead","operator":"<=","v1":0.02,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-007","hazardName":"Lead","criticalText":"Lead: ≤ 0.02 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0157","sector":"Dairy","productAr":"منتجات الحليب الثانوية","productEn":"Secondary milk products","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Lead","operator":"<=","v1":0.02,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-007","hazardName":"Lead","criticalText":"Lead: ≤ 0.02 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0158","sector":"Water/Ice","productAr":"المياه المعدنية الطبيعية","productEn":"Natural mineral water","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Lead","operator":"<=","v1":0.01,"unit":"mg/L","hazardClass":"C","hazardId":"HZ-C-007","hazardName":"Lead","criticalText":"Lead: ≤ 0.01 mg/L وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0159","sector":"Ingredients","productAr":"ملح الطعام","productEn":"Food-grade salt","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Lead","operator":"<=","v1":1,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-007","hazardName":"Lead","criticalText":"Lead: ≤ 1.0 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0160","sector":"Sugars/Honey","productAr":"السكر الأبيض والمكرر والعسل","productEn":"White/refined sugar and honey","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Lead","operator":"<=","v1":0.1,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-007","hazardName":"Lead","criticalText":"Lead: ≤ 0.1 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0161","sector":"Spices/Herbs","productAr":"الأعشاب المجففة للطهي","productEn":"Dried culinary herbs","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Lead","operator":"<=","v1":2,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-007","hazardName":"Lead","criticalText":"Lead: ≤ 2.0 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0162","sector":"Spices/Herbs","productAr":"البابريكا والسماق المجفف","productEn":"Dried paprika and sumac","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Lead","operator":"<=","v1":0.8,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-007","hazardName":"Lead","criticalText":"Lead: ≤ 0.8 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0163","sector":"Ingredients","productAr":"دقيق الكسافا","productEn":"Cassava flour","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Total hydrocyanic acid","operator":"<=","v1":10,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-013","hazardName":"Total hydrocyanic acid","criticalText":"Total hydrocyanic acid: ≤ 10 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0164","sector":"General Food","productAr":"الأغذية عدا تركيبات الرضع","productEn":"Food other than infant formula","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Melamine","operator":"<=","v1":2.5,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-012","hazardName":"Melamine","criticalText":"Melamine: ≤ 2.5 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0165","sector":"Infant/Dietetic","productAr":"تركيبات الرضع المجففة","productEn":"Powdered infant formula","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Melamine","operator":"<=","v1":1,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-012","hazardName":"Melamine","criticalText":"Melamine: ≤ 1.0 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"},{"id":"CL-0166","sector":"Infant/Dietetic","productAr":"تركيبات الرضع السائلة","productEn":"Liquid infant formula","stepAr":"قبول المادة/الإفراج","stepEn":"Raw material / product release","controlClass":"Release limit","parameter":"Melamine","operator":"<=","v1":0.15,"unit":"mg/kg","hazardClass":"C","hazardId":"HZ-C-012","hazardName":"Melamine","criticalText":"Melamine: ≤ 0.15 mg/kg وفق CXS 193-1995 (تعديل 2025)، مع تطبيق شروط السلعة.","note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","reference":"SFDA.FD/GSO 193:2021 + product-specific Saudi/GSO regulation","effective":"Current framework; commodity limit verification required","validationRequired":false,"autoUse":"NO","sourceUrl":"https://www.sfda.gov.sa/ar/regulations/%D8%A7%D9%84%D9%85%D9%84%D9%88%D8%AB%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B3%D9%85%D9%88%D9%85-%D9%81%D9%8A-%D8%A7%D9%84%D8%A3%D8%BA%D8%B0%D9%8A%D8%A9-%D9%88%D8%A7%D9%84%D8%A3%D8%B9%D9%84%D8%A7%D9%81"}]</script>
+
+<script>
+const LIMITS_KEY = "efcos.criticalLimits.v1";   // مفتاح صفحة 9_CriticalLimits.html
+const CTRL_KEY = "safora.controlPoints.v2";
+
+const SECTOR_AR = {
+  "Dairy":"الألبان ومنتجاتها","RTE/Catering":"الأغذية الجاهزة والتموين","Frozen/RTE":"الأغذية المجمدة",
+  "Canned/Acidified":"المعلبات الحمضية والمحمّضة","Canned/Low-acid":"المعلبات منخفضة الحموضة",
+  "Fish/Seafood":"الأسماك والمأكولات البحرية","Nuts/Seeds":"المكسرات والبذور","Dried Fruit":"الفواكه المجففة",
+  "Spices/Herbs":"التوابل والأعشاب","Cereals":"الحبوب ومنتجاتها","Infant/Dietetic":"أغذية الرضع والحمية",
+  "Beverages":"المشروبات","Fats/Oils":"الزيوت والدهون","Water/Ice":"المياه والثلج","Ingredients":"المكونات",
+  "Vegetables":"الخضروات","Legumes":"البقوليات","Chocolate/Sweets":"الشوكولاتة والحلويات",
+  "Sugars/Honey":"السكر والعسل","General Food":"أغذية عامة"
+};
+const HAZ = {"HZ-B-001":{"group":"Biological","en":"Salmonella spp.","ar":"السالمونيلا","subtype":"Pathogen"},"HZ-B-002":{"group":"Biological","en":"Listeria monocytogenes","ar":"ليستيريا مونوسيتوجينس","subtype":"Pathogen"},"HZ-B-003":{"group":"Biological","en":"E. coli O157 / STEC","ar":"إي كولاي O157 / STEC","subtype":"Pathogen"},"HZ-B-004":{"group":"Biological","en":"Campylobacter jejuni","ar":"كامبيلوباكتر","subtype":"Pathogen"},"HZ-B-005":{"group":"Biological","en":"Staphylococcus aureus","ar":"ستافيلوكوكس أوريوس","subtype":"Pathogen/toxin"},"HZ-B-006":{"group":"Biological","en":"Bacillus cereus","ar":"باسيلس سيريس","subtype":"Spore/toxin"},"HZ-B-007":{"group":"Biological","en":"Clostridium perfringens","ar":"كلوستريديوم بيرفرنجنز","subtype":"Spore/toxin"},"HZ-B-008":{"group":"Biological","en":"Clostridium botulinum","ar":"كلوستريديوم بوتولينوم","subtype":"Spore/toxin"},"HZ-B-009":{"group":"Biological","en":"Cronobacter sakazakii","ar":"كرونوباكتر ساكازاكي","subtype":"Pathogen"},"HZ-B-010":{"group":"Biological","en":"Vibrio parahaemolyticus","ar":"فيبريو باراهيموليتيكس","subtype":"Pathogen"},"HZ-B-011":{"group":"Biological","en":"Pseudomonas aeruginosa","ar":"بسودوموناس أيروجينوزا","subtype":"Water microorganism"},"HZ-B-012":{"group":"Biological","en":"Enterobacteriaceae","ar":"إنتروبكترياسي","subtype":"Hygiene indicator"},"HZ-B-013":{"group":"Biological","en":"Yeasts and moulds","ar":"الخمائر والأعفان","subtype":"Spoilage / indicator"},"HZ-C-001":{"group":"Chemical","en":"Total aflatoxins","ar":"إجمالي الأفلاتوكسينات","subtype":"Mycotoxin"},"HZ-C-002":{"group":"Chemical","en":"Aflatoxin M1","ar":"أفلاتوكسين M1","subtype":"Mycotoxin"},"HZ-C-003":{"group":"Chemical","en":"Deoxynivalenol (DON)","ar":"ديوكسينيفالينول","subtype":"Mycotoxin"},"HZ-C-004":{"group":"Chemical","en":"Fumonisins FB1+FB2","ar":"فومونيزينات FB1+FB2","subtype":"Mycotoxin"},"HZ-C-005":{"group":"Chemical","en":"Ochratoxin A","ar":"أوكراتوكسين A","subtype":"Mycotoxin"},"HZ-C-006":{"group":"Chemical","en":"Patulin","ar":"باتولين","subtype":"Mycotoxin"},"HZ-C-007":{"group":"Chemical","en":"Lead","ar":"الرصاص","subtype":"Heavy metal"},"HZ-C-008":{"group":"Chemical","en":"Cadmium","ar":"الكادميوم","subtype":"Heavy metal"},"HZ-C-009":{"group":"Chemical","en":"Arsenic / inorganic arsenic","ar":"الزرنيخ / الزرنيخ غير العضوي","subtype":"Heavy metal/metalloid"},"HZ-C-010":{"group":"Chemical","en":"Mercury / methylmercury","ar":"الزئبق / ميثيل الزئبق","subtype":"Heavy metal"},"HZ-C-011":{"group":"Chemical","en":"Histamine","ar":"الهيستامين","subtype":"Biogenic amine"},"HZ-C-012":{"group":"Chemical","en":"Melamine","ar":"الميلامين","subtype":"Contaminant"},"HZ-C-013":{"group":"Chemical","en":"Hydrocyanic acid","ar":"حمض الهيدروسيانيك","subtype":"Natural toxin"},"HZ-C-014":{"group":"Chemical","en":"Pesticide residues","ar":"متبقيات المبيدات","subtype":"Residues"},"HZ-C-015":{"group":"Chemical","en":"Veterinary drug residues","ar":"متبقيات الأدوية البيطرية","subtype":"Residues"},"HZ-C-016":{"group":"Chemical","en":"Cleaning/sanitizer residues","ar":"بقايا المنظفات والمطهرات","subtype":"Process chemical"},"HZ-A-001":{"group":"Allergen","en":"Declared food allergens","ar":"مسببات الحساسية الغذائية","subtype":"Allergen"},"HZ-P-001":{"group":"Physical","en":"Metal fragments","ar":"شظايا المعادن","subtype":"Foreign body"},"HZ-P-002":{"group":"Physical","en":"Glass","ar":"الزجاج","subtype":"Foreign body"},"HZ-P-003":{"group":"Physical","en":"Hard plastic","ar":"البلاستيك الصلب","subtype":"Foreign body"},"HZ-H-001":{"group":"Halal","en":"Porcine material","ar":"مواد خنزيرية","subtype":"Halal integrity"},"HZ-H-002":{"group":"Halal","en":"Non-halal slaughter source","ar":"مصدر ذبح غير حلال","subtype":"Halal integrity"},"HZ-H-003":{"group":"Halal","en":"Alcohol/ethanol applicability","ar":"الكحول/الإيثانول حسب المواصفة المطبقة","subtype":"Halal integrity"},"HZ-H-004":{"group":"Halal","en":"Cross-contamination with non-halal","ar":"تلوث تبادلي بمواد غير حلال","subtype":"Halal integrity"}};                                   // 05_HAZARD_LIBRARY
+const SEV = ["بسيط","متوسط","جسيم","شديد","كارثي"];     // HACCP-04
+const LIK = ["نادر","غير محتمل","محتمل","مرجح","متكرر"];
+
+/* قوالب خطط الهاسب: CCP من HACCP-07، OPRP من HACCP-08 */
+const TPL = {
+  CCP: { monitorHow:"قياس/ملاحظة", frequency:"لكل دفعة أو تسجيل مستمر", responsible:"مشغل مدرب + مراجعة الجودة",
+         correction:"إيقاف وعزل منذ آخر فحص مقبول", corrective:"تصحيح السبب", disposition:"تقييم المنتج والتصرف المعتمد",
+         verification:"مراجعة السجل يومياً؛ معايرة؛ اختبار/تحليل وفق الخطة", revalidation:"يعاد التثبت عند تغيير المنتج/المعدة/الحد" },
+  OPRP:{ monitorHow:"فحص/قياس", frequency:"بالتكرار المحدد في إجراء التشغيل", responsible:"مسؤول الخطوة + الجودة",
+         correction:"إيقاف/تصحيح", corrective:"CAPA عند التكرار", disposition:"حجز منذ آخر قبول؛ تقييم الأثر",
+         verification:"مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", revalidation:"يعاد التثبت عند تغيير المنتج/المعدة/الحد" },
+};
+
+/* شجرة القرار: أعمدة سجل قرار الضبط HACCP-06 + قاعدة HACCP-04 */
+const TREE = [
+  { k:"significant", short:"خطر مهم؟", q:"هل الخطر مهم؟", help:"درجة S×L ≥ 8 مبدئياً، أو حكم موثق للفريق." },
+  { k:"available", short:"إجراء ضبط متاح؟", q:"هل يوجد إجراء ضبط فعّال في هذه الخطوة؟", help:"إن لم يوجد: تُعدَّل العملية ولا تُعتمد." },
+  { k:"designed", short:"الخطوة مصممة للضبط؟", q:"هل الخطوة أساسية ومصممة لإزالة الخطر أو خفضه لمستوى مقبول بحد قابل للقياس؟", help:"نعم ← CCP.  لا ← ضبط تشغيلي OPRP." },
+  { k:"later", short:"خطوة لاحقة تضبطه؟", q:"هل توجد خطوة لاحقة تزيل الخطر أو تخفضه؟", help:"يُوثَّق كمبرر للتصنيف OPRP.", onlyIfNo:true },
+];
+
+/* 10_VALIDATION_GATE — تطبق على CCP وOPRP (ISO 22000:2018 §8.5.4 يشترط المراقبة والإجراء للنوعين) */
+const GATES = [
+  { id:"SA-VG-05", ar:"تم تأكيد مخطط التدفق الفعلي", manual:true, field:"flowConfirmed" },
+  { id:"SA-VG-06", ar:"تم استكمال تحليل المخاطر" },
+  { id:"SA-VG-07", ar:"تم إثبات الحد علمياً (عند الطلب)", manual:true, field:"limitValidated", conditional:true },
+  { id:"SA-VG-08", ar:"طريقة المراقبة قابلة للقياس وفي الوقت المناسب" },
+  { id:"SA-VG-09", ar:"تم ربط الإجراء التصحيحي" },
+  { id:"SA-VG-10", ar:"تم ربط طريقة التحقق" },
+  { id:"SA-VG-11", ar:"اعتماد مسؤول الجودة", manual:true, field:"qaApproved", final:true },
+];
+
+const SOURCES = [
+  { key:"limit", title:"الحد / معيار الفعل", sheet:"SAFORA 02 · صفحة الحدود الحرجة", desc:"الرقم يُسحب تلقائياً من صفحة الحدود ولا يُكتب هنا.", icon:"fa-temperature-half", box:"border-brand/30 bg-brand-soft/40", tagText:"text-brand-deep" },
+  { key:"haz", title:"الخطر المحتمل", sheet:"SAFORA 05 + منهج HACCP-04", desc:"37 خطراً للاختيار، وتقييم الشدة × الاحتمال (≥ 8 مهم).", icon:"fa-biohazard", box:"border-rose/25 bg-rose-soft/40", tagText:"text-rose-deep" },
+  { key:"plan", title:"الشجرة والمراقبة والعلاج", sheet:"خطط الهاسب HACCP-06 / 07 / 08", desc:"أسئلة قرار الضبط، وقوالب CCP وOPRP تظهر بالذهبي حتى تُخصَّص.", icon:"fa-diagram-project", box:"border-teal/25 bg-teal-soft/40", tagText:"text-teal-deep" },
+  { key:"gate", title:"بوابات الاعتماد", sheet:"SAFORA 10_VALIDATION_GATE", desc:"7 شروط لاكتمال التعريف قبل اعتماد النقطة في الخطة.", icon:"fa-list-check", box:"border-emerald/25 bg-emerald-soft/40", tagText:"text-emerald-deep" },
+];
+
+/* أعمدة ورقة 02 التنظيمية لكل حد: source_id / evidence_status / saudi_legal_status / saudi_effective_status / safora_auto_use / validation_required / implementation_note_ar */
+const REF = {"CL-0001":{"sourceId":"SRC-CODEX-MILK","evidence":"Codex explicit","legalStatus":"Scientific/process reference; product-specific Saudi standard required","effective":"Verify product standard","autoUse":"Conditional","validation":false,"note":"يجب أن يصل كل جزء من المنتج إلى المعاملة المكافئة.","cls":"CCP"},"CL-0002":{"sourceId":"SRC-CODEX-MILK","evidence":"Codex explicit","legalStatus":"Scientific/process reference; product-specific Saudi standard required","effective":"Verify product standard","autoUse":"Conditional","validation":false,"note":"","cls":"CCP"},"CL-0003":{"sourceId":"SRC-CODEX-MILK","evidence":"Codex explicit","legalStatus":"Scientific/process reference; product-specific Saudi standard required","effective":"Verify product standard","autoUse":"Conditional","validation":false,"note":"","cls":"CCP"},"CL-0004":{"sourceId":"SRC-CODEX-MILK","evidence":"Codex explicit","legalStatus":"Scientific/process reference; product-specific Saudi standard required","effective":"Verify product standard","autoUse":"Conditional","validation":false,"note":"مؤشر تحقق وليس CCP مستقلًا.","cls":"Verification"},"CL-0005":{"sourceId":"SRC-CODEX-CATERING","evidence":"Codex explicit","legalStatus":"Saudi catering rule + Codex scientific operating reference","effective":"SFDA 5031 effective 2025-01-01","autoUse":"Conditional","validation":false,"note":"","cls":"CCP"},"CL-0006":{"sourceId":"SRC-CODEX-CATERING","evidence":"Codex explicit","legalStatus":"Saudi catering rule + Codex scientific operating reference","effective":"SFDA 5031 effective 2025-01-01","autoUse":"Conditional","validation":false,"note":"","cls":"OPRP/CCP"},"CL-0007":{"sourceId":"SRC-CODEX-CATERING","evidence":"Codex explicit","legalStatus":"Saudi catering rule + Codex scientific operating reference","effective":"SFDA 5031 effective 2025-01-01","autoUse":"Conditional","validation":false,"note":"","cls":"Operational"},"CL-0008":{"sourceId":"SRC-CODEX-CATERING","evidence":"Codex explicit","legalStatus":"Saudi catering rule + Codex scientific operating reference","effective":"SFDA 5031 effective 2025-01-01","autoUse":"Conditional","validation":false,"note":"","cls":"OPRP/CCP"},"CL-0009":{"sourceId":"SRC-CODEX-CATERING","evidence":"Codex explicit","legalStatus":"Saudi catering rule + Codex scientific operating reference","effective":"SFDA 5031 effective 2025-01-01","autoUse":"Conditional","validation":false,"note":"","cls":"OPRP/CCP"},"CL-0010":{"sourceId":"SRC-CODEX-CATERING","evidence":"Codex explicit","legalStatus":"Saudi catering rule + Codex scientific operating reference","effective":"SFDA 5031 effective 2025-01-01","autoUse":"Conditional","validation":false,"note":"القيمة 7°C سماح قصير وليست هدف التشغيل.","cls":"OPRP"},"CL-0011":{"sourceId":"SRC-CODEX-CATERING","evidence":"Codex explicit","legalStatus":"Saudi catering rule + Codex scientific operating reference","effective":"SFDA 5031 effective 2025-01-01","autoUse":"Conditional","validation":false,"note":"القيمة -12°C سماح قصير وليست هدف التشغيل.","cls":"OPRP"},"CL-0012":{"sourceId":"SRC-CODEX-CATERING","evidence":"Codex explicit","legalStatus":"Saudi catering rule + Codex scientific operating reference","effective":"SFDA 5031 effective 2025-01-01","autoUse":"Conditional","validation":false,"note":"","cls":"CCP"},"CL-0013":{"sourceId":"SRC-CODEX-CATERING","evidence":"Codex explicit","legalStatus":"Saudi catering rule + Codex scientific operating reference","effective":"SFDA 5031 effective 2025-01-01","autoUse":"Conditional","validation":false,"note":"","cls":"OPRP"},"CL-0014":{"sourceId":"SRC-CODEX-CATERING","evidence":"Codex explicit","legalStatus":"Saudi catering rule + Codex scientific operating reference","effective":"SFDA 5031 effective 2025-01-01","autoUse":"Conditional","validation":false,"note":"","cls":"OPRP"},"CL-0015":{"sourceId":"SRC-CODEX-CATERING","evidence":"Codex explicit","legalStatus":"Saudi catering rule + Codex scientific operating reference","effective":"SFDA 5031 effective 2025-01-01","autoUse":"Conditional","validation":false,"note":"","cls":"OPRP"},"CL-0016":{"sourceId":"SRC-CODEX-CANNED","evidence":"Codex explicit","legalStatus":"Scientific/process reference; validated scheduled process mandatory","effective":"Current scientific control; legal product mapping required","autoUse":"NO if validation_required=Yes; otherwise Conditional","validation":false,"note":"","cls":"CCP"},"CL-0017":{"sourceId":"SRC-CODEX-CANNED","evidence":"Codex explicit","legalStatus":"Scientific/process reference; validated scheduled process mandatory","effective":"Current scientific control; legal product mapping required","autoUse":"NO if validation_required=Yes; otherwise Conditional","validation":false,"note":"","cls":"CCP"},"CL-0018":{"sourceId":"SRC-CODEX-CANNED","evidence":"Codex explicit concept","legalStatus":"Scientific/process reference; validated scheduled process mandatory","effective":"Current scientific control; legal product mapping required","autoUse":"NO if validation_required=Yes; otherwise Conditional","validation":true,"note":"يُثبت حسب المنتج وpH وaw والعبوة والحجم وانتقال الحرارة.","cls":"CCP"},"CL-0019":{"sourceId":"SRC-CODEX-FISH","evidence":"Codex guidance","legalStatus":"Scientific reference; Saudi commodity limit required","effective":"Verify fishery product standard","autoUse":"NO for legal ML; Conditional for process target","validation":true,"note":"طبّق مواصفة السلعة وخطة أخذ العينات الوطنية.","cls":"Performance"},"CL-0020":{"sourceId":"SRC-CODEX-FISH","evidence":"Codex guidance","legalStatus":"Scientific reference; Saudi commodity limit required","effective":"Verify fishery product standard","autoUse":"NO for legal ML; Conditional for process target","validation":false,"note":"","cls":"Benchmark"},"CL-0101":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0102":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0103":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0104":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0105":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0106":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0107":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0108":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0109":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0110":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0111":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0112":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0113":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0114":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0115":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0116":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0117":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0118":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0119":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0120":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0121":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0122":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0123":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0124":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0125":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0126":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0127":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0128":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0129":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0130":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0131":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0132":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0133":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0134":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0135":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0136":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0137":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0138":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0139":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0140":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0141":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0142":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0143":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0144":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0145":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0146":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0147":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0148":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0149":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0150":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0151":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0152":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0153":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0154":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0155":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0156":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0157":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0158":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0159":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0160":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0161":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0162":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0163":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0164":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0165":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"},"CL-0166":{"sourceId":"SRC-CODEX-CONTAM","evidence":"Codex explicit ML","legalStatus":"Saudi legal mapping required before release","effective":"Current framework; commodity limit verification required","autoUse":"NO","validation":false,"note":"حد مواصفة/إفراج، وليس CCP تلقائيًا.","cls":"Release"}};
+
+const SEED_CTRL = [{"limitId":"CL-0001","cls":"CCP","snap":{"id":"CL-0001","sector":"Dairy","productAr":"الحليب السائل","productEn":"Fluid milk","stepAr":"البسترة HTST","stepEn":"HTST pasteurization","controlClass":"CCP (Critical Control Point): نقطة تحكم حرجة","parameter":"Temperature","operator":">=","v1":72,"unit":"°C","timeValue":15,"timeUnit":"s","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens مسببات الأمراض","criticalText":"≥72°C لمدة ≥15 ثانية.","note":"يجب أن يصل كل جزء من المنتج إلى المعاملة المكافئة.","reference":"Applicable Saudi/GSO dairy standard + Codex CXC 57-2004","effective":"Verify product standard","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"}},{"limitId":"CL-0002","cls":"CCP","snap":{"id":"CL-0002","sector":"Dairy ألبان","productAr":"الحليب السائل","productEn":"Fluid milk","stepAr":"البسترة بالدفعات","stepEn":"Batch pasteurization","controlClass":"CCP","parameter":"Temperature","operator":">=","v1":63,"unit":"°C","timeValue":30,"timeUnit":"min","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"≥63°C لمدة ≥30 دقيقة.","reference":"Applicable Saudi/GSO dairy standard + Codex CXC 57-2004","effective":"Verify product standard","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"}},{"limitId":"CL-0003","cls":"CCP","snap":{"id":"CL-0003","sector":"Dairy","productAr":"القشدة","productEn":"Cream","stepAr":"البسترة","stepEn":"Pasteurization","controlClass":"CCP","parameter":"Temperature","operator":">=","v1":75,"unit":"°C","timeValue":15,"timeUnit":"s","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"≥75°C لمدة ≥15 ثانية للقشدة.","reference":"Applicable Saudi/GSO dairy standard + Codex CXC 57-2004","effective":"Verify product standard","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"}},{"limitId":"CL-0005","cls":"CCP","snap":{"id":"CL-0005","sector":"RTE/Catering","productAr":"أغذية مطهية مبردة","productEn":"Cook-chilled foods","stepAr":"التبريد السريع","stepEn":"Rapid chilling","controlClass":"CCP","parameter":"Core temperature profile","operator":"60→10","v1":60,"v2":10,"unit":"°C","timeValue":2,"timeUnit":"h","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"من 60°C إلى 10°C في مركز الغذاء خلال أقل من ساعتين.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"}},{"limitId":"CL-0006","cls":"pending","snap":{"id":"CL-0006","sector":"RTE/Catering","productAr":"أغذية مطهية مبردة","productEn":"Cook-chilled foods","stepAr":"التخزين المبرد","stepEn":"Chilled storage","controlClass":"OPRP/CCP","parameter":"Product temperature","operator":"<=","v1":4,"unit":"°C","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"درجة المنتج ≤4°C حتى الاستخدام.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"}},{"limitId":"CL-0008","cls":"pending","snap":{"id":"CL-0008","sector":"Frozen/RTE","productAr":"أغذية مطهية مجمدة","productEn":"Cooked-frozen foods","stepAr":"التخزين المجمد","stepEn":"Frozen storage","controlClass":"OPRP/CCP","parameter":"Product temperature","operator":"<=","v1":-18,"unit":"°C","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"الحفظ عند -18°C أو أقل.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"}},{"limitId":"CL-0009","cls":"pending","snap":{"id":"CL-0009","sector":"RTE/Catering","productAr":"أغذية ساخنة","productEn":"Hot foods","stepAr":"النقل الساخن","stepEn":"Hot transport","controlClass":"OPRP/CCP","parameter":"Product temperature","operator":">=","v1":60,"unit":"°C","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"أثناء النقل ≥60°C.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"}},{"limitId":"CL-0010","cls":"OPRP","snap":{"id":"CL-0010","sector":"RTE/Catering","productAr":"أغذية مبردة","productEn":"Chilled foods","stepAr":"النقل المبرد","stepEn":"Chilled transport","controlClass":"OPRP","parameter":"Product temperature","operator":"<=","v1":4,"v2":7,"unit":"°C","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"الهدف 4°C؛ يمكن الارتفاع إلى 7°C لفترة قصيرة أثناء النقل.","note":"القيمة 7°C سماح قصير وليست هدف التشغيل.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"}},{"limitId":"CL-0011","cls":"OPRP","snap":{"id":"CL-0011","sector":"Frozen/RTE","productAr":"أغذية مجمدة","productEn":"Frozen foods","stepAr":"النقل المجمد","stepEn":"Frozen transport","controlClass":"OPRP","parameter":"Product temperature","operator":"<=","v1":-18,"v2":-12,"unit":"°C","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"الهدف ≤-18°C؛ يمكن الارتفاع إلى -12°C لفترة قصيرة أثناء النقل.","note":"القيمة -12°C سماح قصير وليست هدف التشغيل.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"}},{"limitId":"CL-0012","cls":"CCP","snap":{"id":"CL-0012","sector":"RTE/Catering","productAr":"أغذية معاد تسخينها","productEn":"Reheated foods","stepAr":"إعادة التسخين","stepEn":"Reheating","controlClass":"CCP","parameter":"Core temperature","operator":">=","v1":75,"unit":"°C","timeValue":1,"timeUnit":"h","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"الوصول إلى ≥75°C في مركز الغذاء خلال ساعة من إخراجه من التبريد.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"}},{"limitId":"CL-0013","cls":"OPRP","snap":{"id":"CL-0013","sector":"RTE/Catering","productAr":"أغذية ساخنة","productEn":"Hot foods","stepAr":"الحفظ/التقديم الساخن","stepEn":"Hot holding/service","controlClass":"OPRP","parameter":"Product temperature","operator":">=","v1":60,"unit":"°C","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"الحفظ والتقديم الساخن ≥60°C.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"}},{"limitId":"CL-0014","cls":"OPRP","snap":{"id":"CL-0014","sector":"RTE/Catering","productAr":"أغذية باردة بالخدمة الذاتية","productEn":"Cold self-service food","stepAr":"التقديم","stepEn":"Service","controlClass":"OPRP","parameter":"Product temperature","operator":"<=","v1":4,"unit":"°C","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"الخدمة الذاتية الباردة ≤4°C.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"}},{"limitId":"CL-0015","cls":"OPRP","snap":{"id":"CL-0015","sector":"RTE/Catering","productAr":"أغذية ساخنة بالخدمة الذاتية","productEn":"Hot self-service food","stepAr":"التقديم","stepEn":"Service","controlClass":"OPRP","parameter":"Product temperature","operator":">=","v1":60,"unit":"°C","hazardClass":"B","hazardId":"HZ-B-001","hazardName":"Pathogens","criticalText":"الخدمة الذاتية الساخنة ≥60°C.","reference":"SFDA.FD 5031:2024 + Codex CXC 39-1993","effective":"SFDA 5031 effective 2025-01-01","validationRequired":false,"autoUse":"Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"}},{"limitId":"CL-0016","cls":"CCP","snap":{"id":"CL-0016","sector":"Canned/Acidified","productAr":"أغذية حمضية طبيعيًا","productEn":"Naturally acid foods","stepAr":"التحكم بالحموضة","stepEn":"Acidity control","controlClass":"CCP","parameter":"Equilibrium pH","operator":"<=","v1":4.6,"unit":"pH","hazardClass":"B","hazardId":"HZ-B-008","hazardName":"Clostridium botulinum","criticalText":"pH اتزاني ≤4.6.","reference":"Applicable Saudi/GSO canned-food standard + Codex CXC 23-1979","effective":"Current scientific control; legal product mapping required","validationRequired":false,"autoUse":"NO if validation_required=Yes; otherwise Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"}},{"limitId":"CL-0017","cls":"CCP","snap":{"id":"CL-0017","sector":"Canned/Acidified","productAr":"أغذية منخفضة الحموضة محمضة","productEn":"Acidified low-acid foods","stepAr":"التحميض","stepEn":"Acidification","controlClass":"CCP","parameter":"Equilibrium pH","operator":"<=","v1":4.6,"unit":"pH","hazardClass":"B","hazardId":"HZ-B-008","hazardName":"Clostridium botulinum","criticalText":"الوصول إلى pH اتزاني ≤4.6 بعد المعالجة الحرارية.","reference":"Applicable Saudi/GSO canned-food standard + Codex CXC 23-1979","effective":"Current scientific control; legal product mapping required","validationRequired":false,"autoUse":"NO if validation_required=Yes; otherwise Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"}},{"limitId":"CL-0018","cls":"CCP","snap":{"id":"CL-0018","sector":"Canned/Low-acid","productAr":"معلبات منخفضة الحموضة","productEn":"Low-acid canned foods","stepAr":"المعالجة الحرارية","stepEn":"Thermal processing","controlClass":"CCP","parameter":"Scheduled process","operator":"Validated","hazardClass":"B","hazardId":"HZ-B-008","hazardName":"Clostridium botulinum","criticalText":"لا يوجد رقم عالمي واحد؛ يجب تطبيق Scheduled Process مثبت يحقق Commercial Sterility.","note":"يُثبت حسب المنتج وpH وaw والعبوة والحجم وانتقال الحرارة.","reference":"Applicable Saudi/GSO canned-food standard + Codex CXC 23-1979","effective":"Current scientific control; legal product mapping required","validationRequired":true,"autoUse":"NO if validation_required=Yes; otherwise Conditional","sourceUrl":"https://mwasfah.sfda.gov.sa/"}}];   // صفوف CCP وOPRP وOPRP/CCP من ورقة 02
+
+const num = v => (v === null || v === undefined || v === "" || isNaN(Number(v))) ? null : Number(v);
+const str = v => (v === null || v === undefined) ? "" : String(v).trim();
+function normLimit(o){
+  const op = str(o.operator);
+  return {
+    id:str(o.id), sector:str(o.sector).replace(/[\u0600-\u06FF].*$/, "").trim() || "General Food",
+    productAr:str(o.productAr), stepAr:str(o.stepAr), stepEn:str(o.stepEn),
+    controlClass:str(o.controlClass).replace(/\s*\(.*$/, "").replace(/:.*$/, "").trim(),
+    parameter:str(o.parameter), operator: op.includes("→") ? "profile" : op,
+    v1:num(o.v1), v2:num(o.v2), unit:str(o.unit), timeValue:num(o.timeValue), timeUnit:str(o.timeUnit),
+    hazardName:str(o.hazardName), criticalText:str(o.criticalText), reference:str(o.reference),
+    note:str(o.note), effective:str(o.effective), autoUse:str(o.autoUse),
+    validationRequired: o.validationRequired === true || o.validationRequired === "true"
+  };
+}
+function classFromTree(t){
+  if (t.significant === false) return "PRP";
+  if (t.available === false) return "none";
+  if (t.designed === true) return "CCP";
+  if (t.designed === false) return "OPRP";
+  return "pending";
+}
+function newPoint(id, l, fileClass){
+  const tree = fileClass === "CCP" ? { significant:true, available:true, designed:true, later:null }
+             : fileClass === "OPRP" ? { significant:true, available:true, designed:false, later:null }
+             : { significant:true, available:true, designed:null, later:null };
+  const cls = classFromTree(tree), t = TPL[cls] || {};
+  return {
+    id, code:null, limitId:l.id, tree, cls,
+    hazards: /botulinum/i.test(l.hazardName) ? ["HZ-B-008"] : [], hazardCause:"", severity:"", likelihood:"",
+    monitorWhat:[l.parameter, l.timeValue !== null ? "الزمن" : ""].filter(Boolean).join(" + "),
+    monitorHow:t.monitorHow || "", frequency:t.frequency || "", responsible:t.responsible || "", record:"",
+    correction:t.correction || "", corrective:t.corrective || "", disposition:t.disposition || "",
+    verification:t.verification || "", revalidation:t.revalidation || "",
+    flowConfirmed:false, limitValidated:false, qaApproved:false
+  };
+}
+
+function ctrlLibrary(){
+  return {
+    SECTOR_AR, HAZ, SEV, LIK, tree:TREE, gates:GATES, sources:SOURCES,
+    monitorFields:[
+      { k:"monitorWhat", label:"ماذا يُقاس", ph:"المعامل" }, { k:"monitorHow", label:"كيف يُقاس", ph:"الجهاز والطريقة" },
+      { k:"frequency", label:"التكرار", ph:"كل دفعة / مستمر" }, { k:"responsible", label:"المسؤول", ph:"المشغل والمراجع" },
+      { k:"record", label:"السجل / النموذج", ph:"مثل P-19-F03" } ],
+    treatFields:[
+      { k:"correction", label:"تصحيح فوري", ph:"إيقاف وعزل" }, { k:"corrective", label:"إجراء تصحيحي", ph:"تحليل السبب ومنع التكرار" },
+      { k:"disposition", label:"التصرف في المنتج", ph:"إعادة معالجة / إتلاف / إفراج بعد تقييم" } ],
+    verifyFields:[ { k:"verification", label:"التحقق", ph:"مراجعة السجلات والمعايرة" }, { k:"revalidation", label:"إعادة التثبت", ph:"متى يُعاد إثبات الحد" } ],
+    typeTabs:[
+      { key:"all", label:"عرض الكل", dot:"bg-ink/30" }, { key:"CCP", label:"CCP فقط", dot:"bg-rose" },
+      { key:"OPRP", label:"OPRP فقط", dot:"bg-amber" }, { key:"pending", label:"غير محسوم / أكمل الأسئلة", dot:"bg-white border border-dashed border-ink/60" } ],
+    statusFilters:[ { key:"all", label:"كل الحالات" }, { key:"incomplete", label:"غير مكتملة" }, { key:"ready", label:"بانتظار الاعتماد" }, { key:"approved", label:"معتمدة" } ],
+
+    showInactive:false, collapsed:{}, treeFor:null, treeDraft:{}, classFromTree,
+    limits:[], items:[], sectorKey:"all", typeFilter:"all", statusFilter:"all", query:"",
+    draft:null, editingId:null, addOpen:false, newLimitId:"", deleting:null, confirmReset:false, modified:false, toast:"", toastTimer:null,
+
+    init(){
+      let lim = null; try { lim = JSON.parse(localStorage.getItem(LIMITS_KEY) || "null"); } catch (e) {}
+      this.limits = (Array.isArray(lim) ? lim : JSON.parse(document.getElementById("seed-limits").textContent)).map(normLimit);
+      let saved = null; try { saved = JSON.parse(localStorage.getItem(CTRL_KEY) || "null"); } catch (e) {}
+      this.items = Array.isArray(saved) ? saved : this.seed();
+      this.modified = Array.isArray(saved);
+    },
+    seed(){
+      const out = SEED_CTRL.map((s, i) => newPoint("P" + (i + 1), this.limits.find(x => x.id === s.limitId) || normLimit(s.snap), s.cls));
+      out.forEach(p => this.assignCode(p, out));
+      return out;
+    },
+    assignCode(p, list){
+      if (!["CCP", "OPRP"].includes(p.cls)) { p.code = null; return; }
+      if (p.code && p.code.startsWith(p.cls + "-")) return;
+      const n = Math.max(0, ...list.filter(x => x.code && x.code.startsWith(p.cls + "-")).map(x => +x.code.split("-")[1])) + 1;
+      p.code = `${p.cls}-${String(n).padStart(2, "0")}`;
+    },
+    persist(){ this.modified = true; try { localStorage.setItem(CTRL_KEY, JSON.stringify(this.items)); } catch (e) {} },
+    flash(m){ this.toast = m; clearTimeout(this.toastTimer); this.toastTimer = setTimeout(() => this.toast = "", 2600); },
+
+    /* العرض والتجميع */
+    lim(c){ return c ? this.limits.find(l => l.id === c.limitId) || null : null; },
+    sectorOf(c){ const l = this.lim(c); return l ? l.sector : "General Food"; },
+    matchType(c, t){ return t === "all" ? true : t === "pending" ? !["CCP", "OPRP"].includes(c.cls) : c.cls === t; },
+    countType(t){ return this.items.filter(c => this.matchType(c, t) && (this.sectorKey === "all" || this.sectorOf(c) === this.sectorKey)).length; },
+    get sectors(){
+      const m = new Map();
+      for (const c of this.items){
+        const k = this.sectorOf(c);
+        if (!m.has(k)) m.set(k, { key:k, nameAr:SECTOR_AR[k] || k, ccp:0, oprp:0, pending:0 });
+        const s = m.get(k); c.cls === "CCP" ? s.ccp++ : c.cls === "OPRP" ? s.oprp++ : s.pending++;
+      }
+      return [...m.values()].sort((a, b) => (b.ccp + b.oprp) - (a.ccp + a.oprp));
+    },
+    get allSectors(){
+      const m = new Map();
+      for (const l of this.limits){
+        if (!m.has(l.sector)) m.set(l.sector, { key:l.sector, nameAr:SECTOR_AR[l.sector] || l.sector, ccp:0, oprp:0, pending:0, limits:0, classSet:new Set() });
+        const s = m.get(l.sector); s.limits++; s.classSet.add(l.controlClass);
+      }
+      for (const s of this.sectors){ const t = m.get(s.key); if (t) Object.assign(t, { ccp:s.ccp, oprp:s.oprp, pending:s.pending }); else m.set(s.key, { ...s, limits:0, classSet:new Set() }); }
+      return [...m.values()].map(s => ({ ...s, classes:[...s.classSet].map(c => ({ "Release limit":"حدود إفراج", "Verification":"تحقق", "Performance target":"أهداف أداء", "Benchmark":"مرجع أداء", "Operational limit":"حدود تشغيلية" })[c] || c).join("، ") }));
+    },
+    get activeSectors(){ return this.allSectors.filter(s => s.ccp + s.oprp + s.pending > 0).sort((a, b) => (b.ccp + b.oprp + b.pending) - (a.ccp + a.oprp + a.pending)); },
+    get inactiveSectors(){ return this.allSectors.filter(s => s.ccp + s.oprp + s.pending === 0).sort((a, b) => b.limits - a.limits); },
+    get allRow(){ const t = { ccp:0, oprp:0, pending:0 }; this.activeSectors.forEach(s => { t.ccp += s.ccp; t.oprp += s.oprp; t.pending += s.pending; }); return { key:"all", nameAr:"جميع القطاعات", ...t }; },
+    get currentInactive(){ return this.inactiveSectors.find(s => s.key === this.sectorKey) || null; },
+    get sectorList(){
+      const t = { ccp:0, oprp:0, pending:0 }; this.sectors.forEach(s => { t.ccp += s.ccp; t.oprp += s.oprp; t.pending += s.pending; });
+      return [{ key:"all", nameAr:"جميع القطاعات", ...t }, ...this.sectors];
+    },
+    get shown(){
+      const q = this.query.trim().toLowerCase();
+      return this.items.filter(c => {
+        const l = this.lim(c) || {};
+        return (this.sectorKey === "all" || this.sectorOf(c) === this.sectorKey) && this.matchType(c, this.typeFilter) &&
+          (this.statusFilter === "all" || this.status(c) === this.statusFilter) &&
+          (!q || [c.code, c.limitId, l.productAr, l.stepAr, l.stepEn].join(" ").toLowerCase().includes(q));
+      });
+    },
+    get visibleProducts(){
+      const m = new Map();
+      for (const c of this.shown){
+        const l = this.lim(c) || {}; const k = this.sectorOf(c) + "|" + (l.productAr || "—");
+        if (!m.has(k)) m.set(k, { key:k, nameAr:l.productAr || "بدون حد مرتبط", sectorAr:SECTOR_AR[this.sectorOf(c)] || this.sectorOf(c), items:[] });
+        m.get(k).items.push(c);
+      }
+      const rank = { CCP:0, OPRP:1 };
+      return [...m.values()].map(p => ({ ...p, items:p.items.sort((a, b) => (rank[a.cls] ?? 2) - (rank[b.cls] ?? 2)) }));
+    },
+    get unlinkedLimits(){ const used = new Set(this.items.map(c => c.limitId)); return this.limits.filter(l => !used.has(l.id) && (this.sectorKey === "all" || l.sector === this.sectorKey)); },
+    get hazardGroups(){
+      const names = { Biological:"بيولوجي", Chemical:"كيميائي", Physical:"فيزيائي", Allergen:"مسببات الحساسية", Halal:"سلامة الحلال" };
+      const g = {}; for (const [id, h] of Object.entries(HAZ)) (g[h.group] = g[h.group] || []).push({ id, ...h });
+      return Object.entries(g).map(([key, items]) => ({ key, label:names[key] || key, items }));
+    },
+
+    /* البيانات التنظيمية: الحي من صفحة الحدود أولاً ثم أعمدة ورقة 02 */
+    info(c){
+      const l = this.lim(c) || {}, r = REF[c.limitId] || {};
+      return { note:l.note || r.note || "", validation: l.id ? l.validationRequired : !!r.validation, effective:l.effective || r.effective || "",
+               autoUse:l.autoUse || r.autoUse || "", legalStatus:r.legalStatus || "", sourceId:r.sourceId || "", evidence:r.evidence || "" };
+    },
+    legal(c){
+      const t = this.info(c).legalStatus;
+      if (/Saudi .*rule|SFDA/i.test(t)) return { label:"ملزم سعودياً + مرجع علمي", cls:"bg-ink text-white" };
+      if (/Scientific\/process reference/i.test(t)) return { label:"مرجع علمي — يلزم ربطه بمواصفة سعودية", cls:"bg-canvas text-ink/80 border border-black/10" };
+      return { label:t ? "حالة تشريعية: راجع المصدر" : "لا توجد حالة تشريعية (حد مضاف)", cls:"bg-canvas text-ink/70" };
+    },
+    effectiveAr(t){
+      if (!t) return "حالة النفاذ غير محددة";
+      const m = t.match(/SFDA\s*(\d+)\s*effective\s*([\d-]+)/i);
+      if (m) return `SFDA ${m[1]} سارية منذ \u2066${m[2]}\u2069`;
+      return ({ "Verify product standard":"تحقق من مواصفة المنتج", "Current scientific control; legal product mapping required":"ضبط علمي ساري؛ يلزم ربط قانوني بالمنتج" })[t] || t;
+    },
+    autoUse(c){
+      const t = this.info(c).autoUse, v = this.info(c).validation;
+      if (/^NO if validation/i.test(t)) return v ? { label:"لا — بعد التحقق العلمي", cls:"bg-rose-soft text-rose-deep" } : { label:"مشروط", cls:"bg-amber-soft text-amber-deep" };
+      if (/^yes/i.test(t)) return { label:"مسموح", cls:"bg-emerald-soft text-emerald-deep" };
+      if (/^conditional/i.test(t)) return { label:"مشروط بمراجعة الجودة", cls:"bg-amber-soft text-amber-deep" };
+      if (/^no/i.test(t)) return { label:"غير مسموح", cls:"bg-rose-soft text-rose-deep" };
+      return { label:"غير محدد", cls:"bg-canvas text-ink/70" };
+    },
+    evidenceAr(t){ return ({ "Codex explicit":"نص صريح في Codex", "Codex explicit concept":"مفهوم صريح في Codex" })[t] || t || "دليل غير محدد"; },
+
+    /* الطي والتوسيع */
+    toggleProduct(k){ this.collapsed = { ...this.collapsed, [k]:!this.collapsed[k] }; },
+    setAll(v){ const o = {}; this.visibleProducts.forEach(p => o[p.key] = v); this.collapsed = o; },
+
+    /* نافذة شجرة القرار السريعة */
+    openTree(c){ this.treeFor = c; this.treeDraft = { ...c.tree }; },
+    saveTree(){
+      const orig = this.treeFor, d = JSON.parse(JSON.stringify(orig));
+      d.tree = { ...this.treeDraft };
+      if (d.tree.designed !== false) d.tree.later = null;
+      this.commit(orig, d); this.treeFor = null;
+    },
+
+    /* التصنيف */
+    clsMeta(c){
+      return ({
+        CCP:{ badge:"bg-rose-soft text-rose-deep", dot:"bg-rose", text:"text-rose", soft:"bg-rose-soft text-rose-deep" },
+        OPRP:{ badge:"bg-amber-soft text-amber-deep", dot:"bg-amber", text:"text-amber-deep", soft:"bg-amber-soft text-amber-deep" },
+      })[c.cls] || { badge:"bg-white text-ink/60 border border-dashed border-ink/30", dot:"bg-ink/30", text:"text-ink/80", soft:"bg-canvas text-ink/80" };
+    },
+    treeLabel(c){ return ({ CCP:"CCP — نقطة تحكم حرجة", OPRP:"OPRP — برنامج تشغيلي", PRP:"PRP — يكفي البرنامج الأساسي", none:"لا ضبط — تُعدَّل العملية", pending:"قيد التصنيف — أجب عن الشجرة" })[c.cls]; },
+    treeWhy(c){
+      return ({ CCP:"الخطوة أساسية لضبط الخطر وتحتاج حداً حرجاً قابلاً للقياس.", OPRP:"الضبط مهم لكنه تشغيلي ويُدار بمعيار فعل وليس حداً حرجاً.",
+                PRP:"الخطر غير مهم بمبرر موثق؛ تخرج النقطة من خطة الضبط.", none:"لا يوجد إجراء فعال في هذه الخطوة؛ لا اعتماد قبل تعديل العملية.",
+                pending:"ملف SAFORA صنّفها «OPRP/CCP» دون حسم؛ السؤال الثالث يحدد التصنيف." })[c.cls];
+    },
+    cardFrame(c){ return c.cls === "CCP" ? "border-rose/25 shadow-[inset_-3px_0_0_#E11D48]" : c.cls === "OPRP" ? "border-amber/35 shadow-[inset_-3px_0_0_#C58B00]" : "border-dashed border-ink/25"; },
+
+    /* الاكتمال والبوابات */
+    score(c){ return c && c.severity && c.likelihood ? c.severity * c.likelihood : 0; },
+    isTemplate(c, k){ const t = TPL[c.cls] || TPL.CCP; return !!c[k] && (c[k] === TPL.CCP[k] || c[k] === TPL.OPRP[k]); },
+    filled(c, keys){ return keys.every(k => str(c[k]) && !this.isTemplate(c, k)); },
+    tplDot(c, keys){ return keys.some(k => !str(c[k])) ? "bg-rose" : keys.some(k => this.isTemplate(c, k)) ? "bg-amber" : "bg-emerald"; },
+    notApplicable(c, gt){ const l = this.lim(c); return !!(gt.conditional && l && !l.validationRequired); },
+    gateState(c, gt){
+      const l = this.lim(c);
+      switch (gt.id){
+        case "SA-VG-05": return c.flowConfirmed ? { ok:true, why:"أكّد الفريق وجود الخطوة في مخطط التدفق الفعلي." } : { ok:false, why:"يحتاج تأكيداً ميدانياً للخطوة في مخطط التدفق." };
+        case "SA-VG-06":
+          if (!c.hazards.length) return { ok:false, why:"حدّد الأخطار المستهدفة من مكتبة المخاطر." };
+          if (!this.score(c)) return { ok:false, why:"أكمل تقييم الشدة والاحتمال." };
+          return { ok:true, why:`${c.hazards.length} خطر · الدرجة ${this.score(c)}` };
+        case "SA-VG-07":
+          if (!l) return { ok:false, why:"لا يوجد حد مرتبط." };
+          if (!l.validationRequired) return { ok:true, why:"لا ينطبق — الحد لا يتطلب إثباتاً إضافياً في الملف." };
+          return c.limitValidated ? { ok:true, why:"أُرفق دليل الإثبات العلمي." } : { ok:false, why:"الحد مُعلَّم بأنه يحتاج إثباتاً علمياً قبل الاعتماد." };
+        case "SA-VG-08": return this.filled(c, ["monitorWhat", "monitorHow", "frequency", "responsible"]) ? { ok:true, why:"المراقبة محددة ومخصصة." } : { ok:false, why:"خصّص طريقة المراقبة والتكرار والمسؤول بدل نص القالب." };
+        case "SA-VG-09": return this.filled(c, ["correction", "corrective", "disposition"]) ? { ok:true, why:"خطوات العلاج الثلاث محددة." } : { ok:false, why:"خصّص التصحيح والإجراء التصحيحي والتصرف في المنتج." };
+        case "SA-VG-10": return this.filled(c, ["verification"]) ? { ok:true, why:"طريقة التحقق مرتبطة." } : { ok:false, why:"خصّص طريقة التحقق." };
+        case "SA-VG-11": {
+          if (!["CCP", "OPRP"].includes(c.cls)) return { ok:false, locked:true, why:"احسم التصنيف من شجرة القرار أولاً." };
+          if (!GATES.filter(g => !g.final).every(g => this.gateState(c, g).ok)) return { ok:false, locked:true, why:"يُفتح بعد اكتمال البوابات السابقة." };
+          return c.qaApproved ? { ok:true, why:"اعتمدها مسؤول الجودة." } : { ok:false, why:"جاهزة — بانتظار اعتماد مسؤول الجودة." };
+        }
+      }
+      return { ok:false, why:"" };
+    },
+    passed(c){ return GATES.filter(g => this.gateState(c, g).ok).length; },
+    status(c){
+      if (!["CCP", "OPRP"].includes(c.cls)) return "pending";
+      if (this.passed(c) === GATES.length) return "approved";
+      if (GATES.filter(g => !g.final).every(g => this.gateState(c, g).ok)) return "ready";
+      return "incomplete";
+    },
+    statusMeta(c){
+      return ({ pending:{ label:"يحتاج قرار تصنيف", chip:"bg-canvas text-ink/75" }, approved:{ label:"معتمدة", chip:"bg-emerald-soft text-emerald-deep" },
+                ready:{ label:"بانتظار اعتماد الجودة", chip:"bg-teal-soft text-teal-deep" }, incomplete:{ label:"غير مكتملة", chip:"bg-canvas text-ink/70" } })[this.status(c)];
+    },
+    nextStep(c){
+      if (!["CCP", "OPRP"].includes(c.cls)) return "التالي: أجب عن شجرة القرار";
+      const g = GATES.find(g => !this.gateState(c, g).ok);
+      return g ? "التالي: " + g.ar : "مكتملة";
+    },
+
+    /* التحرير */
+    get draftView(){ return this.draft ? { ...this.draft, cls:classFromTree(this.draft.tree), severity:num(this.draft.severity), likelihood:num(this.draft.likelihood) } : {}; },
+    previewCode(){
+      const cls = this.draftView.cls, orig = this.items.find(x => x.id === this.editingId);
+      if (!["CCP", "OPRP"].includes(cls)) return "غير محسوم";
+      if (orig && orig.code && orig.code.startsWith(cls + "-")) return orig.code;
+      const n = Math.max(0, ...this.items.filter(x => x.code && x.code.startsWith(cls + "-")).map(x => +x.code.split("-")[1])) + 1;
+      return `${cls}-${String(n).padStart(2, "0")}`;
+    },
+    openEdit(c){ this.editingId = c.id; this.draft = JSON.parse(JSON.stringify(c)); },
+    closeEdit(){ this.draft = null; this.editingId = null; },
+    openAdd(){ this.newLimitId = ""; this.addOpen = true; },
+    startNew(){
+      const l = this.limits.find(x => x.id === this.newLimitId); if (!l) return;
+      const fc = l.controlClass === "CCP" ? "CCP" : l.controlClass === "OPRP" ? "OPRP" : "pending";
+      const n = Math.max(0, ...this.items.map(x => +String(x.id).replace(/\D/g, "") || 0)) + 1;
+      this.draft = newPoint("P" + n, l, fc); this.editingId = null; this.addOpen = false;
+    },
+    toggleHazard(id){ const a = this.draft.hazards; const i = a.indexOf(id); i > -1 ? a.splice(i, 1) : a.push(id); },
+    toggleManual(gt){
+      if (this.gateState(this.draftView, gt).locked) return;
+      this.draft[gt.field] = !this.draft[gt.field];
+      if (gt.field !== "qaApproved" && !this.draft[gt.field]) this.draft.qaApproved = false;
+    },
+    applyTemplates(){
+      const t = TPL[this.draftView.cls] || TPL.CCP;
+      for (const [k, v] of Object.entries(t)) if (!str(this.draft[k])) this.draft[k] = v;
+    },
+    saveEdit(){
+      const d = JSON.parse(JSON.stringify(this.draft));
+      const orig = this.items.find(x => x.id === this.editingId);
+      this.commit(orig, d); this.closeEdit();
+    },
+    /* حفظ موحّد: يعيد حساب التصنيف والرمز والقوالب ويُسقط الاعتماد عند أي تغيير */
+    commit(orig, d){
+      d.cls = classFromTree(d.tree); d.severity = num(d.severity) || ""; d.likelihood = num(d.likelihood) || "";
+      if (TPL[d.cls]){
+        const other = TPL[d.cls === "CCP" ? "OPRP" : "CCP"];
+        for (const [k, v] of Object.entries(TPL[d.cls])) if (!str(d[k]) || d[k] === other[k]) d[k] = v;
+      }
+      if (orig){
+        const strip = o => JSON.stringify({ ...o, qaApproved:false, code:null, cls:null });
+        if (strip(orig) !== strip(d) || orig.cls !== d.cls) d.qaApproved = false;
+        if (d.cls !== orig.cls) d.code = null;
+        this.assignCode(d, this.items.filter(x => x.id !== d.id));
+        this.items.splice(this.items.findIndex(x => x.id === orig.id), 1, d);
+        this.flash(d.cls !== orig.cls ? `التصنيف الآن: ${d.code || this.treeLabel(d)}` : "تم حفظ التعديلات");
+      } else {
+        this.assignCode(d, this.items); this.items.push(d); this.flash("تمت إضافة نقطة التحكم");
+      }
+      this.persist();
+    },
+    doDelete(){ this.items = this.items.filter(c => c.id !== this.deleting); this.deleting = null; this.closeEdit(); this.persist(); this.flash("تم حذف النقطة"); },
+    resetData(){ try { localStorage.removeItem(CTRL_KEY); } catch (e) {} this.items = this.seed(); this.modified = false; this.confirmReset = false; this.flash("تمت الاستعادة"); },
+
+    /* عرض الحد */
+    fmt(n){ return Number(n).toLocaleString("en-US", { maximumFractionDigits:3 }); },
+    val(n, u){ if (n === null || n === undefined) return "—"; if (u === "°C") return `${this.fmt(n)}°C`; if (u === "pH") return `pH ${this.fmt(n)}`; return `${this.fmt(n)} ${u}`.trim(); },
+    describe(r){
+      const u = r.unit, pre = u === "°C" ? "" : (u === "pH" ? "" : (r.parameter ? r.parameter + " " : ""));
+      if (r.operator === "Validated" || (r.v1 === null && r.operator !== "profile")) return { standard:"Scheduled process", critical:"أي انحراف عنها" };
+      if (r.operator === "profile") return { standard:`${this.val(r.v1, u)} → ${this.val(r.v2, u)}`, critical:`> ${this.val(r.v2, u)}` };
+      if (r.operator === ">=" || r.operator === ">") return { standard:`${pre}${r.operator === ">=" ? "≥" : ">"} ${this.val(r.v1, u)}`, critical:`${r.operator === ">=" ? "<" : "≤"} ${this.val(r.v1, u)}` };
+      return { standard:`${pre}${r.operator === "<=" ? "≤" : "<"} ${this.val(r.v1, u)}`, critical:`> ${this.val(r.v2 !== null ? r.v2 : r.v1, u)}` };
+    },
+    timeLabel(r){
+      if (!r || r.timeValue === null) return "";
+      const t = `${this.fmt(r.timeValue)} ${({ s:"ث", min:"د", h:"س", day:"يوم" })[r.timeUnit] || r.timeUnit}`;
+      if (r.operator === "profile") return `خلال < ${t}`;
+      if (r.parameter === "Temperature") return `زمن احتجاز ≥ ${t}`;
+      return `خلال ${t}`;
+    },
+  };
+}
+</script>
+</body>
+</html>

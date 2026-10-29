@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إدارة خطط الهاسب | SAFORA</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 47'%3E%3Crect width='35' height='35' rx='8' fill='%23F02B18'/%3E%3Crect x='13' y='12' width='35' height='35' rx='8' fill='%23FD8118' fill-opacity='.92'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Montserrat:wght@700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { cairo: ['Cairo','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+      colors: {
+        ink: { DEFAULT:'#071A2A', elev:'#0E2A40', border:'#1A3A55', soft:'#11304A', mist:'#9FB2BF' },
+        canvas: '#F3F5F8',
+        brand: { DEFAULT:'#FD8118', deep:'#B8560A', soft:'#FFF1E3', red:'#F02B18', cream:'#F6F2E8' },
+        emerald: { DEFAULT:'#0FA968', deep:'#066B41', soft:'#E4F6ED' },
+        rose: { DEFAULT:'#E11D48', deep:'#9F1239', soft:'#FDECEF' },
+        amber: { DEFAULT:'#C58B00', deep:'#7A5700', soft:'#FBF3D6' },
+        teal: { DEFAULT:'#0E86B4', deep:'#0A5F80', soft:'#E2F2F9' },
+      },
+      boxShadow: { card: '0 1px 2px rgba(7,26,42,0.06), 0 8px 24px -12px rgba(7,26,42,0.12)' }
+    }
+  }
+}
+</script>
+<style>
+  body{ font-family:'Cairo',sans-serif; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+  .wordmark{ font-family:'Montserrat','Cairo',sans-serif; font-weight:800; letter-spacing:.015em; }
+  ::selection{ background:#FFE2C4; color:#071A2A; }
+  ::-webkit-scrollbar{ width:8px; height:8px; } ::-webkit-scrollbar-thumb{ background:#D3DAE3; border-radius:99px; }
+  [x-cloak]{ display:none !important; }
+  .prod-chip.active{ background:#071A2A; border-color:#071A2A; }
+  .prod-chip.active .prod-code{ color:#FF9F4A; }
+  .prod-chip.active .prod-name{ color:#fff; }
+  .sec-tab.active{ background:#FD8118; color:#071A2A; }
+  .sec-tab.active i{ color:#fff; }
+  table.plan-table{ width:100%; border-collapse:separate; border-spacing:0; }
+  table.plan-table th{ background:#F3F5F8; font-size:11px; font-weight:800; color:rgba(7,26,42,.55); text-align:right; padding:9px 10px; border-bottom:1px solid rgba(0,0,0,.06); white-space:nowrap; }
+  table.plan-table td{ font-size:12.5px; padding:9px 10px; border-bottom:1px solid rgba(0,0,0,.05); vertical-align:top; color:rgba(7,26,42,.8); line-height:1.6; }
+  table.plan-table tr:hover td{ background:#FAFCFA; }
+  .badge{ display:inline-flex; align-items:center; padding:2px 8px; border-radius:999px; font-size:10.5px; font-weight:800; white-space:nowrap; }
+</style>
+</head>
+<body class="bg-canvas text-ink font-cairo antialiased" x-data="haccpPlans()">
+
+<!-- Top strip -->
+<header class="no-print flex items-center gap-3 px-5 py-3 bg-ink text-white sticky top-0 z-20">
+  <a href="1_Dashboard.html" class="flex items-center gap-2 shrink-0" aria-label="SAFORA">
+    <svg class="w-7 h-7" viewBox="0 0 48 47" aria-hidden="true"><defs><clipPath id="sfMarkTop"><rect width="35" height="35" rx="8"/></clipPath></defs><rect width="35" height="35" rx="8" fill="#F02B18"/><rect x="13" y="12" width="35" height="35" rx="8" fill="#E17F1A"/><rect x="13" y="12" width="35" height="35" rx="8" fill="#FD8118" clip-path="url(#sfMarkTop)"/></svg>
+    <span dir="ltr" class="wordmark text-[17px] text-brand-cream hidden sm:inline">SAFORA</span>
+  </a>
+  <span class="w-px h-5 bg-white/15 hidden sm:block"></span>
+  <a href="0_HACCPCenter.html" class="text-white/50 hover:text-white text-sm"><i class="fa-solid fa-arrow-right ms-1"></i> مركز قيادة الهاسب</a>
+  <span class="text-white/20">/</span>
+  <h1 class="font-bold text-sm">إدارة خطط الهاسب</h1>
+  <span class="mono text-[11px] text-white/40 ms-1" x-text="activeProduct.docNo"></span>
+
+  <div class="ms-auto flex items-center gap-2">
+    <span class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10 text-[11px] font-bold text-white/70">
+      <i class="fa-solid fa-file-lines text-teal"></i> <span x-text="haccpProducts.length + ' خطط منتجات'"></span>
+    </span>
+    <button x-show="!editMode" @click="startEdit()" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition">
+      <i class="fa-solid fa-pen"></i> تعديل الخطة
+    </button>
+    <button x-show="editMode" x-cloak @click="cancelEdit()" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition">
+      <i class="fa-solid fa-rotate-left"></i> إلغاء التعديل
+    </button>
+    <button x-show="editMode" x-cloak @click="saveEdit()" class="px-4 py-2 rounded-lg bg-amber hover:bg-amber-deep text-white text-xs font-bold transition">
+      <i class="fa-solid fa-check"></i> حفظ التغييرات
+    </button>
+    <button @click="addProductOpen=true" :disabled="editMode" class="px-4 py-2 rounded-lg bg-brand text-ink hover:bg-brand-deep hover:text-white text-xs font-bold transition disabled:opacity-30 disabled:cursor-not-allowed"><i class="fa-solid fa-plus"></i> إضافة منتج جديد</button>
+  </div>
+</header>
+
+<main class="p-5 lg:p-7 space-y-5">
+
+  <!-- Page header -->
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p class="mono text-[11px] text-teal font-semibold tracking-widest">HACCP PLANS · ISO 22000:2018 / Amd 1:2024</p>
+      <h1 class="text-2xl lg:text-[26px] font-extrabold tracking-tight mt-1">إدارة خطط تحليل المخاطر ونقاط التحكم الحرجة</h1>
+      <p class="text-sm text-ink/45 mt-1">قالب هيكلي موحد (13 قسماً) يُطبَّق على كل منتج — التبديل بين المنتجات يحدّث المحتوى الخاص بها فقط</p>
+    </div>
+  </div>
+
+  <!-- Product switcher -->
+  <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <p class="text-xs font-extrabold text-ink/60">خطط المنتجات</p>
+      <span x-show="editMode" x-cloak class="text-[10px] font-bold text-amber-deep bg-amber-soft px-2 py-0.5 rounded-full"><i class="fa-solid fa-lock text-[9px]"></i> مقفل أثناء التعديل</span>
+      <span class="ms-auto mono text-[11px] text-teal-deep font-bold" x-text="haccpProducts.length + ' منتج مسجل'"></span>
+    </div>
+    <div class="flex gap-2 overflow-x-auto pb-1" :class="editMode && 'opacity-50 pointer-events-none select-none'">
+      <template x-for="p in haccpProducts" :key="p.id">
+        <button @click="activeProductId = p.id; activeSection='doc'"
+                :disabled="editMode"
+                :class="activeProductId===p.id && 'active'"
+                class="prod-chip shrink-0 flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-black/10 bg-canvas text-right transition">
+          <span class="w-8 h-8 rounded-lg bg-emerald-soft text-emerald flex items-center justify-center text-sm shrink-0"><i :class="p.icon"></i></span>
+          <span>
+            <span class="prod-code block mono text-[10px] font-bold text-teal-deep" x-text="p.docNo"></span>
+            <span class="prod-name block text-xs font-semibold whitespace-nowrap max-w-[150px] truncate" x-text="p.nameAr"></span>
+          </span>
+        </button>
+      </template>
+    </div>
+  </div>
+
+  <!-- Active product header card -->
+  <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card overflow-hidden">
+    <div class="grid grid-cols-1 xl:grid-cols-3">
+      <div class="xl:col-span-2 p-6 border-b xl:border-b-0 xl:border-l border-black/[0.06]">
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+          <span class="w-11 h-11 rounded-xl bg-emerald-soft text-emerald flex items-center justify-center text-lg">
+            <i :class="activeProduct.icon"></i>
+          </span>
+          <div>
+            <p class="mono text-[11px] text-teal-deep font-bold tracking-widest" x-text="activeProduct.docNo"></p>
+            <h2 class="text-xl font-extrabold" x-text="activeProduct.nameAr + ' · ' + activeProduct.nameEn"></h2>
+          </div>
+          <span class="ms-auto sm:ms-3 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-soft text-amber-deep">مسودة</span>
+          <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-soft text-teal-deep mono">Codex CXC 1-1969 · ISO 22000</span>
+        </div>
+        <p class="text-sm text-ink/60 leading-relaxed" x-text="activeProduct.docStatus"></p>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
+          <div class="px-3 py-2.5 rounded-lg bg-canvas">
+            <p class="text-[10px] font-bold text-ink/40 mb-0.5">الإصدار</p>
+            <p class="text-sm font-bold" x-text="activeProduct.version"></p>
+          </div>
+          <div class="px-3 py-2.5 rounded-lg bg-canvas">
+            <p class="text-[10px] font-bold text-ink/40 mb-0.5">تاريخ الإصدار</p>
+            <p class="text-sm font-bold mono" x-text="activeProduct.issueDate"></p>
+          </div>
+          <div class="px-3 py-2.5 rounded-lg bg-canvas">
+            <p class="text-[10px] font-bold text-ink/40 mb-0.5">دورية المراجعة</p>
+            <p class="text-sm font-bold" x-text="activeProduct.reviewCycle"></p>
+          </div>
+          <div class="px-3 py-2.5 rounded-lg bg-canvas">
+            <p class="text-[10px] font-bold text-ink/40 mb-0.5">النطاق</p>
+            <p class="text-sm font-bold" x-text="activeProduct.scope"></p>
+          </div>
+        </div>
+      </div>
+      <div class="p-6 flex flex-col justify-center gap-3">
+        <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-canvas">
+          <span class="text-xs font-semibold text-ink/60"><i class="fa-solid fa-biohazard text-rose w-4"></i> أخطار محللة</span>
+          <span class="mono font-extrabold text-sm" x-text="activeProduct.hazards.length"></span>
+        </div>
+        <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-canvas">
+          <span class="text-xs font-semibold text-ink/60"><i class="fa-solid fa-crosshairs text-rose w-4"></i> نقاط تحكم حرجة CCP</span>
+          <span class="mono font-extrabold text-sm" x-text="activeProduct.ccps.length"></span>
+        </div>
+        <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-canvas">
+          <span class="text-xs font-semibold text-ink/60"><i class="fa-solid fa-gears text-amber w-4"></i> برامج تشغيلية OPRP</span>
+          <span class="mono font-extrabold text-sm" x-text="activeProduct.oprps.length"></span>
+        </div>
+        <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-canvas">
+          <span class="text-xs font-semibold text-ink/60"><i class="fa-solid fa-diagram-project text-teal w-4"></i> خطوات التدفق</span>
+          <span class="mono font-extrabold text-sm" x-text="activeProduct.flow.length"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section tabs + content -->
+  <div class="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-5">
+    <!-- fixed structural tab list -->
+    <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card p-3 h-fit lg:sticky lg:top-20 space-y-1">
+      <p class="px-2 py-1 text-[10px] font-extrabold text-ink/35 tracking-widest">القالب الثابت · 13 قسماً</p>
+      <template x-for="s in haccpSections" :key="s.id">
+        <button @click="activeSection=s.id" :class="activeSection===s.id && 'active'"
+                class="sec-tab w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-ink/70 hover:bg-canvas text-[13px] font-semibold transition text-right">
+          <i :class="s.icon" class="w-4 text-xs"></i> <span x-text="s.label"></span>
+        </button>
+      </template>
+    </div>
+
+    <!-- content -->
+    <div class="bg-white rounded-2xl shadow-card p-5 lg:p-6 min-h-[420px] border-2 transition-colors" :class="editMode ? 'border-amber/50' : 'border-black/[0.06]'">
+      <div x-show="editMode" x-cloak class="flex flex-wrap items-center gap-2.5 mb-5 px-3.5 py-2.5 rounded-lg bg-amber-soft border border-amber/20 text-amber-deep text-xs font-bold">
+        <i class="fa-solid fa-pen-to-square"></i> وضع التعديل نشط لخطة «<span x-text="activeProduct.nameAr"></span>» فقط — انقر أي حقل لتعديله، ثم اضغط "حفظ التغييرات" لاعتمادها أو "إلغاء التعديل" للتراجع عنها.
+        <span class="ms-auto mono text-[10px] font-bold text-amber-deep/60">الأقسام الثابتة (الفريق، المنهجية، PRP، السجلات) غير قابلة للتعديل</span>
+      </div>
+
+
+      <!-- 00 doc control -->
+      <template x-if="activeSection==='doc'">
+        <div class="space-y-5">
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-extrabold">بيانات الوثيقة والتحكم</h3>
+            <span class="badge bg-teal-soft text-teal-deep">HACCP-00</span>
+          </div>
+          <div class="rounded-xl bg-amber-soft border border-amber/20 p-4 flex gap-3">
+            <i class="fa-solid fa-triangle-exclamation text-amber mt-0.5"></i>
+            <p class="text-xs text-amber-deep leading-relaxed">مسودة مبنية على مسار افتراضي لعائلة المنتج. لا تثبت مطابقة المصنع للكودكس أو ISO. التصنيفات وتقديرات المخاطر مقترحة وليست نتائج دراسة موقع؛ يلزم تأكيد التركيبة والمعدات والمسار وتوثيق مصادر الأخطار وحدود القبول وإثبات كفاءة الضبط قبل الاعتماد.</p>
+          </div>
+          <div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
+            <div class="p-3.5 rounded-lg bg-canvas"><p class="text-[10px] font-bold text-ink/40 mb-1">رقم الوثيقة</p><p class="text-sm font-bold mono" x-text="activeProduct.docNo"></p></div>
+            <div class="p-3.5 rounded-lg bg-canvas"><p class="text-[10px] font-bold text-ink/40 mb-1">الإصدار</p><p class="text-sm font-bold" x-text="activeProduct.version"></p></div>
+            <div class="p-3.5 rounded-lg bg-canvas"><p class="text-[10px] font-bold text-ink/40 mb-1">تاريخ الإصدار</p><p class="text-sm font-bold mono" x-text="activeProduct.issueDate"></p></div>
+            <div class="p-3.5 rounded-lg bg-canvas"><p class="text-[10px] font-bold text-ink/40 mb-1">دورية المراجعة</p><p class="text-sm font-bold" x-text="activeProduct.reviewCycle"></p></div>
+            <div class="p-3.5 rounded-lg bg-canvas col-span-2"><p class="text-[10px] font-bold text-ink/40 mb-1">النطاق</p><p class="text-sm font-bold" x-text="activeProduct.scope"></p></div>
+            <div class="p-3.5 rounded-lg bg-canvas col-span-2 lg:col-span-3"><p class="text-[10px] font-bold text-ink/40 mb-1">حالة الوثيقة</p><p class="text-sm font-bold" x-text="activeProduct.docStatus"></p></div>
+          </div>
+          <div>
+            <p class="text-xs font-extrabold text-ink/60 mb-2">المرجعية</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="badge bg-canvas text-ink/60 border border-black/10">Codex CXC 1-1969</span>
+              <span class="badge bg-canvas text-ink/60 border border-black/10">ISO 22000:2018/Amd 1:2024</span>
+              <span class="badge bg-canvas text-ink/60 border border-black/10">ISO 22002-100:2025 + ISO 22002-1:2025</span>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- 01 team (fixed) -->
+      <template x-if="activeSection==='team'">
+        <div class="space-y-4">
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-extrabold">فريق الهاسب</h3>
+            <span class="badge bg-teal-soft text-teal-deep">HACCP-01 · قالب ثابت لكل المنتجات</span>
+          </div>
+          <p class="text-xs text-ink/50">تعيين متعدد التخصصات مع كفاءة مثبتة وسلطة لإيقاف المنتج — يستكمل بالأسماء الفعلية والتوقيعات، ويعاد تقييم كفاءته سنوياً وعند تغيير العملية.</p>
+          <div class="overflow-x-auto rounded-xl border border-black/[0.06]">
+            <table class="plan-table">
+              <thead><tr><th>الدور</th><th>المسمى المقترح</th><th>المؤهل/الخبرة</th><th>المسؤوليات</th><th>بديل الدور</th><th>دليل الكفاءة</th></tr></thead>
+              <tbody>
+                <template x-for="t in haccpTeam" :key="t.role">
+                  <tr><td class="font-bold" x-text="t.role"></td><td x-text="t.title"></td><td x-text="t.qualification"></td><td x-text="t.responsibilities"></td><td x-text="t.backup"></td><td x-text="t.evidence"></td></tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </template>
+
+      <!-- 02 product description -->
+      <template x-if="activeSection==='product'">
+        <div class="space-y-4">
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-extrabold">وصف المنتج والاستخدام المقصود</h3>
+            <span class="badge bg-rose-soft text-rose-deep">HACCP-02 · خاص بالمنتج</span>
+          </div>
+          <p class="text-xs text-ink/50">المعلومات النهائية يجب أن تطابق التركيبة والملصق ودراسة الصلاحية الفعلية.</p>
+          <div class="divide-y divide-black/[0.05] rounded-xl border border-black/[0.06] overflow-hidden">
+            <template x-for="(row,i) in activeProduct.product" :key="i">
+              <div class="grid grid-cols-1 sm:grid-cols-[180px_1fr_auto] gap-1 sm:gap-3 items-center px-4 py-2.5 odd:bg-canvas/50">
+                <input x-model="row.item" :disabled="!editMode" placeholder="اسم البند" class="text-xs font-extrabold text-teal-deep bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-lg px-2 py-1.5 bg-white'">
+                <textarea x-model="row.value" :disabled="!editMode" rows="1" placeholder="القيمة" class="text-sm text-ink/75 leading-relaxed bg-transparent outline-none resize-none disabled:cursor-default w-full" :class="editMode && 'border border-black/10 rounded-lg px-2 py-1.5 bg-white'"></textarea>
+                <button x-show="editMode" x-cloak @click="removeProductRow(activeProduct,i)" class="text-rose/50 hover:text-rose shrink-0"><i class="fa-solid fa-trash text-xs"></i></button>
+              </div>
+            </template>
+          </div>
+          <button x-show="editMode" x-cloak @click="addProductRow(activeProduct)" class="text-xs font-bold text-brand-deep hover:text-ink"><i class="fa-solid fa-plus"></i> إضافة بند</button>
+        </div>
+      </template>
+
+      <!-- 03 flow -->
+      <template x-if="activeSection==='flow'">
+        <div class="space-y-4">
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-extrabold">مخطط التدفق والتحقق</h3>
+            <span class="badge bg-rose-soft text-rose-deep">HACCP-03 · خاص بالمنتج</span>
+          </div>
+          <p class="text-xs text-ink/50">يُراجع في الموقع أثناء جميع الورديات والمنتجات/الأحجام المشمولة.</p>
+          <div class="flex flex-wrap items-center gap-2">
+            <template x-for="(step,i) in activeProduct.flow" :key="i">
+              <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-canvas border border-black/10">
+                  <span class="w-6 h-6 rounded-full bg-emerald text-white text-[11px] font-bold flex items-center justify-center shrink-0" x-text="i+1"></span>
+                  <input x-model="activeProduct.flow[i]" :disabled="!editMode" placeholder="اسم الخطوة" class="text-xs font-semibold whitespace-nowrap bg-transparent outline-none disabled:cursor-default" :class="editMode ? 'border border-black/10 rounded-md px-1.5 py-0.5 bg-white w-32' : 'w-auto'">
+                  <button x-show="editMode" x-cloak @click="removeFlowStep(activeProduct,i)" class="text-rose/50 hover:text-rose"><i class="fa-solid fa-xmark text-xs"></i></button>
+                </div>
+                <i class="fa-solid fa-chevron-left text-ink/20 text-xs" x-show="i < activeProduct.flow.length-1"></i>
+              </div>
+            </template>
+            <button x-show="editMode" x-cloak @click="addFlowStep(activeProduct)" class="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-dashed border-brand/50 text-brand-deep text-xs font-bold hover:bg-emerald-soft"><i class="fa-solid fa-plus"></i> إضافة خطوة</button>
+          </div>
+          <div class="rounded-xl bg-teal-soft/60 border border-teal/15 p-4">
+            <p class="text-xs text-teal-deep leading-relaxed"><i class="fa-solid fa-circle-check"></i> تحقق فريق HACCP: يشمل التسلسل، إعادة التشغيل، المنتج المعاد، مسارات الأفراد/المواد/النفايات، نقاط الحساسية، وتأثير اختلاف العبوات والأحجام.</p>
+          </div>
+        </div>
+      </template>
+
+      <!-- 04 methodology (fixed) -->
+      <template x-if="activeSection==='method'">
+        <div class="space-y-6">
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-extrabold">منهج تحليل المخاطر</h3>
+            <span class="badge bg-teal-soft text-teal-deep">HACCP-04 · قالب ثابت لكل المنتجات</span>
+          </div>
+          <p class="text-xs text-ink/50">تقييم شبه كمي + حكم مهني موثق + شجرة قرار Codex.</p>
+          <div class="overflow-x-auto rounded-xl border border-black/[0.06]">
+            <table class="plan-table">
+              <thead><tr><th>العنصر</th><th>التعريف</th><th>المقياس</th><th>قاعدة القرار</th></tr></thead>
+              <tbody>
+                <template x-for="c in haccpMethodologyCriteria" :key="c.el">
+                  <tr><td class="font-bold" x-text="c.el"></td><td x-text="c.def"></td><td x-text="c.scale"></td><td x-text="c.rule"></td></tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <p class="text-xs font-extrabold text-ink/60 mb-2">شجرة القرار: النهج والخطوة اللاحقة</p>
+            <div class="overflow-x-auto rounded-xl border border-black/[0.06]">
+              <table class="plan-table">
+                <thead><tr><th>حالة الخطر</th><th>قدرة الضبط</th><th>الخطوة اللاحقة</th><th>القرار</th></tr></thead>
+                <tbody>
+                  <template x-for="(r,i) in haccpDecisionRules" :key="i">
+                    <tr><td x-text="r.state"></td><td x-text="r.control"></td><td x-text="r.next"></td>
+                      <td><span class="badge" :class="r.outcome==='PRP' ? 'bg-teal-soft text-teal-deep' : (r.outcome==='OPRP ضمن ISO' ? 'bg-amber-soft text-amber-deep' : (r.outcome.includes('CCP') ? 'bg-rose-soft text-rose-deep' : 'bg-black/5 text-ink/50'))" x-text="r.outcome"></span></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- 05 hazard analysis -->
+      <template x-if="activeSection==='hazards'">
+        <div class="space-y-4">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h3 class="text-lg font-extrabold">تحليل المخاطر</h3>
+            <span class="badge bg-rose-soft text-rose-deep">HACCP-05 · خاص بالمنتج</span>
+            <span class="ms-auto mono text-[11px] text-ink/40">B=بيولوجي · C=كيميائي · P=فيزيائي · A=حساسية · الدرجة = الشدة × الاحتمال</span>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-black/[0.06]">
+            <table class="plan-table">
+              <thead><tr><th>م</th><th>خطوة</th><th>النوع</th><th>الخطر والسبب/المصدر</th><th>S</th><th>L</th><th>الدرجة</th><th>إجراءات الضبط</th><th>التصنيف</th><th x-show="editMode"></th></tr></thead>
+              <tbody>
+                <template x-for="(h,i) in activeProduct.hazards" :key="i">
+                  <tr>
+                    <td class="mono text-ink/40" x-text="i+1"></td>
+                    <td><input x-model="h.step" :disabled="!editMode" class="w-28 font-semibold bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-1.5 py-1 bg-white'"></td>
+                    <td>
+                      <select x-model="h.type" :disabled="!editMode" class="bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-1.5 py-1 bg-white'">
+                        <option>بيولوجي</option><option>كيميائي</option><option>فيزيائي</option><option>حساسية</option>
+                      </select>
+                    </td>
+                    <td class="min-w-[220px]"><textarea x-model="h.hazard" :disabled="!editMode" rows="1" class="w-full resize-none bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-1.5 py-1 bg-white'"></textarea></td>
+                    <td><input x-model.number="h.s" @input="recalcScore(h)" :disabled="!editMode" type="number" min="1" max="5" class="w-10 mono text-center bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md py-1 bg-white'"></td>
+                    <td><input x-model.number="h.l" @input="recalcScore(h)" :disabled="!editMode" type="number" min="1" max="5" class="w-10 mono text-center bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md py-1 bg-white'"></td>
+                    <td class="mono text-center font-bold" x-text="h.score"></td>
+                    <td class="min-w-[220px]"><textarea x-model="h.controls" :disabled="!editMode" rows="1" class="w-full resize-none bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-1.5 py-1 bg-white'"></textarea></td>
+                    <td>
+                      <select x-model="h.cls" :disabled="!editMode" class="badge border-0 outline-none disabled:cursor-default" :class="h.cls==='CCP' ? 'bg-rose-soft text-rose-deep' : (h.cls==='OPRP' ? 'bg-amber-soft text-amber-deep' : 'bg-teal-soft text-teal-deep')">
+                        <option value="PRP">PRP</option><option value="OPRP">OPRP</option><option value="CCP">CCP</option>
+                      </select>
+                    </td>
+                    <td x-show="editMode" x-cloak><button @click="removeHazardRow(activeProduct,i)" class="text-rose/50 hover:text-rose"><i class="fa-solid fa-trash text-xs"></i></button></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+          <button x-show="editMode" x-cloak @click="addHazardRow(activeProduct)" class="text-xs font-bold text-brand-deep hover:text-ink"><i class="fa-solid fa-plus"></i> إضافة سطر خطر</button>
+        </div>
+      </template>
+
+      <!-- 06 decision (derived from hazards) -->
+      <template x-if="activeSection==='decision'">
+        <div class="space-y-4">
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-extrabold">تصنيف إجراءات الضبط</h3>
+            <span class="badge bg-rose-soft text-rose-deep">HACCP-06 · خاص بالمنتج</span>
+          </div>
+          <p class="text-xs text-ink/50">سجل قرار مبدئي؛ ليس شجرة Codex المنقولة. يجب أن يراجع الفريق تفاعل الضوابط والأدلة ويؤكد القرار.</p>
+          <div class="overflow-x-auto rounded-xl border border-black/[0.06]">
+            <table class="plan-table">
+              <thead><tr><th>م</th><th>الخطوة/الإجراء</th><th>الخطر المهم</th><th>خطر مهم؟</th><th>إجراء متاح؟</th><th>مصمم للضبط؟</th><th>دراسة لاحقة؟</th><th>النتيجة</th></tr></thead>
+              <tbody>
+                <template x-for="(d,i) in decisionRows" :key="i">
+                  <tr>
+                    <td class="mono text-ink/40" x-text="i+1"></td>
+                    <td class="font-semibold whitespace-nowrap" x-text="d.step"></td>
+                    <td class="min-w-[220px]" x-text="d.hazard"></td>
+                    <td x-text="d.significant"></td>
+                    <td x-text="d.available"></td>
+                    <td x-text="d.designed"></td>
+                    <td x-text="d.further"></td>
+                    <td><span class="badge" :class="d.cls==='CCP' ? 'bg-rose-soft text-rose-deep' : 'bg-amber-soft text-amber-deep'" x-text="d.cls"></span></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </template>
+
+      <!-- 07 CCP plan -->
+      <template x-if="activeSection==='ccp'">
+        <div class="space-y-4">
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-extrabold">خطة نقاط التحكم الحرجة CCP</h3>
+            <span class="badge bg-rose-soft text-rose-deep">HACCP-07 · خاص بالمنتج</span>
+          </div>
+          <div class="rounded-xl bg-rose-soft border border-rose/15 p-3.5">
+            <p class="text-xs text-rose-deep leading-relaxed"><i class="fa-solid fa-circle-info"></i> التصنيف والحدود معلقة حتى تأكيد العملية والمعدات وأدلة التثبت؛ لا يعتمد عدد CCP من هذا الملف وحده.</p>
+          </div>
+          <template x-for="(c,i) in activeProduct.ccps" :key="c.id">
+            <div class="rounded-xl border border-black/[0.06] overflow-hidden">
+              <div class="flex items-center gap-2 px-4 py-3 bg-rose-soft/50 border-b border-black/[0.06]">
+                <span class="badge bg-rose text-white" x-text="c.id"></span>
+                <input x-model="c.step" :disabled="!editMode" placeholder="الخطوة" class="font-extrabold text-sm bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-2 py-1 bg-white'">
+                <span class="ms-auto mono text-[11px] text-ink/40" x-text="c.record"></span>
+                <button x-show="editMode" x-cloak @click="removeCcp(activeProduct,i)" class="text-rose/50 hover:text-rose"><i class="fa-solid fa-trash text-xs"></i></button>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-black/[0.05]">
+                <div class="p-4 space-y-3">
+                  <div><p class="text-[10px] font-extrabold text-ink/40 mb-1">الخطر</p><textarea x-model="c.hazard" :disabled="!editMode" rows="1" class="w-full text-xs text-ink/70 resize-none bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-2 py-1.5 bg-white'"></textarea></div>
+                  <div><p class="text-[10px] font-extrabold text-ink/40 mb-1">الحد الحرج</p><textarea x-model="c.limit" :disabled="!editMode" rows="2" class="w-full text-xs text-ink/70 leading-relaxed resize-none bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-2 py-1.5 bg-white'"></textarea></div>
+                  <div><p class="text-[10px] font-extrabold text-ink/40 mb-1">المراقبة: ماذا/كيف/تكرار</p><textarea x-model="c.monitoring" :disabled="!editMode" rows="1" class="w-full text-xs text-ink/70 resize-none bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-2 py-1.5 bg-white'"></textarea></div>
+                  <div><p class="text-[10px] font-extrabold text-ink/40 mb-1">المسؤول</p><input x-model="c.responsible" :disabled="!editMode" class="w-full text-xs text-ink/70 bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-2 py-1.5 bg-white'"></div>
+                </div>
+                <div class="p-4 space-y-3">
+                  <div><p class="text-[10px] font-extrabold text-ink/40 mb-1">تصحيح + إجراء تصحيحي + تصرف المنتج</p><textarea x-model="c.correction" :disabled="!editMode" rows="2" class="w-full text-xs text-ink/70 resize-none bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-2 py-1.5 bg-white'"></textarea></div>
+                  <div><p class="text-[10px] font-extrabold text-ink/40 mb-1">التحقق</p><textarea x-model="c.verification" :disabled="!editMode" rows="1" class="w-full text-xs text-ink/70 resize-none bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-2 py-1.5 bg-white'"></textarea></div>
+                  <div><p class="text-[10px] font-extrabold text-ink/40 mb-1">التثبت/إعادة التثبت</p><input x-model="c.revalidation" :disabled="!editMode" class="w-full text-xs text-ink/70 bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-2 py-1.5 bg-white'"></div>
+                </div>
+              </div>
+            </div>
+          </template>
+          <button x-show="editMode" x-cloak @click="addCcp(activeProduct)" class="text-xs font-bold text-brand-deep hover:text-ink"><i class="fa-solid fa-plus"></i> إضافة CCP</button>
+        </div>
+      </template>
+
+      <!-- 08 OPRP plan -->
+      <template x-if="activeSection==='oprp'">
+        <div class="space-y-4">
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-extrabold">خطة البرامج التشغيلية OPRP</h3>
+            <span class="badge bg-rose-soft text-rose-deep">HACCP-08 · خاص بالمنتج</span>
+          </div>
+          <p class="text-xs text-ink/50">معايير الفعل والانحرافات موثقة؛ فقد السيطرة يؤدي إلى حجز وتقييم المنتج.</p>
+          <div class="overflow-x-auto rounded-xl border border-black/[0.06]">
+            <table class="plan-table">
+              <thead><tr><th>OPRP</th><th>الخطوة</th><th>معيار الفعل/القبول</th><th>المراقبة</th><th>المسؤول</th><th>الإجراء عند عدم المطابقة</th><th>السجل</th><th x-show="editMode"></th></tr></thead>
+              <tbody>
+                <template x-for="(o,i) in activeProduct.oprps" :key="o.id">
+                  <tr>
+                    <td><span class="badge bg-amber-soft text-amber-deep" x-text="o.id"></span></td>
+                    <td><input x-model="o.step" :disabled="!editMode" class="w-28 font-semibold bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-1.5 py-1 bg-white'"></td>
+                    <td class="min-w-[220px]"><textarea x-model="o.criteria" :disabled="!editMode" rows="1" class="w-full resize-none bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-1.5 py-1 bg-white'"></textarea></td>
+                    <td><input x-model="o.monitoring" :disabled="!editMode" class="w-full bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-1.5 py-1 bg-white'"></td>
+                    <td><input x-model="o.responsible" :disabled="!editMode" class="w-full bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-1.5 py-1 bg-white'"></td>
+                    <td class="min-w-[200px]"><textarea x-model="o.action" :disabled="!editMode" rows="1" class="w-full resize-none bg-transparent outline-none disabled:cursor-default" :class="editMode && 'border border-black/10 rounded-md px-1.5 py-1 bg-white'"></textarea></td>
+                    <td class="mono text-[11px]" x-text="o.record"></td>
+                    <td x-show="editMode" x-cloak><button @click="removeOprp(activeProduct,i)" class="text-rose/50 hover:text-rose"><i class="fa-solid fa-trash text-xs"></i></button></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+          <button x-show="editMode" x-cloak @click="addOprp(activeProduct)" class="text-xs font-bold text-brand-deep hover:text-ink"><i class="fa-solid fa-plus"></i> إضافة OPRP</button>
+        </div>
+      </template>
+
+      <!-- PRP matrix (fixed) -->
+      <template x-if="activeSection==='prp'">
+        <div class="space-y-4">
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-extrabold">مصفوفة البرامج الأساسية PRP</h3>
+            <span class="badge bg-teal-soft text-teal-deep">ISO 22002 · قالب ثابت لكل المنتجات</span>
+          </div>
+          <p class="text-xs text-ink/50">ملخص تطبيقي غير ناسخ للنص؛ يستخدم مع النسخ المرخصة من ISO 22002-100:2025 وISO 22002-1:2025.</p>
+          <div class="overflow-x-auto rounded-xl border border-black/[0.06]">
+            <table class="plan-table">
+              <thead><tr><th>م</th><th>برنامج المتطلب الأساسي</th><th>ضوابط التطبيق المطلوبة</th><th>التكرار/المعيار</th><th>المالك</th><th>السجل/الدليل</th></tr></thead>
+              <tbody>
+                <template x-for="p in prpMatrix" :key="p.no">
+                  <tr><td class="mono text-ink/40" x-text="p.no"></td><td class="font-semibold whitespace-nowrap" x-text="p.name"></td><td x-text="p.controls"></td><td x-text="p.freq"></td><td x-text="p.owner"></td><td class="mono text-[11px]" x-text="p.record"></td></tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </template>
+
+      <!-- 09 monitoring log (fixed, blank form) -->
+      <template x-if="activeSection==='monitor'">
+        <div class="space-y-4">
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-extrabold">سجل مراقبة CCP/OPRP</h3>
+            <span class="badge bg-teal-soft text-teal-deep">HACCP-09 · قالب ثابت</span>
+          </div>
+          <p class="text-xs text-ink/50">نموذج فارغ للاستخدام التشغيلي؛ تربط كل قراءة بالتشغيلة والجهاز والمشغل.</p>
+          <div class="overflow-x-auto rounded-xl border border-black/[0.06]">
+            <table class="plan-table">
+              <thead><tr><template x-for="c in monitoringColumns" :key="c"><th x-text="c"></th></template></tr></thead>
+              <tbody>
+                <template x-for="n in 10" :key="n">
+                  <tr><template x-for="c in monitoringColumns" :key="c"><td>&nbsp;</td></template></tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </template>
+
+      <!-- 10 verification (fixed) -->
+      <template x-if="activeSection==='verify'">
+        <div class="space-y-4">
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-extrabold">برنامج التحقق والتثبت</h3>
+            <span class="badge bg-teal-soft text-teal-deep">HACCP-10 · قالب ثابت لكل المنتجات</span>
+          </div>
+          <p class="text-xs text-ink/50">يفصل التثبت المسبق لقدرة الضبط عن التحقق الدوري من التنفيذ والفعالية.</p>
+          <div class="overflow-x-auto rounded-xl border border-black/[0.06]">
+            <table class="plan-table">
+              <thead><tr><th>النوع</th><th>النشاط</th><th>المعيار/الغرض</th><th>التكرار</th><th>المسؤول</th><th>السجل</th><th>الإجراء عند الفشل</th></tr></thead>
+              <tbody>
+                <template x-for="(v,i) in verificationProgram" :key="i">
+                  <tr>
+                    <td><span class="badge" :class="v.type==='تثبت' ? 'bg-rose-soft text-rose-deep' : (v.type==='مراجعة' ? 'bg-amber-soft text-amber-deep' : 'bg-teal-soft text-teal-deep')" x-text="v.type"></span></td>
+                    <td class="min-w-[180px]" x-text="v.activity"></td><td x-text="v.criterion"></td><td x-text="v.freq"></td><td x-text="v.owner"></td><td class="mono text-[11px]" x-text="v.record"></td><td class="min-w-[180px]" x-text="v.onFail"></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </template>
+
+      <!-- 11 deviation/CAPA (fixed, blank form) -->
+      <template x-if="activeSection==='deviation'">
+        <div class="space-y-4">
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-extrabold">سجل الانحراف والإجراء التصحيحي</h3>
+            <span class="badge bg-teal-soft text-teal-deep">HACCP-11 · قالب ثابت</span>
+          </div>
+          <div class="rounded-xl bg-rose-soft border border-rose/15 p-3.5">
+            <p class="text-xs text-rose-deep leading-relaxed"><i class="fa-solid fa-ban"></i> لا يفرج عن المنتج المتأثر قبل تقييم موثق من شخص مخول.</p>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-black/[0.06]">
+            <table class="plan-table">
+              <thead><tr><template x-for="c in deviationColumns" :key="c"><th x-text="c"></th></template></tr></thead>
+              <tbody>
+                <template x-for="n in 6" :key="n">
+                  <tr><template x-for="c in deviationColumns" :key="c"><td>&nbsp;</td></template></tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </template>
+
+    </div>
+  </div>
+</main>
+
+<!-- Add product modal -->
+<div x-show="addProductOpen" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @keydown.escape.window="addProductOpen=false">
+  <div @click.outside="addProductOpen=false" class="bg-white rounded-2xl shadow-card w-full max-w-xl max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center gap-2 px-5 py-4 border-b border-black/[0.06]">
+      <span class="w-9 h-9 rounded-lg bg-emerald-soft text-emerald flex items-center justify-center"><i class="fa-solid fa-plus"></i></span>
+      <h3 class="font-extrabold">إضافة منتج جديد إلى خطط الهاسب</h3>
+      <button @click="addProductOpen=false" class="ms-auto text-ink/40 hover:text-ink"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-5 space-y-3.5">
+      <div>
+        <label class="text-xs font-bold text-ink/60">اسم المنتج (عربي)</label>
+        <input x-model="draftProduct.nameAr" type="text" placeholder="مثال: عصائر مبسترة" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-emerald">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-ink/60">اسم المنتج (إنجليزي)</label>
+        <input x-model="draftProduct.nameEn" type="text" placeholder="e.g. Pasteurized Juices" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-emerald">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-ink/60">النشاط / نطاق التصنيع</label>
+        <input x-model="draftProduct.scope" type="text" placeholder="مثال: بسترة وتعبئة — عصائر" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-emerald">
+      </div>
+      <!-- Auto vs Manual mode toggle -->
+      <div>
+        <label class="text-xs font-bold text-ink/60 block mb-1.5">طريقة إنشاء الخطة</label>
+        <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-canvas border border-black/[0.06]">
+          <button type="button" @click="createMode='auto'"
+                  :class="createMode==='auto' ? 'bg-white shadow-sm text-brand-deep' : 'text-ink/45 hover:text-ink/70'"
+                  class="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> التوليد التلقائي
+          </button>
+          <button type="button" @click="createMode='manual'"
+                  :class="createMode==='manual' ? 'bg-white shadow-sm text-brand-deep' : 'text-ink/45 hover:text-ink/70'"
+                  class="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition">
+            <i class="fa-solid fa-sliders"></i> إدخال وتخصيص يدوي
+          </button>
+        </div>
+      </div>
+
+      <!-- AUTO mode note -->
+      <div x-show="createMode==='auto'" x-cloak class="rounded-lg bg-teal-soft/60 border border-teal/15 p-3.5 text-xs text-teal-deep leading-relaxed">
+        <i class="fa-solid fa-circle-info"></i>
+        سيقوم النظام تلقائياً بربط اسم المنتج والنشاط بمخطط تدفق عام وبنك أخطار نمطي (استلام، تخزين، معالجة حرارية، تعبئة، ملصق) لتوليد تحليل مخاطر وCCP/OPRP مبدئي — يمكنك تعديل كل قيمة لاحقاً من وضع "تعديل الخطة".
+      </div>
+
+      <!-- MANUAL mode expanded fields -->
+      <div x-show="createMode==='manual'" x-cloak class="space-y-4 border-t border-black/[0.06] pt-4">
+
+        <!-- BOM / Ingredients -->
+        <div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <label class="text-xs font-bold text-ink/60">المكونات / BOM</label>
+            <button type="button" @click="draftProduct.bom.push({name:'',percent:''})" class="ms-auto text-[11px] font-bold text-brand-deep hover:text-ink"><i class="fa-solid fa-plus"></i> إضافة مكوّن</button>
+          </div>
+          <div class="space-y-1.5">
+            <template x-for="(b,i) in draftProduct.bom" :key="i">
+              <div class="flex items-center gap-1.5">
+                <input x-model="b.name" type="text" placeholder="اسم المكوّن" class="flex-1 px-3 py-2 rounded-lg border border-black/10 text-xs outline-none focus:border-emerald">
+                <input x-model="b.percent" type="text" placeholder="%" class="w-16 px-2 py-2 rounded-lg border border-black/10 text-xs outline-none focus:border-emerald text-center">
+                <button type="button" @click="draftProduct.bom.splice(i,1)" class="w-8 h-8 shrink-0 rounded-lg text-rose/60 hover:bg-rose-soft hover:text-rose"><i class="fa-solid fa-trash text-xs"></i></button>
+              </div>
+            </template>
+            <p x-show="draftProduct.bom.length===0" class="text-[11px] text-ink/35">لا توجد مكونات مضافة بعد.</p>
+          </div>
+        </div>
+
+        <!-- Allergens -->
+        <div>
+          <label class="text-xs font-bold text-ink/60 block mb-1.5">مسببات الحساسية</label>
+          <div class="flex flex-wrap items-center gap-1.5 p-2 rounded-lg border border-black/10">
+            <template x-for="(a,i) in draftProduct.allergens" :key="i">
+              <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-soft text-rose-deep text-[11px] font-bold">
+                <span x-text="a"></span>
+                <button type="button" @click="draftProduct.allergens.splice(i,1)"><i class="fa-solid fa-xmark"></i></button>
+              </span>
+            </template>
+            <input x-model="allergenDraft" @keydown.enter.prevent="addAllergen()" type="text" placeholder="اكتب واضغط Enter (مثال: الجلوتين)" class="flex-1 min-w-[140px] px-1.5 py-1 text-xs outline-none">
+          </div>
+        </div>
+
+        <!-- Process flow steps -->
+        <div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <label class="text-xs font-bold text-ink/60">خطوات التدفق (بالترتيب)</label>
+            <button type="button" @click="draftProduct.flowManual.push('')" class="ms-auto text-[11px] font-bold text-brand-deep hover:text-ink"><i class="fa-solid fa-plus"></i> إضافة خطوة</button>
+          </div>
+          <div class="space-y-1.5">
+            <template x-for="(step,i) in draftProduct.flowManual" :key="i">
+              <div class="flex items-center gap-1.5">
+                <span class="w-6 h-6 shrink-0 rounded-full bg-canvas text-ink/50 text-[10px] font-bold flex items-center justify-center" x-text="i+1"></span>
+                <input x-model="draftProduct.flowManual[i]" type="text" placeholder="مثال: استلام المواد" class="flex-1 px-3 py-2 rounded-lg border border-black/10 text-xs outline-none focus:border-emerald">
+                <button type="button" @click="draftProduct.flowManual.splice(i,1)" class="w-8 h-8 shrink-0 rounded-lg text-rose/60 hover:bg-rose-soft hover:text-rose"><i class="fa-solid fa-trash text-xs"></i></button>
+              </div>
+            </template>
+            <p x-show="draftProduct.flowManual.length===0" class="text-[11px] text-ink/35">لا توجد خطوات مضافة بعد.</p>
+          </div>
+        </div>
+
+        <!-- Custom CCPs -->
+        <div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <label class="text-xs font-bold text-ink/60">نقاط التحكم الحرجة CCP المخصصة</label>
+            <button type="button" @click="draftProduct.ccpManual.push({step:'',hazard:'',limit:''})" class="ms-auto text-[11px] font-bold text-brand-deep hover:text-ink"><i class="fa-solid fa-plus"></i> إضافة CCP</button>
+          </div>
+          <div class="space-y-2">
+            <template x-for="(c,i) in draftProduct.ccpManual" :key="i">
+              <div class="rounded-lg border border-black/10 p-2.5 space-y-1.5 relative">
+                <button type="button" @click="draftProduct.ccpManual.splice(i,1)" class="absolute top-2 left-2 text-rose/50 hover:text-rose"><i class="fa-solid fa-trash text-xs"></i></button>
+                <input x-model="c.step" type="text" placeholder="خطوة الضبط (مثال: البسترة)" class="w-full px-3 py-2 rounded-lg border border-black/10 text-xs outline-none focus:border-emerald">
+                <input x-model="c.hazard" type="text" placeholder="الخطر المستهدف" class="w-full px-3 py-2 rounded-lg border border-black/10 text-xs outline-none focus:border-emerald">
+                <input x-model="c.limit" type="text" placeholder="الحد الحرج (مثال: 90°م لمدة 30 ثانية)" class="w-full px-3 py-2 rounded-lg border border-black/10 text-xs outline-none focus:border-emerald">
+              </div>
+            </template>
+            <p x-show="draftProduct.ccpManual.length===0" class="text-[11px] text-ink/35">لا توجد نقاط تحكم حرجة مضافة بعد — يمكن إضافتها الآن أو لاحقاً من وضع التعديل.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instructional guide / welcome card explaining how the HACCP system helps the user -->
+      <div class="rounded-xl bg-gradient-to-br from-emerald-soft to-teal-soft border border-emerald/20 p-4 space-y-3">
+        <div class="flex items-center gap-2.5">
+          <span class="w-9 h-9 rounded-lg bg-white/70 text-amber flex items-center justify-center shrink-0 shadow-sm"><i class="fa-solid fa-lightbulb"></i></span>
+          <h4 class="text-sm font-extrabold text-emerald-deep leading-snug">كيف يساعدك هذا النظام في إدارة خطط الـ HACCP؟</h4>
+        </div>
+        <p class="text-xs text-ink/65 leading-relaxed">
+          بدلاً من إهدار ساعات طويلة في كتابة وتنظيم مئات الجداول والجوانب الفنية لكل منتج من الصفر، يقوم النظام بالنيابة عنك بكل التالي:
+        </p>
+        <div class="space-y-2">
+          <div class="flex items-start gap-2.5 bg-white/60 rounded-lg px-3 py-2.5">
+            <span class="w-5 h-5 mt-0.5 rounded-full bg-emerald text-white text-[10px] font-extrabold flex items-center justify-center shrink-0">1</span>
+            <p class="text-xs text-ink/75 leading-relaxed"><span class="font-extrabold text-ink">الهيكل الإداري الثابت:</span> يزودك فوراً بالـ 17 قسماً وجداول الجودة المعتمدة عالمياً (مثل الـ PRPs، فريق الهاسب، ومصفوفة المخاطر).</p>
+          </div>
+          <div class="flex items-start gap-2.5 bg-white/60 rounded-lg px-3 py-2.5">
+            <span class="w-5 h-5 mt-0.5 rounded-full bg-emerald text-white text-[10px] font-extrabold flex items-center justify-center shrink-0">2</span>
+            <p class="text-xs text-ink/75 leading-relaxed"><span class="font-extrabold text-ink">التعبئة التلقائية الذكية:</span> بمجرد إدخال (اسم المنتج والنشاط)، يربطه النظام بالمعايير الفنية وخطوات التدفق المناسبة له.</p>
+          </div>
+          <div class="flex items-start gap-2.5 bg-white/60 rounded-lg px-3 py-2.5">
+            <span class="w-5 h-5 mt-0.5 rounded-full bg-emerald text-white text-[10px] font-extrabold flex items-center justify-center shrink-0">3</span>
+            <p class="text-xs text-ink/75 leading-relaxed"><span class="font-extrabold text-ink">المرونة والتحكم:</span> يمكنك تعديل وتخصيص أي بيانات فنية أو نقاط تحكم (CCP) لتتطابق مع واقع مصنعك.</p>
+          </div>
+        </div>
+        <p class="text-xs font-bold text-emerald-deep leading-relaxed pt-1 border-t border-emerald/15">
+          <i class="fa-solid fa-sparkles"></i> باختصار: أنت تدخل (اسم المنتج)، والنظام يصمم لك خطة HACCP متكاملة في ثوانٍ!
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 px-5 py-4 border-t border-black/[0.06]">
+      <button @click="addProductOpen=false" class="px-4 py-2.5 rounded-lg text-sm font-bold text-ink/60 hover:bg-canvas">إلغاء</button>
+      <button @click="createProduct()" :disabled="!draftProduct.nameAr" class="ms-auto px-5 py-2.5 rounded-lg bg-brand text-ink text-sm font-bold hover:bg-brand-deep hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed">
+        <i class="fa-solid fa-check"></i> <span x-text="createMode==='manual' ? 'حفظ الخطة المخصصة' : 'إنشاء خطة المنتج تلقائياً'"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div x-show="toastMsg" x-cloak x-transition x-text="toastMsg" class="fixed bottom-5 inset-x-0 mx-auto w-fit px-4 py-2.5 rounded-lg bg-ink text-white text-xs font-bold shadow-card z-50"></div>
+
+<script>
+
+// ============ FIXED TEMPLATE DATA (identical across every product per Codex/ISO 22000 methodology) ============
+const haccpTeam = [
+  { role:'قائد الفريق', title:'مدير/مسؤول سلامة الغذاء', qualification:'HACCP معتمد وخبرة بالعملية', responsibilities:'قيادة الدراسة، الاجتماعات، التحقق والتحديث', backup:'مدير الجودة', evidence:'شهادة + تقييم كفاءة' },
+  { role:'خبير العملية', title:'مدير الإنتاج', qualification:'خبرة المنتج والمعدات', responsibilities:'مخطط التدفق، حدود التشغيل والانحرافات', backup:'مشرف الإنتاج', evidence:'وصف وظيفي + تدريب' },
+  { role:'الجودة/المختبر', title:'مدير الجودة/مختبر', qualification:'أحياء دقيقة/كيمياء غذاء', responsibilities:'المواصفات، خطة الفحص، الإفراج والتحقق', backup:'أخصائي جودة', evidence:'سجل كفاءة/مقارنات' },
+  { role:'الصيانة', title:'مسؤول الصيانة', qualification:'هندسة وصيانة غذائية', responsibilities:'سلامة المعدات، المعايرة والمرافق', backup:'فني أول', evidence:'خطة صيانة/معايرة' },
+  { role:'المشتريات والمخازن', title:'مسؤول سلسلة الإمداد', qualification:'اعتماد المورد والتتبع', responsibilities:'الموردون، الاستلام، FEFO والتوزيع', backup:'أمين المخزن', evidence:'تقييم مورد/تدريب' },
+  { role:'الإدارة العليا', title:'المدير العام', qualification:'سلطة وموارد', responsibilities:'اعتماد الخطة وتوفير الموارد وقرار الاستدعاء', backup:'ممثل مفوض', evidence:'قرار تعيين' },
+];
+
+const haccpMethodologyCriteria = [
+  { el:'الشدة S', def:'أثر الخطر على صحة المستهلك', scale:'1 بسيط؛ 2 متوسط؛ 3 جسيم؛ 4 شديد؛ 5 كارثي', rule:'تراعى الفئات الحساسة والكمية والتعرض' },
+  { el:'الاحتمال L', def:'احتمال الحدوث قبل الضبط', scale:'1 نادر؛ 2 غير محتمل؛ 3 محتمل؛ 4 مرجح؛ 5 متكرر', rule:'يبنى على بيانات المورد والاختبارات والشكاوى والأدبيات' },
+  { el:'درجة الخطر', def:'S × L', scale:'1–25', rule:'≥8 مهم مبدئياً؛ ويمكن للفريق رفع/خفض التصنيف بمبرر موثق' },
+  { el:'اختيار الإجراء', def:'ملاءمة الإجراء وموقعه وتأثير الفشل', scale:'PRP/OPRP/CCP', rule:'CCP عندما تكون الخطوة أساسية لمنع/إزالة/خفض خطر مهم ويستلزم حداً حرجاً؛ OPRP لإجراء تشغيلي مهم لا يدار كـCCP' },
+  { el:'التحقق', def:'التأكد من تنفيذ الخطة وفعاليتها المستمرة', scale:'مراجعات/اختبارات/تدقيق', rule:'مستقل عن المراقبة حيث أمكن' },
+  { el:'التثبت', def:'إثبات أن الإجراء والحدود قادرة على تحقيق التحكم المقصود', scale:'دراسة علمية/تحدي/مرجع/سلطة عملية', rule:'قبل التطبيق وبعد التغيير' },
+];
+
+const haccpDecisionRules = [
+  { state:'غير مهم بمبرر', control:'PRP كافٍ مثبت', next:'تراجع عند التغيير', outcome:'PRP' },
+  { state:'مهم', control:'لا يوجد إجراء فعال', next:'لا ضبط لاحق', outcome:'تعديل العملية؛ لا اعتماد' },
+  { state:'مهم', control:'ضبط أساسي محدد', next:'لا بديل كافٍ', outcome:'دراسة CCP وحد مثبت' },
+  { state:'مهم', control:'ضبط تشغيلي قابل للمراقبة', next:'تقييم تفاعل الضوابط', outcome:'دراسة OPRP ضمن ISO' },
+];
+
+const prpSharedControls = 'إجراء موثق + مسؤوليات + معايير قبول + تدريب + معالجة انحراف + تحقق من الفعالية';
+const prpSharedFreq = 'حسب تقييم الخطر؛ على الأقل ضمن الجدول المعتمد';
+const prpNames = [
+  'تصميم الموقع والمباني وتدفق المناطق','المرافق: ماء/هواء/طاقة/إضاءة','صلاحية المعدات وسهولة التنظيف',
+  'الصيانة الوقائية والطوارئ','التنظيف والتطهير والتحقق','مكافحة الآفات','إدارة النفايات والصرف',
+  'منع التلوث التبادلي والتقسيم الصحي','إدارة مسببات الحساسية','النظافة الشخصية ومرافق الموظفين',
+  'إعادة التشغيل/المنتج المعاد','الشراء واعتماد الموردين','الاستلام والتخزين وFEFO','النقل والتوزيع',
+  'معلومات المنتج والملصق','التتبع والسحب/الاستدعاء','الدفاع الغذائي','منع الغش الغذائي',
+  'المعايرة والتحقق من أجهزة القياس','إدارة المواد الكيميائية','الزجاج والبلاستيك الهش والأدوات',
+  'ثقافة سلامة الغذاء والكفاءة','إدارة التغيير والطوارئ','التحقق البيئي عند ملاءمته',
+];
+const prpMatrix = prpNames.map((name,i)=>({ no:i+1, name, controls:prpSharedControls, freq:prpSharedFreq, owner:'يحدد بالموقع', record:'PRP-'+String(i+1).padStart(2,'0')+' / سجل داعم' }));
+
+const monitoringColumns = ['التاريخ/الوقت','التشغيلة','CCP/OPRP','ما تم قياسه','النتيجة','الحد/معيار الفعل','مطابق؟','الإجراء الفوري','المشغل/مراجعة الجودة'];
+
+const verificationProgram = [
+  { type:'تثبت', activity:'الدراسة العلمية/اختبار التحدي/سلطة العملية للحدود', criterion:'إثبات تحقيق مستوى التحكم المستهدف', freq:'قبل الاعتماد وبعد أي تغيير مؤثر', owner:'فريق HACCP + خبير فني', record:'VAL-01', onFail:'عدم اعتماد الحد؛ تعديل الإجراء وإعادة الدراسة' },
+  { type:'تحقق', activity:'مراجعة سجلات CCP/OPRP', criterion:'اكتمال ودقة وتوقيع ومعالجة الانحراف', freq:'يومي/كل دفعة حسب الخطة', owner:'الجودة مستقل عن المنفذ', record:'VER-01', onFail:'حجز؛ استكمال تقييم؛ CAPA' },
+  { type:'تحقق', activity:'معايرة/تحقق أجهزة القياس', criterion:'دقة مناسبة للحدود ونطاق الاستخدام', freq:'حسب الخطة وقبل الاستخدام الحرج', owner:'الصيانة/الجودة', record:'CAL-xx', onFail:'إيقاف الجهاز وتقييم النتائج منذ آخر قبول' },
+  { type:'تحقق', activity:'اختبارات المنتج/البيئة', criterion:'مطابقة المواصفة واتجاهات تحت السيطرة', freq:'خطة مبنية على الخطر', owner:'المختبر/الجودة', record:'LAB/EMP', onFail:'حجز وتحقيق وتوسيع أخذ العينات' },
+  { type:'تحقق', activity:'تدقيق داخلي وملاحظة ميدانية', criterion:'تطبيق Codex/ISO والإجراءات الفعلية', freq:'ربع سنوي/سنوي وعند التغيير', owner:'مدقق مستقل', record:'AUD-xx', onFail:'عدم مطابقة وخطة تصحيح' },
+  { type:'تحقق', activity:'اختبار تتبع واستدعاء وهمي', criterion:'تحديد 100% من الكمية ضمن الزمن المستهدف للموقع', freq:'سنويًا على الأقل وبناء على الخطر', owner:'قائد الاستدعاء', record:'إجراء المؤسسة المنفصل', onFail:'تحليل فجوة وCAPA وإعادة الاختبار' },
+  { type:'مراجعة', activity:'إعادة تقييم خطة HACCP', criterion:'تغييرات المواد/المعدات/القانون/الحوادث/البيانات', freq:'سنويًا وعند محفز التغيير', owner:'فريق HACCP', record:'HACCP-RVW', onFail:'تحديث واعتماد وتدريب قبل التنفيذ' },
+];
+
+const deviationColumns = ['رقم الحالة','التاريخ','التشغيلة/الكمية','وصف الانحراف','التصحيح الفوري والحجز','تحليل السبب والإجراء التصحيحي','مسؤول/موعد','تحقق الفعالية','قرار المنتج واعتماده'];
+
+const haccpSections = [
+  { id:'doc', label:'بيانات الوثيقة', icon:'fa-solid fa-file-shield' },
+  { id:'team', label:'فريق الهاسب', icon:'fa-solid fa-people-group' },
+  { id:'product', label:'وصف المنتج', icon:'fa-solid fa-box-open' },
+  { id:'flow', label:'مخطط التدفق', icon:'fa-solid fa-diagram-project' },
+  { id:'method', label:'منهج التحليل', icon:'fa-solid fa-scale-balanced' },
+  { id:'hazards', label:'تحليل المخاطر', icon:'fa-solid fa-biohazard' },
+  { id:'decision', label:'قرار الضبط', icon:'fa-solid fa-code-branch' },
+  { id:'ccp', label:'خطة CCP', icon:'fa-solid fa-crosshairs' },
+  { id:'oprp', label:'خطة OPRP', icon:'fa-solid fa-gears' },
+  { id:'prp', label:'مصفوفة PRP', icon:'fa-solid fa-list-check' },
+  { id:'monitor', label:'سجل المراقبة', icon:'fa-solid fa-clipboard-list' },
+  { id:'verify', label:'التحقق والتثبت', icon:'fa-solid fa-stamp' },
+  { id:'deviation', label:'الانحراف وCAPA', icon:'fa-solid fa-triangle-exclamation' },
+];
+
+const haccpProducts = [
+  {
+    id: "legumes", nameAr: "بقوليات جافة", nameEn: "Dry Legumes", icon: "fa-solid fa-seedling",
+    docNo: "HACCP-PLS-001", version: "01", issueDate: "07/09/2026", reviewCycle: "سنويًا وعند أي تغيير/حادث", scope: "تنظيف/فرز وتعبئة – بقوليات جافة", docStatus: "مسودة غير معتمدة؛ بيانات موقع مطلوبة",
+    product: [
+      { item: "اسم المنتج", value: "بقوليات جافة" },
+      { item: "النشاط", value: "تنظيف/فرز وتعبئة" },
+      { item: "وصف العملية", value: "استلام المواد والموافقة على المورد ← الحجر والفحص/أخذ العينة ← التخزين الجاف ← التنظيف/الفرز ← الغربلة/المغناطيس ← المعالجة الحرارية/التحميص عند الانطباق ← الطحن/الخلط ← التعبئة والغلق ← التحقق من الملصق والحساسية ← الكشف عن أجسام غريبة إن كان مركباً ← التخزين والإفراج" },
+      { item: "المكونات", value: "تدخل من الوصفة/BOM المعتمدة؛ تشمل المواد المضافة ومساعدات التصنيع" },
+      { item: "مسببات الحساسية", value: "يحدد من التركيبة الفعلية وبيانات المورد؛ يمنع اعتماد (لا يوجد) دون مراجعة" },
+      { item: "الخصائص المؤثرة في السلامة", value: "pH وaw والرطوبة/الملح والمعالجة الحرارية حسب نوع المنتج؛ تسجل القيم الفعلية" },
+      { item: "العبوة", value: "عبوة ملامسة للغذاء ملائمة للعملية وظروف التخزين؛ تحدد المادة والمقاس ونظام الغلق" },
+      { item: "الصلاحية", value: "تحدد بدراسة صلاحية مثبتة في ظروف التوزيع المتوقعة" },
+      { item: "التخزين", value: "مخزن جاف" },
+      { item: "الاستخدام المقصود", value: "جاهز للاستهلاك أو للاستخدام حسب تعليمات الملصق؛ لا يستخدم خارج شروط التخزين والصلاحية المعتمدة" },
+      { item: "المستهلك المستهدف", value: "عموم المستهلكين، مع مراعاة المصابين بالحساسية والفئات الهشة" },
+      { item: "طريقة التوزيع", value: "مركبات مؤهلة مع حماية من التلوث ودرجة حرارة مناسبة" },
+      { item: "متطلبات الملصق", value: "اسم المنتج، المكونات، مسببات الحساسية، الكمية، التواريخ، التشغيلة، الحفظ، الاستخدام، بيانات المنشأة والمتطلبات النظامية" },
+      { item: "البيان", value: "إعداد: مسؤول سلامة الغذاء" },
+    ],
+    flow: ["استلام المواد والموافقة على المورد", "الحجر والفحص/أخذ العينة", "التخزين الجاف", "التنظيف/الفرز", "الغربلة/المغناطيس", "المعالجة الحرارية/التحميص عند الانطباق", "الطحن/الخلط", "التعبئة والغلق", "التحقق من الملصق والحساسية", "الكشف عن أجسام غريبة إن كان مركباً", "التخزين والإفراج"],
+    hazards: [
+      { step: "استلام المواد والموافقة على المورد", type: "بيولوجي", hazard: "ممرضات أو حمولة ميكروبية غير مقبولة في المواد", s: 4, l: 3, score: 12, controls: "مورد معتمد، مواصفة وCOA، خطة أخذ عينات، رفض غير المطابق", cls: "OPRP", justification: "احتمال إدخال خطر مهم يحتاج قبول تشغيلي محدد" },
+      { step: "استلام المواد والموافقة على المورد", type: "كيميائي", hazard: "بقايا/سموم فطرية/ملوثات أو إضافات غير مطابقة", s: 4, l: 2, score: 8, controls: "مواصفة قانونية، اعتماد مورد، تحاليل دورية وتحقق من COA", cls: "OPRP", justification: "لا يمكن كشف جميع الملوثات لاحقاً بالعملية" },
+      { step: "استلام المواد والموافقة على المورد", type: "فيزيائي", hazard: "أجسام غريبة من المصدر أو النقل", s: 3, l: 2, score: 6, controls: "فحص الاستلام وسلامة العبوة والغربلة اللاحقة", cls: "OPRP", justification: "إجراء تشغيلي محدد ناتج عن تحليل المخاطر" },
+      { step: "استلام المواد والموافقة على المورد", type: "حساسية", hazard: "مكوّن حساس غير مصرح أو تلوث تبادلي", s: 4, l: 2, score: 8, controls: "إقرار حساسية المورد، فصل وتعريف المواد، مراجعة الملصق", cls: "OPRP", justification: "خطأ الحساسية قد يسبب ضرراً شديداً ولا تعالجه خطوة لاحقة" },
+      { step: "الحجر والفحص/أخذ العينة", type: "بيولوجي", hazard: "نمو ميكروبي بسبب سوء الزمن/الحرارة أو الرطوبة", s: 4, l: 2, score: 8, controls: "مراقبة الحرارة/الرطوبة، FEFO، إنذار وانحرافات", cls: "OPRP", justification: "التحكم التشغيلي المستمر ضروري للمنتجات الحساسة" },
+      { step: "الحجر والفحص/أخذ العينة", type: "كيميائي", hazard: "تلوث من مواد تنظيف/مبيدات أو مواد غير غذائية", s: 3, l: 1, score: 3, controls: "فصل كيميائيات، تخزين مقفل، SDS وبرنامج مكافحة آفات", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "الحجر والفحص/أخذ العينة", type: "حساسية", hazard: "اختلاط أو تسرب بين مواد حساسة", s: 4, l: 2, score: 8, controls: "فصل وترميز ومناولة مغلقة وخريطة حساسية", cls: "OPRP", justification: "يتطلب إجراءً قابلاً للمراقبة لمنع التلوث التبادلي" },
+      { step: "التخزين الجاف", type: "بيولوجي", hazard: "نمو ميكروبي بسبب سوء الزمن/الحرارة أو الرطوبة", s: 4, l: 2, score: 8, controls: "مراقبة الحرارة/الرطوبة، FEFO، إنذار وانحرافات", cls: "OPRP", justification: "التحكم التشغيلي المستمر ضروري للمنتجات الحساسة" },
+      { step: "التخزين الجاف", type: "كيميائي", hazard: "تلوث من مواد تنظيف/مبيدات أو مواد غير غذائية", s: 3, l: 1, score: 3, controls: "فصل كيميائيات، تخزين مقفل، SDS وبرنامج مكافحة آفات", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التخزين الجاف", type: "حساسية", hazard: "اختلاط أو تسرب بين مواد حساسة", s: 4, l: 2, score: 8, controls: "فصل وترميز ومناولة مغلقة وخريطة حساسية", cls: "OPRP", justification: "يتطلب إجراءً قابلاً للمراقبة لمنع التلوث التبادلي" },
+      { step: "التنظيف/الفرز", type: "بيولوجي", hazard: "تلوث أو نمو ميكروبي أثناء العملية", s: 4, l: 2, score: 8, controls: "GHP، فصل المناطق، زمن/حرارة، تنظيف وتطهير", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التنظيف/الفرز", type: "كيميائي", hazard: "جرعة خاطئة أو بقايا تنظيف/زيوت تشحيم", s: 3, l: 2, score: 6, controls: "وصفة معتمدة، تحقق وزن، شطف/تحقق تنظيف، مواد food-grade", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التنظيف/الفرز", type: "فيزيائي", hazard: "أجزاء معدات أو مواد غريبة", s: 3, l: 2, score: 6, controls: "صيانة وقائية، فحص قبل التشغيل، أدوات محكومة", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التنظيف/الفرز", type: "حساسية", hazard: "تلوث تبادلي أو خطأ ترتيب الإنتاج", s: 5, l: 2, score: 10, controls: "جدولة حساسية، تنظيف متحقق، أدوات مخصصة", cls: "OPRP", justification: "يتطلب مراقبة محددة عند وجود مسببات حساسية" },
+      { step: "الغربلة/المغناطيس", type: "فيزيائي", hazard: "معدن/حجر/زجاج أو جسم غريب", s: 4, l: 3, score: 12, controls: "غربال/مرشح/مغناطيس أو كاشف مثبت، اختبار تحدي وحجز عند الفشل", cls: "OPRP", justification: "إجراء تشغيلي قابل للقياس لمنع جسم غريب مهم" },
+      { step: "المعالجة الحرارية/التحميص عند الانطباق", type: "بيولوجي", hazard: "بقاء الممرضات نتيجة نقص الزمن/الحرارة/الفتك", s: 5, l: 3, score: 15, controls: "برنامج حراري مثبت، تسجيل مستمر/لكل دفعة، أجهزة معايرة", cls: "CCP", justification: "خطوة تحكم أساسية مصممة لخفض/منع خطر جوهري" },
+      { step: "المعالجة الحرارية/التحميص عند الانطباق", type: "كيميائي", hazard: "تكوّن مركبات غير مرغوبة بسبب فرط المعالجة", s: 3, l: 2, score: 6, controls: "ضبط الزمن/الحرارة ومواصفة المنتج وصيانة التحكم", cls: "OPRP", justification: "ضبط تشغيلي يحد من الإفراط والانحراف" },
+      { step: "الطحن/الخلط", type: "بيولوجي", hazard: "تلوث أو نمو ميكروبي أثناء العملية", s: 4, l: 2, score: 8, controls: "GHP، فصل المناطق، زمن/حرارة، تنظيف وتطهير", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "الطحن/الخلط", type: "كيميائي", hazard: "جرعة خاطئة أو بقايا تنظيف/زيوت تشحيم", s: 3, l: 2, score: 6, controls: "وصفة معتمدة، تحقق وزن، شطف/تحقق تنظيف، مواد food-grade", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "الطحن/الخلط", type: "فيزيائي", hazard: "أجزاء معدات أو مواد غريبة", s: 3, l: 2, score: 6, controls: "صيانة وقائية، فحص قبل التشغيل، أدوات محكومة", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "الطحن/الخلط", type: "حساسية", hazard: "تلوث تبادلي أو خطأ ترتيب الإنتاج", s: 5, l: 2, score: 10, controls: "جدولة حساسية، تنظيف متحقق، أدوات مخصصة", cls: "OPRP", justification: "يتطلب مراقبة محددة عند وجود مسببات حساسية" },
+      { step: "التعبئة والغلق", type: "بيولوجي", hazard: "إعادة تلوث أو تسرب بسبب فشل الغلق/البيئة", s: 5, l: 3, score: 15, controls: "فحوص سلامة الإغلاق، نظافة المنطقة، رفض تلقائي/حجز", cls: "OPRP", justification: "يحتاج مراقبة تشغيلية وقد يصنف CCP بالعملية العقيمة/المعلبة" },
+      { step: "التعبئة والغلق", type: "فيزيائي", hazard: "أجزاء عبوة/زجاج/معدن", s: 4, l: 2, score: 8, controls: "فحص العبوة، تحكم الزجاج والبلاستيك الهش، صيانة", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التحقق من الملصق والحساسية", type: "حساسية", hazard: "ملصق خاطئ أو إغفال مسبب حساسية", s: 5, l: 3, score: 15, controls: "مطابقة كود المنتج/الملصق، line clearance، تحقق مزدوج", cls: "OPRP", justification: "إجراء تشغيلي محدد يمنع تعرض المستهلك لمسبب غير معلن" },
+      { step: "التحقق من الملصق والحساسية", type: "كيميائي", hazard: "خطأ بيان مكون/إضافة أو تعليمات استخدام", s: 4, l: 2, score: 8, controls: "اعتماد فني وقانوني للملصق ومراجعة أول/آخر عبوة", cls: "OPRP", justification: "الملصق وسيلة التحكم الأخيرة لبعض الأخطار" },
+      { step: "الكشف عن أجسام غريبة إن كان مركباً", type: "فيزيائي", hazard: "معدن/حجر/زجاج أو جسم غريب", s: 4, l: 3, score: 12, controls: "غربال/مرشح/مغناطيس أو كاشف مثبت، اختبار تحدي وحجز عند الفشل", cls: "OPRP", justification: "إجراء تشغيلي قابل للقياس لمنع جسم غريب مهم" },
+      { step: "التخزين والإفراج", type: "بيولوجي", hazard: "نمو ميكروبي بسبب سوء الزمن/الحرارة أو الرطوبة", s: 4, l: 2, score: 8, controls: "مراقبة الحرارة/الرطوبة، FEFO، إنذار وانحرافات", cls: "OPRP", justification: "التحكم التشغيلي المستمر ضروري للمنتجات الحساسة" },
+      { step: "التخزين والإفراج", type: "كيميائي", hazard: "تلوث من مواد تنظيف/مبيدات أو مواد غير غذائية", s: 3, l: 1, score: 3, controls: "فصل كيميائيات، تخزين مقفل، SDS وبرنامج مكافحة آفات", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التخزين والإفراج", type: "حساسية", hazard: "اختلاط أو تسرب بين مواد حساسة", s: 4, l: 2, score: 8, controls: "فصل وترميز ومناولة مغلقة وخريطة حساسية", cls: "OPRP", justification: "يتطلب إجراءً قابلاً للمراقبة لمنع التلوث التبادلي" },
+    ],
+    ccps: [
+      { id: "CCP-1", step: "المعالجة الحرارية/التحميص عند الانطباق", hazard: "الخطر المهم المحدد في تحليل المخاطر", limit: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "قياس/ملاحظة لكل دفعة أو تسجيل مستمر", responsible: "مشغل مدرب + مراجعة الجودة", correction: "إيقاف وعزل منذ آخر فحص مقبول؛ تصحيح السبب؛ تقييم المنتج والتصرف المعتمد", verification: "مراجعة السجل يومياً؛ معايرة؛ اختبار/تحليل وفق الخطة", record: "HACCP-PLS-CCP1", revalidation: "يعاد التثبت عند تغيير المنتج/المعدة/الحد" },
+    ],
+    oprps: [
+      { id: "OPRP-1", step: "استلام المواد والموافقة على المورد", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-PLS-OPRP1" },
+      { id: "OPRP-2", step: "الغربلة/المغناطيس", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-PLS-OPRP2" },
+      { id: "OPRP-3", step: "التحقق من الملصق والحساسية", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-PLS-OPRP3" },
+      { id: "OPRP-4", step: "الكشف عن أجسام غريبة إن كان مركباً", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-PLS-OPRP4" },
+    ],
+  },
+  {
+    id: "cake", nameAr: "كيك", nameEn: "Cake", icon: "fa-solid fa-cake-candles",
+    docNo: "HACCP-CAK-001", version: "01", issueDate: "07/09/2026", reviewCycle: "سنويًا وعند أي تغيير/حادث", scope: "تصنيع وتعبئة – كيك", docStatus: "مسودة غير معتمدة؛ بيانات موقع مطلوبة",
+    product: [
+      { item: "اسم المنتج", value: "كيك" },
+      { item: "النشاط", value: "تصنيع وتعبئة" },
+      { item: "وصف العملية", value: "استلام المواد ← التخزين الجاف/المبرد ← الوزن والغربلة ← الخلط والعجن ← التخمير/التشكيل عند الانطباق ← الخبز/القلي ← التبريد المحمي ← الحشو/التزيين عند الانطباق ← التعبئة والغلق ← فحص الملصق والحساسية ← الكشف عن أجسام غريبة إن كان مركباً ← التخزين والتوزيع" },
+      { item: "المكونات", value: "تدخل من الوصفة/BOM المعتمدة؛ تشمل المواد المضافة ومساعدات التصنيع" },
+      { item: "مسببات الحساسية", value: "الحبوب المحتوية على الجلوتين، البيض" },
+      { item: "الخصائص المؤثرة في السلامة", value: "pH وaw والرطوبة/الملح والمعالجة الحرارية حسب نوع المنتج؛ تسجل القيم الفعلية" },
+      { item: "العبوة", value: "عبوة ملامسة للغذاء ملائمة للعملية وظروف التخزين؛ تحدد المادة والمقاس ونظام الغلق" },
+      { item: "الصلاحية", value: "تحدد بدراسة صلاحية مثبتة في ظروف التوزيع المتوقعة" },
+      { item: "التخزين", value: "مخزن المنتج النهائي" },
+      { item: "الاستخدام المقصود", value: "جاهز للاستهلاك أو للاستخدام حسب تعليمات الملصق؛ لا يستخدم خارج شروط التخزين والصلاحية المعتمدة" },
+      { item: "المستهلك المستهدف", value: "عموم المستهلكين، مع مراعاة المصابين بالحساسية والفئات الهشة" },
+      { item: "طريقة التوزيع", value: "مركبات مؤهلة مع حماية من التلوث ودرجة حرارة مناسبة" },
+      { item: "متطلبات الملصق", value: "اسم المنتج، المكونات، مسببات الحساسية، الكمية، التواريخ، التشغيلة، الحفظ، الاستخدام، بيانات المنشأة والمتطلبات النظامية" },
+      { item: "البيان", value: "إعداد: مسؤول سلامة الغذاء" },
+    ],
+    flow: ["استلام المواد", "التخزين الجاف/المبرد", "الوزن والغربلة", "الخلط والعجن", "التخمير/التشكيل عند الانطباق", "الخبز/القلي", "التبريد المحمي", "الحشو/التزيين عند الانطباق", "التعبئة والغلق", "فحص الملصق والحساسية", "الكشف عن أجسام غريبة إن كان مركباً", "التخزين والتوزيع"],
+    hazards: [
+      { step: "استلام المواد", type: "بيولوجي", hazard: "ممرضات أو حمولة ميكروبية غير مقبولة في المواد", s: 4, l: 3, score: 12, controls: "مورد معتمد، مواصفة وCOA، خطة أخذ عينات، رفض غير المطابق", cls: "OPRP", justification: "احتمال إدخال خطر مهم يحتاج قبول تشغيلي محدد" },
+      { step: "استلام المواد", type: "كيميائي", hazard: "بقايا/سموم فطرية/ملوثات أو إضافات غير مطابقة", s: 4, l: 2, score: 8, controls: "مواصفة قانونية، اعتماد مورد، تحاليل دورية وتحقق من COA", cls: "OPRP", justification: "لا يمكن كشف جميع الملوثات لاحقاً بالعملية" },
+      { step: "استلام المواد", type: "فيزيائي", hazard: "أجسام غريبة من المصدر أو النقل", s: 3, l: 2, score: 6, controls: "فحص الاستلام وسلامة العبوة والغربلة اللاحقة", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "استلام المواد", type: "حساسية", hazard: "مكوّن حساس غير مصرح أو تلوث تبادلي", s: 4, l: 2, score: 8, controls: "إقرار حساسية المورد، فصل وتعريف المواد، مراجعة الملصق", cls: "OPRP", justification: "خطأ الحساسية قد يسبب ضرراً شديداً ولا تعالجه خطوة لاحقة" },
+      { step: "التخزين الجاف/المبرد", type: "بيولوجي", hazard: "نمو ميكروبي بسبب سوء الزمن/الحرارة أو الرطوبة", s: 4, l: 3, score: 12, controls: "مراقبة الحرارة/الرطوبة، FEFO، إنذار وانحرافات", cls: "OPRP", justification: "التحكم التشغيلي المستمر ضروري للمنتجات الحساسة" },
+      { step: "التخزين الجاف/المبرد", type: "كيميائي", hazard: "تلوث من مواد تنظيف/مبيدات أو مواد غير غذائية", s: 3, l: 1, score: 3, controls: "فصل كيميائيات، تخزين مقفل، SDS وبرنامج مكافحة آفات", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التخزين الجاف/المبرد", type: "حساسية", hazard: "اختلاط أو تسرب بين مواد حساسة", s: 4, l: 2, score: 8, controls: "فصل وترميز ومناولة مغلقة وخريطة حساسية", cls: "OPRP", justification: "يتطلب إجراءً قابلاً للمراقبة لمنع التلوث التبادلي" },
+      { step: "الوزن والغربلة", type: "فيزيائي", hazard: "معدن/حجر/زجاج أو جسم غريب", s: 4, l: 3, score: 12, controls: "غربال/مرشح/مغناطيس أو كاشف مثبت، اختبار تحدي وحجز عند الفشل", cls: "OPRP", justification: "إجراء تشغيلي قابل للقياس لمنع جسم غريب مهم" },
+      { step: "الخلط والعجن", type: "بيولوجي", hazard: "تلوث أو نمو ميكروبي أثناء العملية", s: 4, l: 2, score: 8, controls: "GHP، فصل المناطق، زمن/حرارة، تنظيف وتطهير", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "الخلط والعجن", type: "كيميائي", hazard: "جرعة خاطئة أو بقايا تنظيف/زيوت تشحيم", s: 3, l: 2, score: 6, controls: "وصفة معتمدة، تحقق وزن، شطف/تحقق تنظيف، مواد food-grade", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "الخلط والعجن", type: "فيزيائي", hazard: "أجزاء معدات أو مواد غريبة", s: 3, l: 2, score: 6, controls: "صيانة وقائية، فحص قبل التشغيل، أدوات محكومة", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "الخلط والعجن", type: "حساسية", hazard: "تلوث تبادلي أو خطأ ترتيب الإنتاج", s: 5, l: 2, score: 10, controls: "جدولة حساسية، تنظيف متحقق، أدوات مخصصة", cls: "OPRP", justification: "يتطلب مراقبة محددة عند وجود مسببات حساسية" },
+      { step: "التخمير/التشكيل عند الانطباق", type: "بيولوجي", hazard: "تلوث أو نمو ميكروبي أثناء العملية", s: 4, l: 2, score: 8, controls: "GHP، فصل المناطق، زمن/حرارة، تنظيف وتطهير", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التخمير/التشكيل عند الانطباق", type: "كيميائي", hazard: "جرعة خاطئة أو بقايا تنظيف/زيوت تشحيم", s: 3, l: 2, score: 6, controls: "وصفة معتمدة، تحقق وزن، شطف/تحقق تنظيف، مواد food-grade", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التخمير/التشكيل عند الانطباق", type: "فيزيائي", hazard: "أجزاء معدات أو مواد غريبة", s: 3, l: 2, score: 6, controls: "صيانة وقائية، فحص قبل التشغيل، أدوات محكومة", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التخمير/التشكيل عند الانطباق", type: "حساسية", hazard: "تلوث تبادلي أو خطأ ترتيب الإنتاج", s: 5, l: 2, score: 10, controls: "جدولة حساسية، تنظيف متحقق، أدوات مخصصة", cls: "OPRP", justification: "يتطلب مراقبة محددة عند وجود مسببات حساسية" },
+      { step: "الخبز/القلي", type: "بيولوجي", hazard: "بقاء الممرضات نتيجة نقص الزمن/الحرارة/الفتك", s: 5, l: 3, score: 15, controls: "برنامج حراري مثبت، تسجيل مستمر/لكل دفعة، أجهزة معايرة", cls: "CCP", justification: "خطوة تحكم أساسية مصممة لخفض/منع خطر جوهري" },
+      { step: "الخبز/القلي", type: "كيميائي", hazard: "تكوّن مركبات غير مرغوبة بسبب فرط المعالجة", s: 3, l: 2, score: 6, controls: "ضبط الزمن/الحرارة ومواصفة المنتج وصيانة التحكم", cls: "OPRP", justification: "ضبط تشغيلي يحد من الإفراط والانحراف" },
+      { step: "التبريد المحمي", type: "بيولوجي", hazard: "نمو ممرضات أو تكوّن سموم بسبب إساءة الزمن/الحرارة", s: 5, l: 3, score: 15, controls: "حدود زمن/حرارة، تسجيل، أحجام دفعات مناسبة، حجز الانحراف", cls: "OPRP", justification: "التحكم الزمني الحراري ضروري لكنه لا يزيل الخطر" },
+      { step: "التبريد المحمي", type: "بيولوجي", hazard: "تلوث تبادلي من بيئة/سوائل فك التجميد", s: 4, l: 2, score: 8, controls: "فصل صحي، أوعية محمية، تنظيف وتطهير", cls: "OPRP", justification: "إجراء تشغيلي محدد ناتج عن تحليل المخاطر" },
+      { step: "الحشو/التزيين عند الانطباق", type: "بيولوجي", hazard: "تلوث أو نمو ميكروبي أثناء العملية", s: 4, l: 2, score: 8, controls: "GHP، فصل المناطق، زمن/حرارة، تنظيف وتطهير", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "الحشو/التزيين عند الانطباق", type: "كيميائي", hazard: "جرعة خاطئة أو بقايا تنظيف/زيوت تشحيم", s: 3, l: 2, score: 6, controls: "وصفة معتمدة، تحقق وزن، شطف/تحقق تنظيف، مواد food-grade", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "الحشو/التزيين عند الانطباق", type: "فيزيائي", hazard: "أجزاء معدات أو مواد غريبة", s: 3, l: 2, score: 6, controls: "صيانة وقائية، فحص قبل التشغيل، أدوات محكومة", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "الحشو/التزيين عند الانطباق", type: "حساسية", hazard: "تلوث تبادلي أو خطأ ترتيب الإنتاج", s: 5, l: 2, score: 10, controls: "جدولة حساسية، تنظيف متحقق، أدوات مخصصة", cls: "OPRP", justification: "يتطلب مراقبة محددة عند وجود مسببات حساسية" },
+      { step: "التعبئة والغلق", type: "بيولوجي", hazard: "إعادة تلوث أو تسرب بسبب فشل الغلق/البيئة", s: 5, l: 3, score: 15, controls: "فحوص سلامة الإغلاق، نظافة المنطقة، رفض تلقائي/حجز", cls: "OPRP", justification: "يحتاج مراقبة تشغيلية وقد يصنف CCP بالعملية العقيمة/المعلبة" },
+      { step: "التعبئة والغلق", type: "فيزيائي", hazard: "أجزاء عبوة/زجاج/معدن", s: 4, l: 2, score: 8, controls: "فحص العبوة، تحكم الزجاج والبلاستيك الهش، صيانة", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "فحص الملصق والحساسية", type: "حساسية", hazard: "ملصق خاطئ أو إغفال مسبب حساسية", s: 5, l: 3, score: 15, controls: "مطابقة كود المنتج/الملصق، line clearance، تحقق مزدوج", cls: "OPRP", justification: "إجراء تشغيلي محدد يمنع تعرض المستهلك لمسبب غير معلن" },
+      { step: "فحص الملصق والحساسية", type: "كيميائي", hazard: "خطأ بيان مكون/إضافة أو تعليمات استخدام", s: 4, l: 2, score: 8, controls: "اعتماد فني وقانوني للملصق ومراجعة أول/آخر عبوة", cls: "OPRP", justification: "الملصق وسيلة التحكم الأخيرة لبعض الأخطار" },
+      { step: "الكشف عن أجسام غريبة إن كان مركباً", type: "فيزيائي", hazard: "معدن/حجر/زجاج أو جسم غريب", s: 4, l: 3, score: 12, controls: "غربال/مرشح/مغناطيس أو كاشف مثبت، اختبار تحدي وحجز عند الفشل", cls: "OPRP", justification: "إجراء تشغيلي قابل للقياس لمنع جسم غريب مهم" },
+      { step: "التخزين والتوزيع", type: "بيولوجي", hazard: "نمو ميكروبي بسبب سوء الزمن/الحرارة أو الرطوبة", s: 4, l: 2, score: 8, controls: "مراقبة الحرارة/الرطوبة، FEFO، إنذار وانحرافات", cls: "OPRP", justification: "التحكم التشغيلي المستمر ضروري للمنتجات الحساسة" },
+      { step: "التخزين والتوزيع", type: "كيميائي", hazard: "تلوث من مواد تنظيف/مبيدات أو مواد غير غذائية", s: 3, l: 1, score: 3, controls: "فصل كيميائيات، تخزين مقفل، SDS وبرنامج مكافحة آفات", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التخزين والتوزيع", type: "حساسية", hazard: "اختلاط أو تسرب بين مواد حساسة", s: 4, l: 2, score: 8, controls: "فصل وترميز ومناولة مغلقة وخريطة حساسية", cls: "OPRP", justification: "يتطلب إجراءً قابلاً للمراقبة لمنع التلوث التبادلي" },
+    ],
+    ccps: [
+      { id: "CCP-1", step: "الخبز/القلي", hazard: "الخطر المهم المحدد في تحليل المخاطر", limit: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "قياس/ملاحظة لكل دفعة أو تسجيل مستمر", responsible: "مشغل مدرب + مراجعة الجودة", correction: "إيقاف وعزل منذ آخر فحص مقبول؛ تصحيح السبب؛ تقييم المنتج والتصرف المعتمد", verification: "مراجعة السجل يومياً؛ معايرة؛ اختبار/تحليل وفق الخطة", record: "HACCP-CAK-CCP1", revalidation: "يعاد التثبت عند تغيير المنتج/المعدة/الحد" },
+    ],
+    oprps: [
+      { id: "OPRP-1", step: "الوزن والغربلة", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-CAK-OPRP1" },
+      { id: "OPRP-2", step: "التبريد المحمي", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-CAK-OPRP2" },
+      { id: "OPRP-3", step: "فحص الملصق والحساسية", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-CAK-OPRP3" },
+      { id: "OPRP-4", step: "الكشف عن أجسام غريبة إن كان مركباً", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-CAK-OPRP4" },
+    ],
+  },
+  {
+    id: "poultry", nameAr: "دواجن مجمدة", nameEn: "Frozen Poultry", icon: "fa-solid fa-drumstick-bite",
+    docNo: "HACCP-FCH-001", version: "01", issueDate: "07/09/2026", reviewCycle: "سنويًا وعند أي تغيير/حادث", scope: "تجهيز وتجميد وتعبئة – دواجن مجمدة", docStatus: "مسودة غير معتمدة؛ بيانات موقع مطلوبة",
+    product: [
+      { item: "اسم المنتج", value: "دواجن مجمدة" },
+      { item: "النشاط", value: "تجهيز وتجميد وتعبئة" },
+      { item: "وصف العملية", value: "استلام المواد ← التخزين المبرد/المجمد ← فك التجميد عند الحاجة ← التحضير/الخلط ← المعالجة الحرارية عند الانطباق ← التبريد ← التشكيل/التعبئة ← التجميد السريع ← فحص الملصق والحساسية ← التخزين والتوزيع المجمد" },
+      { item: "المكونات", value: "تدخل من الوصفة/BOM المعتمدة؛ تشمل المواد المضافة ومساعدات التصنيع" },
+      { item: "مسببات الحساسية", value: "يحدد من التركيبة الفعلية وبيانات المورد؛ يمنع اعتماد (لا يوجد) دون مراجعة" },
+      { item: "الخصائص المؤثرة في السلامة", value: "pH وaw والرطوبة/الملح والمعالجة الحرارية حسب نوع المنتج؛ تسجل القيم الفعلية" },
+      { item: "العبوة", value: "عبوة ملامسة للغذاء ملائمة للعملية وظروف التخزين؛ تحدد المادة والمقاس ونظام الغلق" },
+      { item: "الصلاحية", value: "تحدد بدراسة صلاحية مثبتة في ظروف التوزيع المتوقعة" },
+      { item: "التخزين", value: "مخزن التجميد" },
+      { item: "الاستخدام المقصود", value: "للطهي الكامل قبل الاستهلاك؛ توضح تعليمات الطهي والحفظ على الملصق" },
+      { item: "المستهلك المستهدف", value: "عموم المستهلكين، مع مراعاة المصابين بالحساسية والفئات الهشة" },
+      { item: "طريقة التوزيع", value: "مركبات مؤهلة مع حماية من التلوث ودرجة حرارة مناسبة" },
+      { item: "متطلبات الملصق", value: "اسم المنتج، المكونات، مسببات الحساسية، الكمية، التواريخ، التشغيلة، الحفظ، الاستخدام، بيانات المنشأة والمتطلبات النظامية" },
+      { item: "البيان", value: "إعداد: مسؤول سلامة الغذاء" },
+    ],
+    flow: ["استلام المواد", "التخزين المبرد/المجمد", "فك التجميد عند الحاجة", "التحضير/الخلط", "المعالجة الحرارية عند الانطباق", "التبريد", "التشكيل/التعبئة", "التجميد السريع", "فحص الملصق والحساسية", "التخزين والتوزيع المجمد"],
+    hazards: [
+      { step: "استلام المواد", type: "بيولوجي", hazard: "ممرضات أو حمولة ميكروبية غير مقبولة في المواد", s: 4, l: 3, score: 12, controls: "مورد معتمد، مواصفة وCOA، خطة أخذ عينات، رفض غير المطابق", cls: "OPRP", justification: "احتمال إدخال خطر مهم يحتاج قبول تشغيلي محدد" },
+      { step: "استلام المواد", type: "كيميائي", hazard: "بقايا/سموم فطرية/ملوثات أو إضافات غير مطابقة", s: 4, l: 2, score: 8, controls: "مواصفة قانونية، اعتماد مورد، تحاليل دورية وتحقق من COA", cls: "OPRP", justification: "لا يمكن كشف جميع الملوثات لاحقاً بالعملية" },
+      { step: "استلام المواد", type: "فيزيائي", hazard: "أجسام غريبة من المصدر أو النقل", s: 3, l: 2, score: 6, controls: "فحص الاستلام وسلامة العبوة والغربلة اللاحقة", cls: "OPRP", justification: "إجراء تشغيلي محدد ناتج عن تحليل المخاطر" },
+      { step: "استلام المواد", type: "حساسية", hazard: "مكوّن حساس غير مصرح أو تلوث تبادلي", s: 4, l: 2, score: 8, controls: "إقرار حساسية المورد، فصل وتعريف المواد، مراجعة الملصق", cls: "OPRP", justification: "خطأ الحساسية قد يسبب ضرراً شديداً ولا تعالجه خطوة لاحقة" },
+      { step: "التخزين المبرد/المجمد", type: "بيولوجي", hazard: "نمو ميكروبي بسبب سوء الزمن/الحرارة أو الرطوبة", s: 4, l: 3, score: 12, controls: "مراقبة الحرارة/الرطوبة، FEFO، إنذار وانحرافات", cls: "OPRP", justification: "التحكم التشغيلي المستمر ضروري للمنتجات الحساسة" },
+      { step: "التخزين المبرد/المجمد", type: "كيميائي", hazard: "تلوث من مواد تنظيف/مبيدات أو مواد غير غذائية", s: 3, l: 1, score: 3, controls: "فصل كيميائيات، تخزين مقفل، SDS وبرنامج مكافحة آفات", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التخزين المبرد/المجمد", type: "حساسية", hazard: "اختلاط أو تسرب بين مواد حساسة", s: 4, l: 2, score: 8, controls: "فصل وترميز ومناولة مغلقة وخريطة حساسية", cls: "OPRP", justification: "يتطلب إجراءً قابلاً للمراقبة لمنع التلوث التبادلي" },
+      { step: "فك التجميد عند الحاجة", type: "بيولوجي", hazard: "نمو ممرضات أو تكوّن سموم بسبب إساءة الزمن/الحرارة", s: 5, l: 3, score: 15, controls: "حدود زمن/حرارة، تسجيل، أحجام دفعات مناسبة، حجز الانحراف", cls: "OPRP", justification: "التحكم الزمني الحراري ضروري لكنه لا يزيل الخطر" },
+      { step: "فك التجميد عند الحاجة", type: "بيولوجي", hazard: "تلوث تبادلي من بيئة/سوائل فك التجميد", s: 4, l: 2, score: 8, controls: "فصل صحي، أوعية محمية، تنظيف وتطهير", cls: "OPRP", justification: "إجراء تشغيلي محدد ناتج عن تحليل المخاطر" },
+      { step: "التحضير/الخلط", type: "بيولوجي", hazard: "تلوث أو نمو ميكروبي أثناء العملية", s: 4, l: 2, score: 8, controls: "GHP، فصل المناطق، زمن/حرارة، تنظيف وتطهير", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التحضير/الخلط", type: "كيميائي", hazard: "جرعة خاطئة أو بقايا تنظيف/زيوت تشحيم", s: 3, l: 2, score: 6, controls: "وصفة معتمدة، تحقق وزن، شطف/تحقق تنظيف، مواد food-grade", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التحضير/الخلط", type: "فيزيائي", hazard: "أجزاء معدات أو مواد غريبة", s: 3, l: 2, score: 6, controls: "صيانة وقائية، فحص قبل التشغيل، أدوات محكومة", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التحضير/الخلط", type: "حساسية", hazard: "تلوث تبادلي أو خطأ ترتيب الإنتاج", s: 5, l: 2, score: 10, controls: "جدولة حساسية، تنظيف متحقق، أدوات مخصصة", cls: "OPRP", justification: "يتطلب مراقبة محددة عند وجود مسببات حساسية" },
+      { step: "المعالجة الحرارية عند الانطباق", type: "بيولوجي", hazard: "بقاء الممرضات نتيجة نقص الزمن/الحرارة/الفتك", s: 5, l: 3, score: 15, controls: "برنامج حراري مثبت، تسجيل مستمر/لكل دفعة، أجهزة معايرة", cls: "CCP", justification: "خطوة تحكم أساسية مصممة لخفض/منع خطر جوهري" },
+      { step: "المعالجة الحرارية عند الانطباق", type: "كيميائي", hazard: "تكوّن مركبات غير مرغوبة بسبب فرط المعالجة", s: 3, l: 2, score: 6, controls: "ضبط الزمن/الحرارة ومواصفة المنتج وصيانة التحكم", cls: "OPRP", justification: "ضبط تشغيلي يحد من الإفراط والانحراف" },
+      { step: "التبريد", type: "بيولوجي", hazard: "نمو ممرضات أو تكوّن سموم بسبب إساءة الزمن/الحرارة", s: 5, l: 3, score: 15, controls: "حدود زمن/حرارة، تسجيل، أحجام دفعات مناسبة، حجز الانحراف", cls: "OPRP", justification: "التحكم الزمني الحراري ضروري لكنه لا يزيل الخطر" },
+      { step: "التبريد", type: "بيولوجي", hazard: "تلوث تبادلي من بيئة/سوائل فك التجميد", s: 4, l: 2, score: 8, controls: "فصل صحي، أوعية محمية، تنظيف وتطهير", cls: "OPRP", justification: "إجراء تشغيلي محدد ناتج عن تحليل المخاطر" },
+      { step: "التشكيل/التعبئة", type: "بيولوجي", hazard: "تلوث أو نمو ميكروبي أثناء العملية", s: 4, l: 2, score: 8, controls: "GHP، فصل المناطق، زمن/حرارة، تنظيف وتطهير", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التشكيل/التعبئة", type: "كيميائي", hazard: "جرعة خاطئة أو بقايا تنظيف/زيوت تشحيم", s: 3, l: 2, score: 6, controls: "وصفة معتمدة، تحقق وزن، شطف/تحقق تنظيف، مواد food-grade", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التشكيل/التعبئة", type: "فيزيائي", hazard: "أجزاء معدات أو مواد غريبة", s: 3, l: 2, score: 6, controls: "صيانة وقائية، فحص قبل التشغيل، أدوات محكومة", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التشكيل/التعبئة", type: "حساسية", hazard: "تلوث تبادلي أو خطأ ترتيب الإنتاج", s: 5, l: 2, score: 10, controls: "جدولة حساسية، تنظيف متحقق، أدوات مخصصة", cls: "OPRP", justification: "يتطلب مراقبة محددة عند وجود مسببات حساسية" },
+      { step: "التجميد السريع", type: "بيولوجي", hazard: "نمو ممرضات أو تكوّن سموم بسبب إساءة الزمن/الحرارة", s: 5, l: 3, score: 15, controls: "حدود زمن/حرارة، تسجيل، أحجام دفعات مناسبة، حجز الانحراف", cls: "OPRP", justification: "التحكم الزمني الحراري ضروري لكنه لا يزيل الخطر" },
+      { step: "التجميد السريع", type: "بيولوجي", hazard: "تلوث تبادلي من بيئة/سوائل فك التجميد", s: 4, l: 2, score: 8, controls: "فصل صحي، أوعية محمية، تنظيف وتطهير", cls: "OPRP", justification: "إجراء تشغيلي محدد ناتج عن تحليل المخاطر" },
+      { step: "فحص الملصق والحساسية", type: "حساسية", hazard: "ملصق خاطئ أو إغفال مسبب حساسية", s: 5, l: 3, score: 15, controls: "مطابقة كود المنتج/الملصق، line clearance، تحقق مزدوج", cls: "OPRP", justification: "إجراء تشغيلي محدد يمنع تعرض المستهلك لمسبب غير معلن" },
+      { step: "فحص الملصق والحساسية", type: "كيميائي", hazard: "خطأ بيان مكون/إضافة أو تعليمات استخدام", s: 4, l: 2, score: 8, controls: "اعتماد فني وقانوني للملصق ومراجعة أول/آخر عبوة", cls: "OPRP", justification: "الملصق وسيلة التحكم الأخيرة لبعض الأخطار" },
+      { step: "التخزين والتوزيع المجمد", type: "بيولوجي", hazard: "نمو ميكروبي بسبب سوء الزمن/الحرارة أو الرطوبة", s: 4, l: 3, score: 12, controls: "مراقبة الحرارة/الرطوبة، FEFO، إنذار وانحرافات", cls: "OPRP", justification: "التحكم التشغيلي المستمر ضروري للمنتجات الحساسة" },
+      { step: "التخزين والتوزيع المجمد", type: "كيميائي", hazard: "تلوث من مواد تنظيف/مبيدات أو مواد غير غذائية", s: 3, l: 1, score: 3, controls: "فصل كيميائيات، تخزين مقفل، SDS وبرنامج مكافحة آفات", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التخزين والتوزيع المجمد", type: "حساسية", hazard: "اختلاط أو تسرب بين مواد حساسة", s: 4, l: 2, score: 8, controls: "فصل وترميز ومناولة مغلقة وخريطة حساسية", cls: "OPRP", justification: "يتطلب إجراءً قابلاً للمراقبة لمنع التلوث التبادلي" },
+    ],
+    ccps: [
+      { id: "CCP-1", step: "المعالجة الحرارية عند الانطباق", hazard: "الخطر المهم المحدد في تحليل المخاطر", limit: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "قياس/ملاحظة لكل دفعة أو تسجيل مستمر", responsible: "مشغل مدرب + مراجعة الجودة", correction: "إيقاف وعزل منذ آخر فحص مقبول؛ تصحيح السبب؛ تقييم المنتج والتصرف المعتمد", verification: "مراجعة السجل يومياً؛ معايرة؛ اختبار/تحليل وفق الخطة", record: "HACCP-FCH-CCP1", revalidation: "يعاد التثبت عند تغيير المنتج/المعدة/الحد" },
+    ],
+    oprps: [
+      { id: "OPRP-1", step: "استلام المواد", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-FCH-OPRP1" },
+      { id: "OPRP-2", step: "فك التجميد عند الحاجة", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-FCH-OPRP2" },
+      { id: "OPRP-3", step: "التبريد", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-FCH-OPRP3" },
+      { id: "OPRP-4", step: "التجميد السريع", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-FCH-OPRP4" },
+      { id: "OPRP-5", step: "التخزين والتوزيع المجمد", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-FCH-OPRP5" },
+    ],
+  },
+  {
+    id: "potato", nameAr: "بطاطس نصف مقلية مجمدة", nameEn: "Frozen Par-Fried Potatoes", icon: "fa-solid fa-french-fries",
+    docNo: "HACCP-FFR-001", version: "01", issueDate: "07/09/2026", reviewCycle: "سنويًا وعند أي تغيير/حادث", scope: "تصنيع وتجميد وتعبئة – بطاطس نصف مقلية مجمدة", docStatus: "مسودة غير معتمدة؛ بيانات موقع مطلوبة",
+    product: [
+      { item: "اسم المنتج", value: "بطاطس نصف مقلية مجمدة" },
+      { item: "النشاط", value: "تصنيع وتجميد وتعبئة" },
+      { item: "وصف العملية", value: "استلام المواد ← التخزين المبرد/المجمد ← فك التجميد عند الحاجة ← التحضير/الخلط ← المعالجة الحرارية عند الانطباق ← التبريد ← التشكيل/التعبئة ← التجميد السريع ← فحص الملصق والحساسية ← التخزين والتوزيع المجمد" },
+      { item: "المكونات", value: "تدخل من الوصفة/BOM المعتمدة؛ تشمل المواد المضافة ومساعدات التصنيع" },
+      { item: "مسببات الحساسية", value: "يحدد من التركيبة الفعلية وبيانات المورد؛ يمنع اعتماد (لا يوجد) دون مراجعة" },
+      { item: "الخصائص المؤثرة في السلامة", value: "pH وaw والرطوبة/الملح والمعالجة الحرارية حسب نوع المنتج؛ تسجل القيم الفعلية" },
+      { item: "العبوة", value: "عبوة ملامسة للغذاء ملائمة للعملية وظروف التخزين؛ تحدد المادة والمقاس ونظام الغلق" },
+      { item: "الصلاحية", value: "تحدد بدراسة صلاحية مثبتة في ظروف التوزيع المتوقعة" },
+      { item: "التخزين", value: "مخزن التجميد" },
+      { item: "الاستخدام المقصود", value: "للطهي الكامل قبل الاستهلاك؛ توضح تعليمات الطهي والحفظ على الملصق" },
+      { item: "المستهلك المستهدف", value: "عموم المستهلكين، مع مراعاة المصابين بالحساسية والفئات الهشة" },
+      { item: "طريقة التوزيع", value: "مركبات مؤهلة مع حماية من التلوث ودرجة حرارة مناسبة" },
+      { item: "متطلبات الملصق", value: "اسم المنتج، المكونات، مسببات الحساسية، الكمية، التواريخ، التشغيلة، الحفظ، الاستخدام، بيانات المنشأة والمتطلبات النظامية" },
+      { item: "البيان", value: "إعداد: مسؤول سلامة الغذاء" },
+    ],
+    flow: ["استلام المواد", "التخزين المبرد/المجمد", "فك التجميد عند الحاجة", "التحضير/الخلط", "المعالجة الحرارية عند الانطباق", "التبريد", "التشكيل/التعبئة", "التجميد السريع", "فحص الملصق والحساسية", "التخزين والتوزيع المجمد"],
+    hazards: [
+      { step: "استلام المواد", type: "بيولوجي", hazard: "ممرضات أو حمولة ميكروبية غير مقبولة في المواد", s: 4, l: 3, score: 12, controls: "مورد معتمد، مواصفة وCOA، خطة أخذ عينات، رفض غير المطابق", cls: "OPRP", justification: "احتمال إدخال خطر مهم يحتاج قبول تشغيلي محدد" },
+      { step: "استلام المواد", type: "كيميائي", hazard: "بقايا/سموم فطرية/ملوثات أو إضافات غير مطابقة", s: 4, l: 2, score: 8, controls: "مواصفة قانونية، اعتماد مورد، تحاليل دورية وتحقق من COA", cls: "OPRP", justification: "لا يمكن كشف جميع الملوثات لاحقاً بالعملية" },
+      { step: "استلام المواد", type: "فيزيائي", hazard: "أجسام غريبة من المصدر أو النقل", s: 3, l: 2, score: 6, controls: "فحص الاستلام وسلامة العبوة والغربلة اللاحقة", cls: "OPRP", justification: "إجراء تشغيلي محدد ناتج عن تحليل المخاطر" },
+      { step: "استلام المواد", type: "حساسية", hazard: "مكوّن حساس غير مصرح أو تلوث تبادلي", s: 4, l: 2, score: 8, controls: "إقرار حساسية المورد، فصل وتعريف المواد، مراجعة الملصق", cls: "OPRP", justification: "خطأ الحساسية قد يسبب ضرراً شديداً ولا تعالجه خطوة لاحقة" },
+      { step: "التخزين المبرد/المجمد", type: "بيولوجي", hazard: "نمو ميكروبي بسبب سوء الزمن/الحرارة أو الرطوبة", s: 4, l: 3, score: 12, controls: "مراقبة الحرارة/الرطوبة، FEFO، إنذار وانحرافات", cls: "OPRP", justification: "التحكم التشغيلي المستمر ضروري للمنتجات الحساسة" },
+      { step: "التخزين المبرد/المجمد", type: "كيميائي", hazard: "تلوث من مواد تنظيف/مبيدات أو مواد غير غذائية", s: 3, l: 1, score: 3, controls: "فصل كيميائيات، تخزين مقفل، SDS وبرنامج مكافحة آفات", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التخزين المبرد/المجمد", type: "حساسية", hazard: "اختلاط أو تسرب بين مواد حساسة", s: 4, l: 2, score: 8, controls: "فصل وترميز ومناولة مغلقة وخريطة حساسية", cls: "OPRP", justification: "يتطلب إجراءً قابلاً للمراقبة لمنع التلوث التبادلي" },
+      { step: "فك التجميد عند الحاجة", type: "بيولوجي", hazard: "نمو ممرضات أو تكوّن سموم بسبب إساءة الزمن/الحرارة", s: 5, l: 3, score: 15, controls: "حدود زمن/حرارة، تسجيل، أحجام دفعات مناسبة، حجز الانحراف", cls: "OPRP", justification: "التحكم الزمني الحراري ضروري لكنه لا يزيل الخطر" },
+      { step: "فك التجميد عند الحاجة", type: "بيولوجي", hazard: "تلوث تبادلي من بيئة/سوائل فك التجميد", s: 4, l: 2, score: 8, controls: "فصل صحي، أوعية محمية، تنظيف وتطهير", cls: "OPRP", justification: "إجراء تشغيلي محدد ناتج عن تحليل المخاطر" },
+      { step: "التحضير/الخلط", type: "بيولوجي", hazard: "تلوث أو نمو ميكروبي أثناء العملية", s: 4, l: 2, score: 8, controls: "GHP، فصل المناطق، زمن/حرارة، تنظيف وتطهير", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التحضير/الخلط", type: "كيميائي", hazard: "جرعة خاطئة أو بقايا تنظيف/زيوت تشحيم", s: 3, l: 2, score: 6, controls: "وصفة معتمدة، تحقق وزن، شطف/تحقق تنظيف، مواد food-grade", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التحضير/الخلط", type: "فيزيائي", hazard: "أجزاء معدات أو مواد غريبة", s: 3, l: 2, score: 6, controls: "صيانة وقائية، فحص قبل التشغيل، أدوات محكومة", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التحضير/الخلط", type: "حساسية", hazard: "تلوث تبادلي أو خطأ ترتيب الإنتاج", s: 5, l: 2, score: 10, controls: "جدولة حساسية، تنظيف متحقق، أدوات مخصصة", cls: "OPRP", justification: "يتطلب مراقبة محددة عند وجود مسببات حساسية" },
+      { step: "المعالجة الحرارية عند الانطباق", type: "بيولوجي", hazard: "بقاء الممرضات نتيجة نقص الزمن/الحرارة/الفتك", s: 5, l: 3, score: 15, controls: "برنامج حراري مثبت، تسجيل مستمر/لكل دفعة، أجهزة معايرة", cls: "CCP", justification: "خطوة تحكم أساسية مصممة لخفض/منع خطر جوهري" },
+      { step: "المعالجة الحرارية عند الانطباق", type: "كيميائي", hazard: "تكوّن مركبات غير مرغوبة بسبب فرط المعالجة", s: 3, l: 2, score: 6, controls: "ضبط الزمن/الحرارة ومواصفة المنتج وصيانة التحكم", cls: "OPRP", justification: "ضبط تشغيلي يحد من الإفراط والانحراف" },
+      { step: "التبريد", type: "بيولوجي", hazard: "نمو ممرضات أو تكوّن سموم بسبب إساءة الزمن/الحرارة", s: 5, l: 3, score: 15, controls: "حدود زمن/حرارة، تسجيل، أحجام دفعات مناسبة، حجز الانحراف", cls: "OPRP", justification: "التحكم الزمني الحراري ضروري لكنه لا يزيل الخطر" },
+      { step: "التبريد", type: "بيولوجي", hazard: "تلوث تبادلي من بيئة/سوائل فك التجميد", s: 4, l: 2, score: 8, controls: "فصل صحي، أوعية محمية، تنظيف وتطهير", cls: "OPRP", justification: "إجراء تشغيلي محدد ناتج عن تحليل المخاطر" },
+      { step: "التشكيل/التعبئة", type: "بيولوجي", hazard: "تلوث أو نمو ميكروبي أثناء العملية", s: 4, l: 2, score: 8, controls: "GHP، فصل المناطق، زمن/حرارة، تنظيف وتطهير", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التشكيل/التعبئة", type: "كيميائي", hazard: "جرعة خاطئة أو بقايا تنظيف/زيوت تشحيم", s: 3, l: 2, score: 6, controls: "وصفة معتمدة، تحقق وزن، شطف/تحقق تنظيف، مواد food-grade", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التشكيل/التعبئة", type: "فيزيائي", hazard: "أجزاء معدات أو مواد غريبة", s: 3, l: 2, score: 6, controls: "صيانة وقائية، فحص قبل التشغيل، أدوات محكومة", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التشكيل/التعبئة", type: "حساسية", hazard: "تلوث تبادلي أو خطأ ترتيب الإنتاج", s: 5, l: 2, score: 10, controls: "جدولة حساسية، تنظيف متحقق، أدوات مخصصة", cls: "OPRP", justification: "يتطلب مراقبة محددة عند وجود مسببات حساسية" },
+      { step: "التجميد السريع", type: "بيولوجي", hazard: "نمو ممرضات أو تكوّن سموم بسبب إساءة الزمن/الحرارة", s: 5, l: 3, score: 15, controls: "حدود زمن/حرارة، تسجيل، أحجام دفعات مناسبة، حجز الانحراف", cls: "OPRP", justification: "التحكم الزمني الحراري ضروري لكنه لا يزيل الخطر" },
+      { step: "التجميد السريع", type: "بيولوجي", hazard: "تلوث تبادلي من بيئة/سوائل فك التجميد", s: 4, l: 2, score: 8, controls: "فصل صحي، أوعية محمية، تنظيف وتطهير", cls: "OPRP", justification: "إجراء تشغيلي محدد ناتج عن تحليل المخاطر" },
+      { step: "فحص الملصق والحساسية", type: "حساسية", hazard: "ملصق خاطئ أو إغفال مسبب حساسية", s: 5, l: 3, score: 15, controls: "مطابقة كود المنتج/الملصق، line clearance، تحقق مزدوج", cls: "OPRP", justification: "إجراء تشغيلي محدد يمنع تعرض المستهلك لمسبب غير معلن" },
+      { step: "فحص الملصق والحساسية", type: "كيميائي", hazard: "خطأ بيان مكون/إضافة أو تعليمات استخدام", s: 4, l: 2, score: 8, controls: "اعتماد فني وقانوني للملصق ومراجعة أول/آخر عبوة", cls: "OPRP", justification: "الملصق وسيلة التحكم الأخيرة لبعض الأخطار" },
+      { step: "التخزين والتوزيع المجمد", type: "بيولوجي", hazard: "نمو ميكروبي بسبب سوء الزمن/الحرارة أو الرطوبة", s: 4, l: 3, score: 12, controls: "مراقبة الحرارة/الرطوبة، FEFO، إنذار وانحرافات", cls: "OPRP", justification: "التحكم التشغيلي المستمر ضروري للمنتجات الحساسة" },
+      { step: "التخزين والتوزيع المجمد", type: "كيميائي", hazard: "تلوث من مواد تنظيف/مبيدات أو مواد غير غذائية", s: 3, l: 1, score: 3, controls: "فصل كيميائيات، تخزين مقفل، SDS وبرنامج مكافحة آفات", cls: "PRP", justification: "الخطر مسيطر عليه عبر برنامج أساسي فعال" },
+      { step: "التخزين والتوزيع المجمد", type: "حساسية", hazard: "اختلاط أو تسرب بين مواد حساسة", s: 4, l: 2, score: 8, controls: "فصل وترميز ومناولة مغلقة وخريطة حساسية", cls: "OPRP", justification: "يتطلب إجراءً قابلاً للمراقبة لمنع التلوث التبادلي" },
+    ],
+    ccps: [
+      { id: "CCP-1", step: "المعالجة الحرارية عند الانطباق", hazard: "الخطر المهم المحدد في تحليل المخاطر", limit: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "قياس/ملاحظة لكل دفعة أو تسجيل مستمر", responsible: "مشغل مدرب + مراجعة الجودة", correction: "إيقاف وعزل منذ آخر فحص مقبول؛ تصحيح السبب؛ تقييم المنتج والتصرف المعتمد", verification: "مراجعة السجل يومياً؛ معايرة؛ اختبار/تحليل وفق الخطة", record: "HACCP-FFR-CCP1", revalidation: "يعاد التثبت عند تغيير المنتج/المعدة/الحد" },
+    ],
+    oprps: [
+      { id: "OPRP-1", step: "استلام المواد", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-FFR-OPRP1" },
+      { id: "OPRP-2", step: "فك التجميد عند الحاجة", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-FFR-OPRP2" },
+      { id: "OPRP-3", step: "التبريد", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-FFR-OPRP3" },
+      { id: "OPRP-4", step: "التجميد السريع", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-FFR-OPRP4" },
+      { id: "OPRP-5", step: "التخزين والتوزيع المجمد", hazard: "الخطر المهم المحدد في تحليل المخاطر", criteria: "معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل", monitoring: "فحص/قياس بالتكرار المحدد في إجراء التشغيل", responsible: "مسؤول الخطوة + الجودة", action: "إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار", verification: "مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء", record: "HACCP-FFR-OPRP5" },
+    ],
+  },
+];
+// ============ GENERIC AUTO-GENERATION BANK (used by Smart Auto-Generate mode) ============
+// Patterns lifted from the recurring hazard/CCP/OPRP text that repeats identically across
+// every real product plan (receiving, storage, thermal step, packing, label check), so an
+// auto-generated plan looks and reads exactly like a hand-built one.
+const genericFlowTemplate = ['استلام المواد', 'التخزين', 'التحضير/المعالجة', 'المعالجة الحرارية', 'التعبئة والغلق', 'فحص الملصق والحساسية', 'التخزين والتوزيع'];
+
+const genericHazardBank = [
+  { match:['استلام'], type:'بيولوجي', hazard:'ممرضات أو حمولة ميكروبية غير مقبولة في المواد', s:4,l:3, controls:'مورد معتمد، مواصفة وCOA، خطة أخذ عينات، رفض غير المطابق', cls:'OPRP' },
+  { match:['استلام'], type:'كيميائي', hazard:'بقايا/سموم فطرية/ملوثات أو إضافات غير مطابقة', s:4,l:2, controls:'مواصفة قانونية، اعتماد مورد، تحاليل دورية وتحقق من COA', cls:'OPRP' },
+  { match:['استلام'], type:'فيزيائي', hazard:'أجسام غريبة من المصدر أو النقل', s:3,l:2, controls:'فحص الاستلام وسلامة العبوة والغربلة اللاحقة', cls:'OPRP' },
+  { match:['استلام'], type:'حساسية', hazard:'مكوّن حساس غير مصرح أو تلوث تبادلي', s:4,l:2, controls:'إقرار حساسية المورد، فصل وتعريف المواد، مراجعة الملصق', cls:'OPRP' },
+  { match:['تخزين'], type:'بيولوجي', hazard:'نمو ميكروبي بسبب سوء الزمن/الحرارة أو الرطوبة', s:4,l:2, controls:'مراقبة الحرارة/الرطوبة، FEFO، إنذار وانحرافات', cls:'OPRP' },
+  { match:['تخزين'], type:'كيميائي', hazard:'تلوث من مواد تنظيف/مبيدات أو مواد غير غذائية', s:3,l:1, controls:'فصل كيميائيات، تخزين مقفل، SDS وبرنامج مكافحة آفات', cls:'PRP' },
+  { match:['تخزين'], type:'حساسية', hazard:'اختلاط أو تسرب بين مواد حساسة', s:4,l:2, controls:'فصل وترميز ومناولة مغلقة وخريطة حساسية', cls:'OPRP' },
+  { match:['حرار','طهي','خبز','قلي','بستر','تعقيم'], type:'بيولوجي', hazard:'بقاء الممرضات نتيجة نقص الزمن/الحرارة/الفتك', s:5,l:3, controls:'برنامج حراري مثبت، تسجيل مستمر/لكل دفعة، أجهزة معايرة', cls:'CCP' },
+  { match:['حرار','طهي','خبز','قلي','بستر','تعقيم'], type:'كيميائي', hazard:'تكوّن مركبات غير مرغوبة بسبب فرط المعالجة', s:3,l:2, controls:'ضبط الزمن/الحرارة ومواصفة المنتج وصيانة التحكم', cls:'OPRP' },
+  { match:['تعبئة','غلق'], type:'بيولوجي', hazard:'إعادة تلوث أو تسرب بسبب فشل الغلق/البيئة', s:5,l:3, controls:'فحوص سلامة الإغلاق، نظافة المنطقة، رفض تلقائي/حجز', cls:'OPRP' },
+  { match:['ملصق','حساسي'], type:'حساسية', hazard:'ملصق خاطئ أو إغفال مسبب حساسية', s:5,l:3, controls:'مطابقة كود المنتج/الملصق، line clearance، تحقق مزدوج', cls:'OPRP' },
+];
+
+const genericCcpTemplateFields = {
+  hazard: 'الخطر المهم المحدد في تحليل المخاطر',
+  limit: 'معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل',
+  monitoring: 'قياس/ملاحظة لكل دفعة أو تسجيل مستمر',
+  responsible: 'مشغل مدرب + مراجعة الجودة',
+  correction: 'إيقاف وعزل منذ آخر فحص مقبول؛ تصحيح السبب؛ تقييم المنتج والتصرف المعتمد',
+  verification: 'مراجعة السجل يومياً؛ معايرة؛ اختبار/تحليل وفق الخطة',
+  revalidation: 'يعاد التثبت عند تغيير المنتج/المعدة/الحد',
+};
+const genericOprpTemplateFields = {
+  hazard: 'الخطر المهم المحدد في تحليل المخاطر',
+  criteria: 'معلق للتثبت: يحدد الفريق القيمة والوحدة وطريقة القياس وحد القبول بموجب مواصفة المنتج ودليل صلاحية إجراء الضبط؛ غير معتمد للتشغيل',
+  monitoring: 'فحص/قياس بالتكرار المحدد في إجراء التشغيل',
+  responsible: 'مسؤول الخطوة + الجودة',
+  action: 'إيقاف/تصحيح؛ حجز منذ آخر قبول؛ تقييم الأثر؛ CAPA عند التكرار',
+  verification: 'مراجعة سجلات واتجاهات؛ معايرة/مسحات/تدقيق حسب الإجراء',
+};
+
+function autoGenerateHazards(flowSteps){
+  const rows = [];
+  flowSteps.forEach(step=>{
+    genericHazardBank.forEach(g=>{
+      if(g.match.some(k=>step.includes(k))){
+        rows.push({ step, type:g.type, hazard:g.hazard, s:g.s, l:g.l, score:g.s*g.l, controls:g.controls, cls:g.cls, justification:'مولّد تلقائياً من بنك الأخطار النمطي — يُنصح بمراجعته وتأكيده' });
+      }
+    });
+  });
+  return rows;
+}
+function ccpsFromHazards(hazards, docNo){
+  return hazards.filter(h=>h.cls==='CCP').map((h,i)=>({
+    id:'CCP-'+(i+1), step:h.step, record:docNo+'-CCP'+(i+1), ...genericCcpTemplateFields,
+  }));
+}
+function oprpsFromHazards(hazards, docNo){
+  return hazards.filter(h=>h.cls==='OPRP').map((h,i)=>({
+    id:'OPRP-'+(i+1), step:h.step, record:docNo+'-OPRP'+(i+1), ...genericOprpTemplateFields,
+  }));
+}
+
+function haccpPlans(){
+  return {
+    activeProductId: 'legumes',
+    activeSection: 'doc',
+    addProductOpen: false,
+    editMode: false,
+    editSnapshot: null,
+    editSnapshotIndex: -1,
+    toastMsg: '',
+    createMode: 'auto',
+    allergenDraft: '',
+    draftProduct: { nameAr:'', nameEn:'', scope:'', bom:[], allergens:[], flowManual:[''], ccpManual:[] },
+
+    haccpProducts: haccpProducts,
+    haccpTeam, haccpMethodologyCriteria, haccpDecisionRules, prpMatrix,
+    monitoringColumns, verificationProgram, deviationColumns, haccpSections,
+
+    get activeProduct(){
+      return this.haccpProducts.find(p=>p.id===this.activeProductId) || this.haccpProducts[0];
+    },
+
+    // ---- Edit Plan lifecycle: a deep snapshot of the *currently selected product only* is
+    // taken when editing starts, so "Cancel" can roll back that one product without touching
+    // any other product in haccpProducts, and "Save" simply commits the already-live state. ----
+    startEdit(){
+      this.editSnapshotIndex = this.haccpProducts.findIndex(p=>p.id===this.activeProductId);
+      this.editSnapshot = JSON.parse(JSON.stringify(this.activeProduct));
+      this.editMode = true;
+    },
+    cancelEdit(){
+      if(this.editSnapshot && this.editSnapshotIndex > -1){
+        this.haccpProducts.splice(this.editSnapshotIndex, 1, this.editSnapshot);
+      }
+      this.editMode = false;
+      this.editSnapshot = null;
+      this.editSnapshotIndex = -1;
+      this.toast('تم التراجع عن التعديلات');
+    },
+    saveEdit(){
+      const name = this.activeProduct.nameAr;
+      this.editMode = false;
+      this.editSnapshot = null;
+      this.editSnapshotIndex = -1;
+      this.toast('تم حفظ التغييرات على خطة «' + name + '» بنجاح');
+    },
+
+    // ---- inline edit-mode helpers (bound directly by x-model in the templates; Alpine's
+    // reactivity means any edit is already reflected in local state the instant it happens —
+    // "Save Changes" commits it, "Cancel" restores the snapshot above) ----
+    addAllergen(){
+      const v = this.allergenDraft.trim();
+      if(!v) return;
+      this.draftProduct.allergens.push(v);
+      this.allergenDraft = '';
+    },
+    addFlowStep(product){ product.flow.push(''); },
+    removeFlowStep(product,i){ product.flow.splice(i,1); },
+    addHazardRow(product){
+      product.hazards.push({ step: product.flow[0]||'', type:'بيولوجي', hazard:'', s:1, l:1, score:1, controls:'', cls:'PRP', justification:'' });
+    },
+    removeHazardRow(product,i){ product.hazards.splice(i,1); },
+    recalcScore(h){ h.score = (Number(h.s)||0) * (Number(h.l)||0); },
+    addCcp(product){
+      product.ccps.push({ id:'CCP-'+(product.ccps.length+1), step:'', record: product.docNo+'-CCP'+(product.ccps.length+1), ...genericCcpTemplateFields, hazard:'', limit:'' });
+    },
+    removeCcp(product,i){ product.ccps.splice(i,1); },
+    addOprp(product){
+      product.oprps.push({ id:'OPRP-'+(product.oprps.length+1), step:'', record: product.docNo+'-OPRP'+(product.oprps.length+1), ...genericOprpTemplateFields, hazard:'' });
+    },
+    removeOprp(product,i){ product.oprps.splice(i,1); },
+    addProductRow(product){ product.product.push({item:'', value:''}); },
+    removeProductRow(product,i){ product.product.splice(i,1); },
+
+    // HACCP-06 decision table is derived live from the hazard analysis (05):
+    // every non-PRP hazard is by definition "significant" and reached the decision tree,
+    // and is resolved to CCP when the source hazard analysis already classified it as such.
+    get decisionRows(){
+      return this.activeProduct.hazards
+        .filter(h => h.cls !== 'PRP')
+        .map(h => ({
+          step: h.step, hazard: h.hazard, cls: h.cls,
+          significant: 'نعم', available: 'نعم',
+          designed: h.cls==='CCP' ? 'نعم' : 'لا',
+          further: h.cls==='CCP' ? '—' : 'نعم',
+        }));
+    },
+
+    toast(msg){
+      this.toastMsg = msg;
+      setTimeout(()=>{ this.toastMsg=''; }, 2600);
+    },
+
+    createProduct(){
+      if(!this.draftProduct.nameAr) return;
+      const seq = String(this.haccpProducts.length + 1).padStart(3,'0');
+      const slug = 'custom-' + Date.now();
+      const code = 'HACCP-NEW' + seq + '-001';
+      const isManual = this.createMode==='manual';
+
+      const productRows = [
+        { item:'اسم المنتج', value: this.draftProduct.nameAr },
+        { item:'النشاط', value: this.draftProduct.scope || 'يُستكمل' },
+      ];
+
+      let flow, hazards, ccps, oprps, docStatus;
+
+      if(isManual){
+        flow = this.draftProduct.flowManual.map(s=>s.trim()).filter(Boolean);
+        if(this.draftProduct.bom.filter(b=>b.name.trim()).length){
+          productRows.push({ item:'المكونات (BOM)', value: this.draftProduct.bom.filter(b=>b.name.trim()).map(b=> b.percent ? `${b.name} (${b.percent}%)` : b.name).join('، ') });
+        }
+        productRows.push({ item:'مسببات الحساسية', value: this.draftProduct.allergens.length ? this.draftProduct.allergens.join('، ') : 'لا يوجد / يُستكمل' });
+        // hazards start empty in manual mode — the person defines their own via the CCP fields
+        // below and can add full hazard rows afterwards from edit mode.
+        hazards = [];
+        ccps = this.draftProduct.ccpManual.filter(c=>c.step.trim()).map((c,i)=>({
+          id:'CCP-'+(i+1), step:c.step, hazard: c.hazard || genericCcpTemplateFields.hazard,
+          limit: c.limit || genericCcpTemplateFields.limit,
+          monitoring: genericCcpTemplateFields.monitoring, responsible: genericCcpTemplateFields.responsible,
+          correction: genericCcpTemplateFields.correction, verification: genericCcpTemplateFields.verification,
+          revalidation: genericCcpTemplateFields.revalidation, record: code+'-CCP'+(i+1),
+        }));
+        oprps = [];
+        docStatus = 'خطة مخصصة يدوياً — البيانات أُدخلت مباشرة من المستخدم؛ يمكن استكمال تحليل المخاطر وOPRP من وضع التعديل';
+      } else {
+        flow = genericFlowTemplate.slice();
+        hazards = autoGenerateHazards(flow);
+        ccps = ccpsFromHazards(hazards, code);
+        oprps = oprpsFromHazards(hazards, code);
+        docStatus = 'مسودة مولّدة تلقائياً من القالب النمطي — راجع وعدّل كل قيمة عبر وضع "تعديل الخطة" قبل الاعتماد';
+      }
+
+      this.haccpProducts.push({
+        id: slug,
+        nameAr: this.draftProduct.nameAr,
+        nameEn: this.draftProduct.nameEn || this.draftProduct.nameAr,
+        icon: 'fa-solid fa-box',
+        docNo: code, version: '00', issueDate: new Date().toISOString().slice(0,10).split('-').reverse().join('/'),
+        reviewCycle: 'سنويًا وعند أي تغيير/حادث',
+        scope: this.draftProduct.scope || (this.draftProduct.nameAr + ' — نطاق يُحدد'),
+        docStatus,
+        product: productRows,
+        flow, hazards, ccps, oprps,
+      });
+      this.activeProductId = slug;
+      this.activeSection = 'doc';
+      this.addProductOpen = false;
+      this.createMode = 'auto';
+      this.allergenDraft = '';
+      this.draftProduct = { nameAr:'', nameEn:'', scope:'', bom:[], allergens:[], flowManual:[''], ccpManual:[] };
+      this.toast(isManual ? 'تم حفظ الخطة المخصصة بنجاح' : 'تم توليد الخطة تلقائياً — راجعها من وضع التعديل');
+    },
+  }
+}
+</script>
+</body>
+</html>

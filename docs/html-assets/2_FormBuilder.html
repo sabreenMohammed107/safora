@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>استوديو النماذج الديناميكي | SAFORA</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 47'%3E%3Crect width='35' height='35' rx='8' fill='%23F02B18'/%3E%3Crect x='13' y='12' width='35' height='35' rx='8' fill='%23FD8118' fill-opacity='.92'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Montserrat:wght@700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { cairo: ['Cairo','sans-serif'], mono: ['JetBrains Mono','monospace'] },
+    colors: {
+        ink: { DEFAULT:'#071A2A', elev:'#0E2A40', border:'#1A3A55', soft:'#11304A', mist:'#9FB2BF' },
+        canvas: '#F3F5F8',
+        brand: { DEFAULT:'#FD8118', deep:'#B8560A', soft:'#FFF1E3', red:'#F02B18', cream:'#F6F2E8' },
+        emerald: { DEFAULT:'#0FA968', deep:'#066B41', soft:'#E4F6ED' },
+        rose: { DEFAULT:'#E11D48', deep:'#9F1239', soft:'#FDECEF' },
+        amber: { DEFAULT:'#C58B00', deep:'#7A5700', soft:'#FBF3D6' },
+        teal: { DEFAULT:'#0E86B4', deep:'#0A5F80', soft:'#E2F2F9' },
+      },
+    boxShadow: { card: '0 1px 2px rgba(7,26,42,0.06), 0 8px 24px -12px rgba(7,26,42,0.12)' }
+  }}
+}
+</script>
+<style>
+  body{ font-family:'Cairo',sans-serif; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+  .wordmark{ font-family:'Montserrat','Cairo',sans-serif; font-weight:800; letter-spacing:.015em; }
+  ::selection{ background:#FFE2C4; color:#071A2A; }
+  ::-webkit-scrollbar{ width:8px; height:8px; } ::-webkit-scrollbar-thumb{ background:#D3DAE3; border-radius:99px; }
+  [x-cloak]{ display:none !important; }
+  .sketch-cell{ width:8px; height:8px; }
+  .pcell{ width:24px; height:24px; }
+  .type-card:hover{ border-color:#0E86B4; }
+  .type-card.selected{ border-color:#FD8118; background:#FFF1E3; }
+
+  /* ---------------- PRINT ---------------- */
+  @page{ size:A4 landscape; margin:12mm; }
+  @media print{
+    .no-print{ display:none !important; }
+    body{ background:#fff !important; }
+    #printArea{ box-shadow:none !important; border:none !important; }
+  }
+</style>
+</head>
+<body class="bg-canvas text-ink font-cairo antialiased" x-data="formStudio()">
+
+<!-- Top strip -->
+<header class="no-print flex items-center gap-3 px-5 py-3 bg-ink text-white">
+  <a :href="backHref" class="flex items-center gap-2 shrink-0" aria-label="SAFORA">
+    <svg class="w-7 h-7" viewBox="0 0 48 47" aria-hidden="true"><defs><clipPath id="sfMarkTop"><rect width="35" height="35" rx="8"/></clipPath></defs><rect width="35" height="35" rx="8" fill="#F02B18"/><rect x="13" y="12" width="35" height="35" rx="8" fill="#E17F1A"/><rect x="13" y="12" width="35" height="35" rx="8" fill="#FD8118" clip-path="url(#sfMarkTop)"/></svg>
+    <span dir="ltr" class="wordmark text-[17px] text-brand-cream hidden sm:inline">SAFORA</span>
+  </a>
+  <span class="w-px h-5 bg-white/15 hidden sm:block"></span>
+  <a :href="backHref" class="text-white/50 hover:text-white text-sm"><i class="fa-solid fa-arrow-right ms-1"></i> <span x-text="backLabel"></span></a>
+  <span class="text-white/20">/</span>
+  <h1 class="font-bold text-sm">استوديو النماذج الديناميكي</h1>
+  <div class="hidden md:inline-flex p-0.5 rounded-lg bg-white/10 ms-2" role="tablist" aria-label="المعيار">
+    <a href="2_FormBuilder.html?std=haccp" role="tab" :aria-selected="std==='haccp'" class="px-3 py-1 rounded-md text-[11.5px] font-bold" :class="std==='haccp' ? 'bg-brand text-ink' : 'text-white/60 hover:text-white'">الهاسب</a>
+    <a href="2_FormBuilder.html?std=iso" role="tab" :aria-selected="std==='iso'" class="px-3 py-1 rounded-md text-[11.5px] font-bold" :class="std==='iso' ? 'bg-brand text-ink' : 'text-white/60 hover:text-white'">ISO 22000</a>
+  </div>
+
+  <div class="ms-auto flex items-center gap-2">
+    <button x-show="mode!=='library'" @click="mode='library'" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-xs font-semibold"><i class="fa-solid fa-arrow-right"></i> كل النماذج</button>
+    <button x-show="mode==='library'" @click="newFromLibrary()" class="px-4 py-2 rounded-lg bg-brand text-ink hover:bg-brand-deep hover:text-white text-xs font-bold transition"><i class="fa-solid fa-plus"></i> نموذج جديد</button>
+  </div>
+</header>
+
+<!-- ======================================================= LIBRARY ======================================================= -->
+<main x-show="mode==='library'" x-cloak class="p-5 lg:p-7 space-y-5">
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p class="mono text-[11px] text-teal font-semibold tracking-widest" x-text="'FORMS LIBRARY · ' + stdLabel"></p>
+      <h2 class="text-2xl font-extrabold tracking-tight mt-1" x-text="std==='haccp' ? 'نماذج الهاسب' : 'نماذج ISO 22000'"></h2>
+      <p class="text-sm text-ink/45 mt-1"><span x-text="proc==='all' ? (std==='haccp' ? 'كل برامج المتطلبات الأولية' : 'كل الإجراءات') : procLabel(proc)"></span> — عدّل أي نموذج أو أنشئ نموذجاً جديداً بنفس بنية المستندات الأصلية</p>
+    </div>
+    <button @click="newFromLibrary()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand text-ink text-sm font-bold hover:bg-brand-deep hover:text-white transition shadow-card">
+      <i class="fa-solid fa-plus"></i> نموذج جديد
+    </button>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card p-4 flex flex-wrap items-center gap-3">
+    <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-canvas border border-black/[0.06] text-xs text-ink/40 flex-1 min-w-[220px]">
+      <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+      <input type="text" x-model="searchQ" placeholder="بحث بالكود أو الاسم..." class="bg-transparent outline-none w-full text-ink placeholder:text-ink/35">
+    </div>
+    <select x-model="proc" aria-label="الإجراء" class="px-3 py-2 rounded-lg border border-black/10 text-xs font-semibold outline-none focus:border-teal bg-white max-w-[260px]">
+      <option value="all" x-text="std==='haccp' ? 'كل البرامج' : 'كل الإجراءات'"></option>
+      <template x-for="p in procs" :key="p.key"><option :value="p.key" :selected="p.key===proc" x-text="p.code + ' — ' + p.title + ' (' + countOf(p.key) + ')'"></option></template>
+    </select>
+    <select x-model="filterType" class="px-3 py-2 rounded-lg border border-black/10 text-xs font-semibold outline-none focus:border-teal bg-white">
+      <option value="">كل الأنواع</option>
+      <template x-for="t in layoutTypes" :key="t.key">
+        <option :value="t.key" x-text="t.label"></option>
+      </template>
+    </select>
+    <span class="mono text-[11px] px-2.5 py-1.5 rounded-full bg-teal-soft text-teal-deep font-bold" x-text="filteredForms.length + ' / ' + forms.length + ' نموذج'"></span>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+    <template x-for="f in filteredForms" :key="f.code">
+      <div class="relative bg-white rounded-2xl border border-black/[0.06] shadow-card p-4 flex flex-col gap-3 hover:border-teal/40 transition">
+
+        <!-- delete confirm overlay -->
+        <div x-show="confirmDeleteCode===f.code" x-cloak class="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center gap-3 p-4 z-10">
+          <i class="fa-solid fa-triangle-exclamation text-rose text-xl"></i>
+          <p class="text-xs font-bold text-center">حذف نموذج <span class="mono" x-text="f.code"></span> نهائياً؟</p>
+          <div class="flex gap-2">
+            <button @click="confirmDeleteCode=null" class="px-3 py-1.5 rounded-lg border border-black/10 text-xs font-semibold hover:bg-canvas">إلغاء</button>
+            <button @click="deleteForm(f.code)" class="px-3 py-1.5 rounded-lg bg-rose text-white text-xs font-bold hover:bg-rose-deep">تأكيد الحذف</button>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-2">
+          <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" :class="typeMeta(f.layoutType).chipBg + ' ' + typeMeta(f.layoutType).chipText">
+            <i :class="typeMeta(f.layoutType).icon"></i>
+          </span>
+          <div class="min-w-0">
+            <p class="mono text-[11px] font-bold text-teal-deep" x-text="f.code"></p>
+            <p class="text-[13px] font-bold leading-snug truncate" x-text="f.titleAr"></p>
+            <p x-show="proc==='all'" class="text-[10px] text-ink/50 truncate" x-text="procLabel(f.proc)"></p>
+            <p class="text-[10px] text-ink/40 truncate" x-text="f.titleEn"></p>
+          </div>
+          <span class="ms-auto px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0"
+                :class="f.status==='Active' ? 'bg-emerald-soft text-emerald-deep' : 'bg-amber-soft text-amber-deep'"
+                x-text="f.status==='Active' ? 'مفعّل' : 'مسودة'"></span>
+        </div>
+
+        <span class="w-fit px-2.5 py-1 rounded-full text-[10px] font-bold" :class="typeMeta(f.layoutType).chipBg + ' ' + typeMeta(f.layoutType).chipText" x-text="typeMeta(f.layoutType).label"></span>
+
+        <p class="text-[11px] text-ink/40">آخر تحديث: <span :class="f.updated && 'mono'" x-text="f.updated || 'قالب SAFORA'"></span></p>
+
+        <div class="flex items-center gap-1.5 mt-auto pt-1">
+          <button @click="editForm(f)" class="flex-1 px-2 py-2 rounded-lg bg-ink text-white text-[11px] font-bold hover:bg-ink-elev transition"><i class="fa-regular fa-pen-to-square"></i> تعديل</button>
+          <button @click="previewForm(f)" class="flex-1 px-2 py-2 rounded-lg bg-teal text-white text-[11px] font-bold hover:bg-teal-deep transition"><i class="fa-solid fa-print"></i> معاينة وطباعة</button>
+          <button @click="duplicateForm(f)" class="w-9 h-9 shrink-0 rounded-lg border border-black/10 text-ink/50 hover:bg-canvas transition flex items-center justify-center" title="نسخ النموذج"><i class="fa-regular fa-copy text-xs"></i></button>
+          <button @click="confirmDeleteCode=f.code" class="w-9 h-9 shrink-0 rounded-lg border border-black/10 text-rose/70 hover:bg-rose-soft transition flex items-center justify-center" title="حذف"><i class="fa-regular fa-trash-can text-xs"></i></button>
+        </div>
+      </div>
+    </template>
+
+    <template x-if="filteredForms.length===0">
+      <div class="sm:col-span-2 xl:col-span-3 py-16 text-center text-ink/30 bg-white rounded-2xl border border-dashed border-black/10">
+        <i class="fa-regular fa-folder-open text-2xl mb-3"></i>
+        <p class="text-sm font-semibold" x-text="forms.some(f => proc==='all' || f.proc===proc) ? 'لا توجد نماذج مطابقة للبحث' : 'لا توجد نماذج لهذا الإجراء بعد — اضغط «نموذج جديد»'"></p>
+      </div>
+    </template>
+  </div>
+</main>
+
+<!-- ======================================================= TYPE PICKER ======================================================= -->
+<main x-show="mode==='typePicker'" x-cloak class="p-5 lg:p-7 space-y-5 max-w-5xl mx-auto">
+  <button @click="exitBuilder()" class="text-ink/40 hover:text-ink text-sm"><i class="fa-solid fa-arrow-right"></i> <span x-text="ret==='hc' ? 'رجوع لمركز قيادة الهاسب' : 'رجوع لكل النماذج'"></span></button>
+  <div>
+    <p class="mono text-[11px] text-teal font-semibold tracking-widest">STEP 1 — LAYOUT ARCHETYPE</p>
+    <h2 class="text-2xl font-extrabold tracking-tight mt-1">اختر بنية النموذج</h2>
+    <p class="text-sm text-ink/45 mt-1">كل نوع مأخوذ من دراسة الأشكال الفعلية لمستندات P-19 — اختر الأقرب لشكل ورقة العمل الأصلية</p>
+    <label class="mt-3 flex items-center gap-2 text-sm font-bold w-fit">النموذج تابع لـ
+      <select x-model="proc" class="px-3 py-2 rounded-lg border border-black/10 text-xs font-semibold bg-white max-w-[320px]"><template x-for="p in procs" :key="p.key"><option :value="p.key" :selected="p.key===proc" x-text="p.code + ' — ' + p.title"></option></template></select>
+    </label>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <template x-for="t in layoutTypes" :key="t.key">
+      <button @click="startNewForm(t.key)" class="type-card text-right bg-white rounded-2xl border-2 border-black/[0.06] shadow-card p-5 transition flex flex-col gap-3">
+        <div class="flex items-center gap-3">
+          <span class="w-11 h-11 rounded-xl flex items-center justify-center text-lg shrink-0" :class="t.chipBg + ' ' + t.chipText"><i :class="t.icon"></i></span>
+          <div>
+            <p class="font-extrabold" x-text="t.label"></p>
+            <p class="text-[11px] text-ink/40" x-text="t.examples"></p>
+          </div>
+        </div>
+        <p class="text-xs text-ink/55 leading-relaxed" x-text="t.desc"></p>
+
+        <!-- mini sketch -->
+        <div class="mt-1 p-2 rounded-lg bg-canvas border border-black/[0.05]">
+          <div x-html="t.sketch"></div>
+        </div>
+      </button>
+    </template>
+  </div>
+</main>
+
+<!-- ======================================================= BUILDER ======================================================= -->
+<main x-show="mode==='builder' && draft" x-cloak class="p-5 lg:p-7 max-w-6xl mx-auto space-y-5">
+  <button @click="exitBuilder()" class="text-ink/40 hover:text-ink text-sm"><i class="fa-solid fa-arrow-right"></i> <span x-text="ret==='hc' ? 'رجوع لمركز قيادة الهاسب' : 'رجوع لكل النماذج'"></span></button>
+
+  <template x-if="draft">
+    <div class="space-y-5">
+      <!-- Header meta -->
+      <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card p-5">
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" :class="typeMeta(draft.layoutType).chipBg + ' ' + typeMeta(draft.layoutType).chipText"><i :class="typeMeta(draft.layoutType).icon"></i></span>
+          <div>
+            <p class="font-extrabold" x-text="typeMeta(draft.layoutType).label"></p>
+            <p class="text-[11px] text-ink/40 mono" x-text="editingOriginalCode ? 'تعديل نموذج قائم' : 'نموذج جديد'"></p>
+          </div>
+          <div class="ms-auto flex items-center gap-2">
+            <button type="button" @click="draft.status = draft.status==='Active' ? 'Draft' : 'Active'"
+                    :class="draft.status==='Active' ? 'bg-emerald-soft text-emerald-deep' : 'bg-amber-soft text-amber-deep'"
+                    class="px-3 py-1.5 rounded-full text-xs font-bold transition">
+              <i class="fa-solid fa-power-off"></i> <span x-text="draft.status==='Active' ? 'مفعّل' : 'مسودة'"></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="text-xs font-bold text-ink/60">كود النموذج</label>
+            <input type="text" x-model="draft.code" :readonly="!!editingOriginalCode" :class="editingOriginalCode && 'bg-canvas text-ink/60'" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm mono outline-none focus:border-emerald">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="text-xs font-bold text-ink/60">عنوان النموذج (عربي)</label>
+            <input type="text" x-model="draft.titleAr" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-emerald">
+          </div>
+          <div class="sm:col-span-3">
+            <label class="text-xs font-bold text-ink/60">العنوان الإنجليزي (اختياري)</label>
+            <input type="text" x-model="draft.titleEn" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-emerald">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="text-xs font-bold text-ink/60" x-text="std==='haccp' ? 'برنامج المتطلبات الأولية' : 'الإجراء'"></label>
+            <select x-model="draft.proc" :disabled="!!editingOriginalCode" @change="draft.code = nextCode(draft.proc)" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-emerald bg-white disabled:bg-canvas">
+              <template x-for="p in procs" :key="p.key"><option :value="p.key" :selected="p.key===draft.proc" x-text="p.code + ' — ' + p.title"></option></template>
+            </select>
+          </div>
+          <div x-show="draft.layoutType!=='dated_grid'">
+            <label class="text-xs font-bold text-ink/60">التكرار</label>
+            <input type="text" x-model="draft.freq" list="freqOpts" placeholder="يومي، أسبوعي، عند الحدوث…" class="w-full mt-1.5 px-3 py-2.5 rounded-lg border border-black/10 text-sm outline-none focus:border-emerald">
+            <datalist id="freqOpts"><option>يومي</option><option>كل وردية</option><option>أسبوعي</option><option>شهري</option><option>عند الحدوث</option><option>حسب خطة البرنامج</option></datalist>
+          </div>
+        </div>
+      </div>
+
+      <!-- Split: config editor + live preview -->
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+
+        <!-- CONFIG EDITOR -->
+        <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card p-5 space-y-5">
+          <p class="text-xs font-extrabold text-ink/60">إعداد بنية النموذج</p>
+
+          <!-- ============ SIMPLE ============ -->
+          <template x-if="draft.layoutType==='simple'">
+            <div class="space-y-3">
+              <div class="flex flex-wrap gap-2">
+                <button type="button" @click="addSimpleField('text')" class="px-2.5 py-1.5 rounded-lg bg-canvas border border-black/10 text-[11px] font-semibold hover:border-teal/40"><i class="fa-solid fa-font text-teal"></i> نص</button>
+                <button type="button" @click="addSimpleField('temp')" class="px-2.5 py-1.5 rounded-lg bg-canvas border border-black/10 text-[11px] font-semibold hover:border-teal/40"><i class="fa-solid fa-temperature-half text-teal"></i> حرارة</button>
+                <button type="button" @click="addSimpleField('passfail')" class="px-2.5 py-1.5 rounded-lg bg-canvas border border-black/10 text-[11px] font-semibold hover:border-teal/40"><i class="fa-solid fa-toggle-on text-teal"></i> مطابق/غير مطابق</button>
+                <button type="button" @click="addSimpleField('photo')" class="px-2.5 py-1.5 rounded-lg bg-canvas border border-black/10 text-[11px] font-semibold hover:border-teal/40"><i class="fa-solid fa-camera text-teal"></i> صورة</button>
+                <template x-for="t in [['textarea','نص طويل','fa-align-right'],['number','رقم','fa-hashtag'],['date','تاريخ','fa-calendar'],['time','وقت','fa-clock'],['select','اختيار','fa-list'],['signature','توقيع','fa-signature']]" :key="t[0]">
+                  <button type="button" @click="addSimpleField(t[0])" class="px-2.5 py-1.5 rounded-lg bg-canvas border border-black/10 text-[11px] font-semibold hover:border-teal/40"><i class="fa-solid text-teal" :class="t[2]"></i> <span x-text="t[1]"></span></button>
+                </template>
+              </div>
+              <div class="space-y-2">
+                <template x-for="(f,i) in draft.config.fields" :key="f.id">
+                  <div class="space-y-1.5">
+                  <div class="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-canvas border border-black/[0.06]">
+                    <i :class="simpleIcon(f.type)" class="text-teal-deep text-xs shrink-0"></i>
+                    <input type="text" x-model="f.label" class="flex-1 min-w-0 bg-transparent outline-none text-xs font-semibold">
+                    <label class="flex items-center gap-1 text-[10px] text-ink/40 shrink-0"><input type="checkbox" x-model="f.required" class="w-3.5 h-3.5 accent-rose"> إجباري</label>
+                    <button @click="moveItem(draft.config.fields,i,-1)" class="text-ink/25 hover:text-ink shrink-0"><i class="fa-solid fa-chevron-up text-[10px]"></i></button>
+                    <button @click="moveItem(draft.config.fields,i,1)" class="text-ink/25 hover:text-ink shrink-0"><i class="fa-solid fa-chevron-down text-[10px]"></i></button>
+                    <button @click="removeAt(draft.config.fields,i)" class="text-rose/60 hover:text-rose shrink-0"><i class="fa-regular fa-trash-can text-[11px]"></i></button>
+                  </div>
+                  <input x-show="f.type==='select'" type="text" :value="(f.options||[]).join('، ')" @input="f.options=$event.target.value.split(/[,،]/).map(x=>x.trim()).filter(Boolean)" placeholder="الخيارات مفصولة بفاصلة" class="w-full -mt-1 px-3 py-1.5 rounded-lg border border-black/10 text-[11px] outline-none focus:border-teal bg-white">
+                  </div>
+                </template>
+                <p x-show="draft.config.fields.length===0" class="text-[11px] text-ink/30 text-center py-4">أضف حقولاً من الأزرار أعلاه</p>
+                <label class="block pt-2 border-t border-black/[0.06]"><span class="text-[11px] font-bold text-ink/50">عنوان حقل التاريخ</span><input type="text" x-model="draft.config.dateLabel" placeholder="التاريخ" class="w-full mt-1 px-3 py-1.5 rounded-lg border border-black/10 text-xs outline-none focus:border-teal"></label>
+              </div>
+            </div>
+          </template>
+
+          <!-- ============ DATED GRID ============ -->
+          <template x-if="draft.layoutType==='dated_grid'">
+            <div class="space-y-4">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-[11px] font-bold text-ink/50">التكرار (وصفي)</label>
+                  <select x-model="draft.config.frequency" class="w-full mt-1 px-3 py-2 rounded-lg border border-black/10 text-xs outline-none focus:border-teal bg-white">
+                    <option>يومي</option><option>أسبوعي</option><option>شهري</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-[11px] font-bold text-ink/50">عدد الصفوف (الأيام)</label>
+                  <input type="number" x-model.number="draft.config.rowCount" min="1" max="31" class="w-full mt-1 px-3 py-2 rounded-lg border border-black/10 text-xs mono outline-none focus:border-teal">
+                </div>
+              </div>
+
+              <label class="flex items-center gap-2 px-3 py-2 rounded-lg bg-canvas text-xs font-semibold text-ink/60">
+                <input type="checkbox" x-model="draft.config.multiSection" class="w-4 h-4 accent-teal">
+                أقسام متعددة متكررة (مثل عدة فلاتر أو خزانات)
+              </label>
+              <template x-if="draft.config.multiSection">
+                <div class="space-y-2 ps-2 border-e-2 border-teal/20 pe-2">
+                  <template x-for="(s,i) in draft.config.sections" :key="i">
+                    <div class="flex items-center gap-2">
+                      <input type="text" x-model="draft.config.sections[i]" placeholder="اسم القسم (مثال: الفلتر الرملي)" class="flex-1 px-3 py-1.5 rounded-lg border border-black/10 text-xs outline-none focus:border-teal">
+                      <button @click="removeAt(draft.config.sections,i)" class="text-rose/60 hover:text-rose"><i class="fa-regular fa-trash-can text-[11px]"></i></button>
+                    </div>
+                  </template>
+                  <button @click="draft.config.sections.push('قسم جديد')" class="text-[11px] font-bold text-teal-deep hover:underline"><i class="fa-solid fa-plus"></i> إضافة قسم</button>
+                </div>
+              </template>
+
+              <div>
+                <p class="text-[11px] font-bold text-ink/50 mb-2">حقول أعلى النموذج (Meta)</p>
+                <div class="space-y-1.5">
+                  <template x-for="(m,i) in draft.config.metaFields" :key="i">
+                    <div class="flex items-center gap-2">
+                      <input type="text" x-model="draft.config.metaFields[i]" class="flex-1 px-3 py-1.5 rounded-lg border border-black/10 text-xs outline-none focus:border-teal">
+                      <button @click="removeAt(draft.config.metaFields,i)" class="text-rose/60 hover:text-rose"><i class="fa-regular fa-trash-can text-[11px]"></i></button>
+                    </div>
+                  </template>
+                </div>
+                <button @click="draft.config.metaFields.push('حقل جديد')" class="mt-1.5 text-[11px] font-bold text-teal-deep hover:underline"><i class="fa-solid fa-plus"></i> إضافة حقل علوي</button>
+              </div>
+
+              <div>
+                <p class="text-[11px] font-bold text-ink/50 mb-2">أعمدة الجدول</p>
+                <div class="space-y-1.5">
+                  <template x-for="(c,i) in draft.config.columns" :key="c.id">
+                    <div class="flex items-center gap-2">
+                      <input type="text" x-model="c.label" class="flex-1 min-w-0 px-3 py-1.5 rounded-lg border border-black/10 text-xs outline-none focus:border-teal">
+                      <select x-model="c.type" class="px-2 py-1.5 rounded-lg border border-black/10 text-[11px] outline-none focus:border-teal bg-white shrink-0">
+                        <option value="check">رمز ✓/✗</option>
+                        <option value="text">نص</option>
+                        <option value="number">رقم</option>
+                        <option value="signature">توقيع</option>
+                      </select>
+                      <button @click="moveItem(draft.config.columns,i,-1)" class="text-ink/25 hover:text-ink shrink-0"><i class="fa-solid fa-chevron-up text-[10px]"></i></button>
+                      <button @click="moveItem(draft.config.columns,i,1)" class="text-ink/25 hover:text-ink shrink-0"><i class="fa-solid fa-chevron-down text-[10px]"></i></button>
+                      <button @click="removeAt(draft.config.columns,i)" class="text-rose/60 hover:text-rose shrink-0"><i class="fa-regular fa-trash-can text-[11px]"></i></button>
+                    </div>
+                  </template>
+                </div>
+                <button @click="draft.config.columns.push({id:'c'+Date.now(), label:'عمود جديد', type:'check'})" class="mt-1.5 text-[11px] font-bold text-teal-deep hover:underline"><i class="fa-solid fa-plus"></i> إضافة عمود</button>
+              </div>
+            </div>
+          </template>
+
+          <!-- ============ MATRIX MONTH ============ -->
+          <template x-if="draft.layoutType==='matrix_month'">
+            <div class="space-y-3">
+              <p class="text-[11px] text-ink/40"><i class="fa-solid fa-circle-info"></i> المصفوفة تغطي 31 يوماً تلقائياً — عرّف الفئات وعناصرها فقط.</p>
+              <template x-for="(cat,ci) in draft.config.categories" :key="ci">
+                <div class="rounded-lg border border-black/[0.06] bg-canvas p-3 space-y-2">
+                  <div class="flex items-center gap-2">
+                    <input type="text" x-model="cat.name" class="flex-1 px-3 py-1.5 rounded-lg border border-black/10 text-xs font-bold outline-none focus:border-teal bg-white">
+                    <button @click="removeAt(draft.config.categories,ci)" class="text-rose/60 hover:text-rose"><i class="fa-regular fa-trash-can text-[11px]"></i></button>
+                  </div>
+                  <div class="space-y-1.5 ps-3">
+                    <template x-for="(it,ii) in cat.items" :key="ii">
+                      <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-minus text-[9px] text-ink/25"></i>
+                        <input type="text" x-model="cat.items[ii]" class="flex-1 px-2.5 py-1.5 rounded-lg border border-black/10 text-xs outline-none focus:border-teal bg-white">
+                        <button @click="removeAt(cat.items,ii)" class="text-rose/50 hover:text-rose"><i class="fa-regular fa-trash-can text-[10px]"></i></button>
+                      </div>
+                    </template>
+                    <button @click="cat.items.push('عنصر جديد')" class="text-[10px] font-bold text-teal-deep hover:underline"><i class="fa-solid fa-plus"></i> إضافة عنصر</button>
+                  </div>
+                </div>
+              </template>
+              <button @click="draft.config.categories.push({name:'فئة جديدة', items:['عنصر 1']})" class="text-[11px] font-bold text-teal-deep hover:underline"><i class="fa-solid fa-plus"></i> إضافة فئة</button>
+            </div>
+          </template>
+
+          <!-- ============ AUDIT SECTIONS ============ -->
+          <template x-if="draft.layoutType==='audit_sections'">
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-3">
+                <label class="block"><span class="text-[11px] font-bold text-ink/50">نظام التقييم</span>
+                  <select x-model="draft.config.scale" class="w-full mt-1 px-3 py-2 rounded-lg border border-black/10 text-xs outline-none focus:border-teal bg-white"><option value="compliance">مطابق / غير مطابق / لا ينطبق</option><option value="">منفّذ / غير منفّذ / لا ينطبق</option></select></label>
+                <label class="block"><span class="text-[11px] font-bold text-ink/50">عنوان حقل التاريخ</span><input type="text" x-model="draft.config.dateLabel" placeholder="التاريخ" class="w-full mt-1 px-3 py-2 rounded-lg border border-black/10 text-xs outline-none focus:border-teal"></label>
+                <label class="block col-span-2"><span class="text-[11px] font-bold text-ink/50">عنوان خانة الملاحظات</span><input type="text" x-model="draft.config.notesLabel" placeholder="ملاحظات وإجراءات تصحيحية" class="w-full mt-1 px-3 py-2 rounded-lg border border-black/10 text-xs outline-none focus:border-teal"></label>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold text-ink/50 mb-1.5">حقول أعلى النموذج (Meta)</p>
+                <div class="space-y-1.5">
+                  <template x-for="(m,i) in (draft.config.metaFields || [])" :key="i">
+                    <div class="flex items-center gap-2">
+                      <input type="text" x-model="draft.config.metaFields[i]" class="flex-1 px-3 py-1.5 rounded-lg border border-black/10 text-xs outline-none focus:border-teal">
+                      <button @click="removeAt(draft.config.metaFields,i)" class="text-rose/60 hover:text-rose"><i class="fa-regular fa-trash-can text-[11px]"></i></button>
+                    </div>
+                  </template>
+                </div>
+                <button @click="(draft.config.metaFields = draft.config.metaFields || []).push('حقل جديد')" class="mt-1.5 text-[11px] font-bold text-teal-deep hover:underline"><i class="fa-solid fa-plus"></i> إضافة حقل علوي</button>
+              </div>
+              <template x-for="(sec,si) in draft.config.sections" :key="si">
+                <div class="rounded-lg border border-black/[0.06] bg-canvas p-3 space-y-2">
+                  <div class="flex items-center gap-2">
+                    <input type="text" x-model="sec.title" class="flex-1 px-3 py-1.5 rounded-lg border border-black/10 text-xs font-bold outline-none focus:border-teal bg-white">
+                    <button @click="removeAt(draft.config.sections,si)" class="text-rose/60 hover:text-rose"><i class="fa-regular fa-trash-can text-[11px]"></i></button>
+                  </div>
+                  <div class="space-y-1.5 ps-3">
+                    <template x-for="(c,ci) in sec.criteria" :key="ci">
+                      <div class="flex items-center gap-2">
+                        <i class="fa-regular fa-square-check text-[10px] text-ink/25"></i>
+                        <input type="text" x-model="sec.criteria[ci]" class="flex-1 px-2.5 py-1.5 rounded-lg border border-black/10 text-xs outline-none focus:border-teal bg-white">
+                        <button @click="removeAt(sec.criteria,ci)" class="text-rose/50 hover:text-rose"><i class="fa-regular fa-trash-can text-[10px]"></i></button>
+                      </div>
+                    </template>
+                    <button @click="sec.criteria.push('بند تقييم جديد')" class="text-[10px] font-bold text-teal-deep hover:underline"><i class="fa-solid fa-plus"></i> إضافة بند</button>
+                  </div>
+                </div>
+              </template>
+              <button @click="draft.config.sections.push({title:'قسم جديد', criteria:['بند 1']})" class="text-[11px] font-bold text-teal-deep hover:underline"><i class="fa-solid fa-plus"></i> إضافة قسم تقييم</button>
+            </div>
+          </template>
+
+          <!-- ============ REPORT ENTRY ============ -->
+          <template x-if="draft.layoutType==='report_entry'">
+            <div class="space-y-3">
+              <div class="space-y-1.5">
+                <template x-for="(f,i) in draft.config.fields" :key="f.id">
+                  <div class="rounded-lg bg-canvas border border-black/[0.06] p-2 space-y-1.5">
+                    <div class="flex items-center gap-2">
+                      <input type="text" x-model="f.label" class="flex-1 min-w-0 px-3 py-1.5 rounded-lg border border-black/10 text-xs outline-none focus:border-teal bg-white">
+                      <select x-model="f.type" @change="if (f.type==='select' && !(f.options||[]).length) f.options=['خيار 1','خيار 2']" class="px-2 py-1.5 rounded-lg border border-black/10 text-[11px] outline-none focus:border-teal bg-white shrink-0">
+                        <option value="text">نص</option>
+                        <option value="textarea">نص طويل</option>
+                        <option value="number">رقم</option>
+                        <option value="date">تاريخ</option>
+                        <option value="time">وقت</option>
+                        <option value="select">اختيار</option>
+                        <option value="check">مطابق / غير مطابق</option>
+                        <option value="signature">توقيع</option>
+                      </select>
+                      <label class="flex items-center gap-1 text-[10px] text-ink/50 shrink-0"><input type="checkbox" :checked="f.required!==false" @change="f.required=$event.target.checked" class="w-3.5 h-3.5 accent-rose"> إجباري</label>
+                      <button @click="moveItem(draft.config.fields,i,-1)" class="text-ink/25 hover:text-ink shrink-0"><i class="fa-solid fa-chevron-up text-[10px]"></i></button>
+                      <button @click="moveItem(draft.config.fields,i,1)" class="text-ink/25 hover:text-ink shrink-0"><i class="fa-solid fa-chevron-down text-[10px]"></i></button>
+                      <button @click="removeAt(draft.config.fields,i)" class="text-rose/60 hover:text-rose shrink-0"><i class="fa-regular fa-trash-can text-[11px]"></i></button>
+                    </div>
+                    <input x-show="f.type==='select'" type="text" :value="(f.options||[]).join('، ')" @input="f.options=$event.target.value.split(/[,،]/).map(x=>x.trim()).filter(Boolean)" placeholder="الخيارات مفصولة بفاصلة" class="w-full px-3 py-1.5 rounded-lg border border-black/10 text-[11px] outline-none focus:border-teal bg-white">
+                    <input x-show="f.type==='number'" type="text" x-model="f.unit" placeholder="الوحدة (اختياري): °C، pH، ppm…" class="w-full px-3 py-1.5 rounded-lg border border-black/10 text-[11px] outline-none focus:border-teal bg-white">
+                  </div>
+                </template>
+              </div>
+              <button @click="draft.config.fields.push({id:'f'+Date.now(), label:'حقل جديد', type:'text', required:true})" class="text-[11px] font-bold text-teal-deep hover:underline"><i class="fa-solid fa-plus"></i> إضافة حقل</button>
+              <label class="flex items-center gap-2 text-[11px] font-semibold text-ink/60"><input type="checkbox" x-model="draft.config.hasTime" class="w-4 h-4 accent-teal"> إضافة عمود الوقت</label>
+
+              <div class="grid grid-cols-2 gap-3 pt-2 border-t border-black/[0.06]">
+                <div>
+                  <label class="text-[11px] font-bold text-ink/50">صفوف فارغة للطباعة</label>
+                  <input type="number" x-model.number="draft.config.blankRows" min="1" max="20" class="w-full mt-1 px-3 py-2 rounded-lg border border-black/10 text-xs mono outline-none focus:border-teal">
+                </div>
+                <label class="flex items-center gap-2 text-[11px] font-semibold text-ink/60 mt-5">
+                  <input type="checkbox" x-model="draft.config.hasSignature" class="w-4 h-4 accent-teal">
+                  تذييل توقيع المُبلّغ
+                </label>
+              </div>
+            </div>
+          </template>
+
+          <!-- ============ EIB LOG ============ -->
+          <template x-if="draft.layoutType==='eib_log'">
+            <div class="space-y-4">
+              <div class="grid grid-cols-3 gap-3">
+                <label class="block"><span class="text-[11px] font-bold text-ink/50">الإصدار</span><input type="text" x-model="draft.config.version" class="w-full mt-1 px-3 py-2 rounded-lg border border-black/10 text-xs mono outline-none focus:border-teal"></label>
+                <label class="block"><span class="text-[11px] font-bold text-ink/50">عنوان عمود التاريخ</span><input type="text" x-model="draft.config.dateLabel" class="w-full mt-1 px-3 py-2 rounded-lg border border-black/10 text-xs outline-none focus:border-teal"></label>
+                <label class="block"><span class="text-[11px] font-bold text-ink/50">صفوف الطباعة</span><input type="number" min="5" max="60" x-model.number="draft.config.rows" class="w-full mt-1 px-3 py-2 rounded-lg border border-black/10 text-xs mono outline-none focus:border-teal"></label>
+              </div>
+              <label class="block"><span class="text-[11px] font-bold text-ink/50">غرض السجل</span><input type="text" x-model="draft.config.purpose" class="w-full mt-1 px-3 py-2 rounded-lg border border-black/10 text-xs outline-none focus:border-teal"></label>
+              <label class="block"><span class="text-[11px] font-bold text-ink/50">معيار القبول المرجعي</span><textarea x-model="draft.config.acceptance" rows="2" class="w-full mt-1 px-3 py-2 rounded-lg border border-black/10 text-xs outline-none focus:border-teal"></textarea></label>
+              <div>
+                <p class="text-[11px] font-bold text-ink/50 mb-1.5">أعمدة السجل (بعد «م» و«التاريخ»)</p>
+                <div class="space-y-1.5"><template x-for="(c,i) in draft.config.columns" :key="c.id"><div class="rounded-lg bg-canvas border border-black/[0.06] p-2 space-y-1.5">
+                  <div class="flex items-center gap-2">
+                    <input type="text" x-model="c.label" class="flex-1 min-w-0 px-3 py-1.5 rounded-lg border border-black/10 text-xs outline-none focus:border-teal bg-white">
+                    <select x-model="c.type" @change="if (c.type==='select' && !(c.options||[]).length) c.options=EIB_RESULT.slice()" class="px-2 py-1.5 rounded-lg border border-black/10 text-[11px] bg-white shrink-0"><option value="text">نص</option><option value="number">رقم</option><option value="date">تاريخ</option><option value="select">اختيار</option><option value="check">مطابق / غير مطابق</option><option value="signature">توقيع</option></select>
+                    <label class="flex items-center gap-1 text-[10px] text-ink/50 shrink-0"><input type="checkbox" x-model="c.required" class="w-3.5 h-3.5 accent-rose"> إجباري</label>
+                    <button @click="moveItem(draft.config.columns,i,-1)" class="text-ink/25 hover:text-ink shrink-0"><i class="fa-solid fa-chevron-up text-[10px]"></i></button>
+                    <button @click="moveItem(draft.config.columns,i,1)" class="text-ink/25 hover:text-ink shrink-0"><i class="fa-solid fa-chevron-down text-[10px]"></i></button>
+                    <button @click="removeAt(draft.config.columns,i)" class="text-rose/60 hover:text-rose shrink-0"><i class="fa-regular fa-trash-can text-[11px]"></i></button></div>
+                  <input x-show="c.type==='select'" type="text" :value="(c.options||[]).join('، ')" @input="c.options=$event.target.value.split(/[,،]/).map(x=>x.trim()).filter(Boolean)" placeholder="الخيارات مفصولة بفاصلة" class="w-full px-3 py-1.5 rounded-lg border border-black/10 text-[11px] bg-white">
+                </div></template></div>
+                <button @click="draft.config.columns.splice(Math.max(0, draft.config.columns.length - 3), 0, {id:'c'+Date.now().toString(36), label:'عمود جديد', type:'text', required:false})" class="mt-1.5 text-[11px] font-bold text-teal-deep hover:underline"><i class="fa-solid fa-plus"></i> إضافة عمود (قبل مرجع الدليل)</button>
+              </div>
+              <label class="block"><span class="text-[11px] font-bold text-ink/50">ملاحظة التذييل</span><textarea x-model="draft.config.note" rows="2" class="w-full mt-1 px-3 py-2 rounded-lg border border-black/10 text-xs outline-none focus:border-teal"></textarea></label>
+            </div>
+          </template>
+
+          <!-- ============ TAG CARD ============ -->
+          <template x-if="draft.layoutType==='tag_card'">
+            <div class="space-y-4">
+              <div class="grid grid-cols-2 gap-3">
+                <label class="block"><span class="text-[11px] font-bold text-ink/50">عنوان حقل التاريخ</span><input type="text" x-model="draft.config.dateLabel" class="w-full mt-1 px-3 py-2 rounded-lg border border-black/10 text-xs outline-none focus:border-teal"></label>
+                <label class="block"><span class="text-[11px] font-bold text-ink/50">عدد صفوف الزيارات في الكارت</span><input type="number" min="3" max="24" x-model.number="draft.config.rows" class="w-full mt-1 px-3 py-2 rounded-lg border border-black/10 text-xs mono outline-none focus:border-teal"></label>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold text-ink/50 mb-1.5">البيانات الثابتة أعلى الكارت</p>
+                <div class="space-y-1.5"><template x-for="(m,i) in draft.config.fixedFields" :key="i"><div class="flex items-center gap-2">
+                  <input type="text" x-model="draft.config.fixedFields[i]" class="flex-1 min-w-0 px-3 py-1.5 rounded-lg border border-black/10 text-xs outline-none focus:border-teal bg-white">
+                  <button @click="removeAt(draft.config.fixedFields,i)" class="text-rose/60 hover:text-rose"><i class="fa-regular fa-trash-can text-[11px]"></i></button></div></template></div>
+                <button @click="draft.config.fixedFields.push('حقل جديد')" class="mt-1.5 text-[11px] font-bold text-teal-deep hover:underline"><i class="fa-solid fa-plus"></i> إضافة بيان ثابت</button>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold text-ink/50 mb-1.5">أعمدة جدول الزيارات (بعد عمود التاريخ)</p>
+                <div class="space-y-1.5"><template x-for="(c,i) in draft.config.columns" :key="c.id"><div class="rounded-lg bg-canvas border border-black/[0.06] p-2 space-y-1.5">
+                  <div class="flex items-center gap-2">
+                    <input type="text" x-model="c.label" class="flex-1 min-w-0 px-3 py-1.5 rounded-lg border border-black/10 text-xs outline-none focus:border-teal bg-white">
+                    <select x-model="c.type" @change="if (c.type==='select' && !(c.options||[]).length) c.options=['خيار 1','خيار 2']" class="px-2 py-1.5 rounded-lg border border-black/10 text-[11px] bg-white shrink-0"><option value="select">اختيار</option><option value="check">مطابق / غير مطابق</option><option value="text">نص</option><option value="signature">توقيع</option></select>
+                    <button @click="moveItem(draft.config.columns,i,-1)" class="text-ink/25 hover:text-ink shrink-0"><i class="fa-solid fa-chevron-up text-[10px]"></i></button>
+                    <button @click="removeAt(draft.config.columns,i)" class="text-rose/60 hover:text-rose shrink-0"><i class="fa-regular fa-trash-can text-[11px]"></i></button></div>
+                  <input x-show="c.type==='select'" type="text" :value="(c.options||[]).join('، ')" @input="c.options=$event.target.value.split(/[,،]/).map(x=>x.trim()).filter(Boolean)" placeholder="الخيارات مفصولة بفاصلة" class="w-full px-3 py-1.5 rounded-lg border border-black/10 text-[11px] bg-white">
+                </div></template></div>
+                <button @click="draft.config.columns.push({id:'c'+Date.now().toString(36), label:'عمود جديد', type:'text', required:true})" class="mt-1.5 text-[11px] font-bold text-teal-deep hover:underline"><i class="fa-solid fa-plus"></i> إضافة عمود</button>
+              </div>
+            </div>
+          </template>
+
+          <!-- ============ SITE MAP ============ -->
+          <template x-if="draft.layoutType==='site_map'">
+            <div class="space-y-4">
+              <div>
+                <p class="text-[11px] font-bold text-ink/50 mb-1.5">الرسم الهندسي (اختياري — صورة PNG / JPG حتى 1.5 ميجابايت)</p>
+                <div class="flex flex-wrap items-center gap-2">
+                  <label class="px-3 py-2 rounded-lg border border-black/15 text-[11.5px] font-bold cursor-pointer hover:bg-canvas"><i class="fa-solid fa-upload text-[10px]"></i> <span x-text="draft.config.image ? 'استبدال الصورة' : 'إرفاق صورة المخطط'"></span><input type="file" accept="image/*" class="sr-only" @change="attachMap($event)"></label>
+                  <button x-show="draft.config.image" @click="draft.config.image=''" class="px-3 py-2 rounded-lg text-[11.5px] font-bold text-rose-deep hover:bg-rose-soft">إزالة الصورة</button>
+                </div>
+                <p class="text-[10.5px] text-ink/45 mt-1">بدون صورة يُطبع إطار فارغ ليرسم فيه العميل مخطط منشأته.</p>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold text-ink/50 mb-1.5">دليل الرموز (Legend)</p>
+                <div class="space-y-1.5"><template x-for="(l,i) in draft.config.legend" :key="i"><div class="flex items-center gap-2">
+                  <span class="w-6 h-6 flex items-center justify-center shrink-0" x-html="shapeSvg(l.shape, l.color, 18)"></span>
+                  <select x-model="l.shape" class="px-2 py-1.5 rounded-lg border border-black/10 text-[11px] bg-white shrink-0"><option value="triangle">مثلث</option><option value="circle">دائرة</option><option value="square">مربع</option><option value="diamond">معيّن</option></select>
+                  <input type="color" x-model="l.color" class="w-8 h-8 rounded border border-black/10 shrink-0" aria-label="اللون">
+                  <input type="text" x-model="l.label" class="flex-1 min-w-0 px-3 py-1.5 rounded-lg border border-black/10 text-xs outline-none focus:border-teal bg-white">
+                  <button @click="removeAt(draft.config.legend,i)" class="text-rose/60 hover:text-rose shrink-0"><i class="fa-regular fa-trash-can text-[11px]"></i></button></div></template></div>
+                <button @click="draft.config.legend.push({shape:'circle', color:'#071A2A', label:'نوع جديد'})" class="mt-1.5 text-[11px] font-bold text-teal-deep hover:underline"><i class="fa-solid fa-plus"></i> إضافة رمز</button>
+              </div>
+              <p class="text-[11px] text-ink/45"><i class="fa-solid fa-circle-info"></i> بيانات الاعتماد ثابتة: تاريخ الإصدار، رقم التعديل، توقيع مدير الجودة. والعميل يسجل كل إصدار مع عدد المصائد من كل نوع.</p>
+            </div>
+          </template>
+
+          <!-- ============ TREND REPORT ============ -->
+          <template x-if="draft.layoutType==='trend_report'">
+            <div class="space-y-4">
+              <template x-for="grp in [['areas','المناطق (صفوف الجدول)','منطقة جديدة'],['pests','الأنواع (أعمدة الجدول ومنحنيات الرسم)','نوع جديد'],['periods','أنواع الفترات','فترة جديدة']]" :key="grp[0]">
+                <div>
+                  <p class="text-[11px] font-bold text-ink/50 mb-1.5" x-text="grp[1]"></p>
+                  <div class="space-y-1.5"><template x-for="(v,i) in draft.config[grp[0]]" :key="i"><div class="flex items-center gap-2">
+                    <input type="text" x-model="draft.config[grp[0]][i]" class="flex-1 min-w-0 px-3 py-1.5 rounded-lg border border-black/10 text-xs outline-none focus:border-teal bg-white">
+                    <button @click="removeAt(draft.config[grp[0]],i)" class="text-rose/60 hover:text-rose"><i class="fa-regular fa-trash-can text-[11px]"></i></button></div></template></div>
+                  <button @click="draft.config[grp[0]].push(grp[2])" class="mt-1.5 text-[11px] font-bold text-teal-deep hover:underline"><i class="fa-solid fa-plus"></i> <span x-text="'إضافة ' + grp[2]"></span></button>
+                </div>
+              </template>
+              <p class="text-[11px] text-ink/45"><i class="fa-solid fa-circle-info"></i> العميل يُدخل عدد كل نوع في كل منطقة لكل فترة، والرسم البياني للاتجاه يُرسم تلقائياً من سجلاته.</p>
+            </div>
+          </template>
+
+          <!-- ============ REFERENCE TABLE ============ -->
+          <template x-if="draft.layoutType==='reference_table'">
+            <div class="space-y-3">
+              <div>
+                <p class="text-[11px] font-bold text-ink/50 mb-1.5">الأعمدة</p>
+                <div class="space-y-1.5">
+                  <template x-for="(c,i) in draft.config.columns" :key="i">
+                    <div class="flex items-center gap-2">
+                      <input type="text" x-model="draft.config.columns[i]" class="flex-1 px-3 py-1.5 rounded-lg border border-black/10 text-xs outline-none focus:border-teal">
+                      <button @click="removeColumnRef(i)" class="text-rose/60 hover:text-rose"><i class="fa-regular fa-trash-can text-[11px]"></i></button>
+                    </div>
+                  </template>
+                </div>
+                <button @click="addColumnRef()" class="mt-1.5 text-[11px] font-bold text-teal-deep hover:underline"><i class="fa-solid fa-plus"></i> إضافة عمود</button>
+              </div>
+
+              <div class="pt-2 border-t border-black/[0.06]">
+                <p class="text-[11px] font-bold text-ink/50 mb-1.5">الصفوف (القيم المرجعية الفعلية)</p>
+                <div class="space-y-1.5">
+                  <template x-for="(row,ri) in draft.config.rows" :key="ri">
+                    <div class="flex items-center gap-1.5">
+                      <template x-for="(col,ci) in draft.config.columns" :key="ci">
+                        <input type="text" x-model="draft.config.rows[ri][ci]" class="flex-1 min-w-0 px-2 py-1.5 rounded-lg border border-black/10 text-[11px] outline-none focus:border-teal">
+                      </template>
+                      <button @click="removeAt(draft.config.rows,ri)" class="text-rose/60 hover:text-rose shrink-0"><i class="fa-regular fa-trash-can text-[11px]"></i></button>
+                    </div>
+                  </template>
+                </div>
+                <button @click="addRowRef()" class="mt-1.5 text-[11px] font-bold text-teal-deep hover:underline"><i class="fa-solid fa-plus"></i> إضافة صف</button>
+              </div>
+            </div>
+          </template>
+
+        </div>
+
+        <!-- LIVE PREVIEW -->
+        <div class="bg-white rounded-2xl border border-black/[0.06] shadow-card p-5">
+          <div class="flex items-center gap-2 mb-4">
+            <p class="text-xs font-extrabold text-ink/60">معاينة حية</p>
+            <span class="ms-auto mono text-[10px] text-ink/30">LIVE</span>
+          </div>
+          <div class="border border-black/10 rounded-xl p-4 overflow-x-auto max-h-[560px] overflow-y-auto">
+            <div x-html="renderFormHTML(draft, false)"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 justify-end sticky bottom-0 bg-canvas/80 backdrop-blur py-3">
+        <button @click="exitBuilder()" class="px-4 py-2.5 rounded-lg border border-black/10 text-sm font-semibold text-ink/60 hover:bg-white">إلغاء</button>
+        <button @click="previewFromBuilder()" class="px-4 py-2.5 rounded-lg bg-teal text-white text-sm font-bold hover:bg-teal-deep"><i class="fa-solid fa-print"></i> معاينة كاملة وطباعة</button>
+        <button @click="saveDraft()" class="px-5 py-2.5 rounded-lg bg-brand text-ink text-sm font-bold hover:bg-brand-deep hover:text-white"><i class="fa-solid fa-check"></i> حفظ النموذج</button>
+      </div>
+    </div>
+  </template>
+</main>
+
+<!-- ======================================================= PREVIEW / PRINT ======================================================= -->
+<main x-show="mode==='preview' && previewTarget" x-cloak class="p-5 lg:p-7">
+  <div class="no-print max-w-5xl mx-auto flex flex-wrap items-center gap-2 mb-5">
+    <button @click="mode = editingOriginalCode!==null || draft ? 'builder' : 'library'" class="px-4 py-2 rounded-lg border border-black/10 text-sm font-semibold text-ink/60 hover:bg-white"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+    <p class="text-sm text-ink/40">معاينة قابلة للطباعة — الحقول فارغة للاستخدام اليدوي وإدخال البيانات لاحقاً</p>
+    <button @click="printNow()" class="ms-auto px-5 py-2.5 rounded-lg bg-brand text-ink text-sm font-bold hover:bg-brand-deep hover:text-white shadow-card"><i class="fa-solid fa-print"></i> طباعة / حفظ PDF</button>
+  </div>
+
+  <div id="printArea" class="max-w-5xl mx-auto bg-white border border-black/10 shadow-card rounded-2xl p-8">
+    <template x-if="previewTarget">
+      <div>
+        <div class="flex items-center justify-between border-b-2 border-ink pb-4 mb-5">
+          <div>
+            <p class="mono text-[10px] text-ink/40 tracking-widest" x-text="'SAFORA™ · ' + stdLabel"></p>
+            <h2 class="text-xl font-extrabold mt-1" x-text="previewTarget.titleAr"></h2>
+            <p class="text-xs text-ink/40" x-text="previewTarget.titleEn"></p>
+          </div>
+          <div class="text-left">
+            <p class="mono text-sm font-bold" x-text="previewTarget.code"></p>
+            <p class="text-[10px] text-ink/40" x-text="procLabel(previewTarget.proc)"></p>
+          </div>
+        </div>
+        <div x-html="renderFormHTML(previewTarget, true)"></div>
+      </div>
+    </template>
+  </div>
+</main>
+
+<!-- Toast stack -->
+<div class="no-print fixed bottom-5 left-1/2 -translate-x-1/2 z-[70] space-y-2 w-full max-w-sm px-4">
+  <template x-for="t in toasts" :key="t.id">
+    <div class="flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-2xl text-sm font-semibold text-white"
+         :class="t.type==='success' ? 'bg-emerald-deep' : (t.type==='error' ? 'bg-rose-deep' : 'bg-ink')">
+      <i :class="t.type==='success' ? 'fa-solid fa-circle-check' : (t.type==='error' ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-circle-info')"></i>
+      <span x-text="t.message"></span>
+    </div>
+  </template>
+</div>
+
+<script>
+/* ═══════════ بيانات الهاسب (مستقلة تماماً عن ISO) ═══════════
+   الجدول: localStorage["safora.haccp.v1"] = { procedures:[…], forms:[…] }
+   · procedures: برامج المتطلبات الأولية PRPs (من مكتبة V17) — يعدّلها الأدمن من 0_HACCPCenter.html
+   · forms: نماذج الهاسب (PRP-xx-Fxx) — ينشئها الأدمن ويسندها للعملاء (client.haccp_forms)
+   · سجلات العملاء على نماذج الهاسب تُحفظ في client.haccp_entries (منفصلة عن form_entries الخاصة بـ ISO)
+   هذا الجزء متطابق في 0_HACCPCenter.html و2_FormBuilder.html و11_ClientCenter.html */
+const HACCP_KEY = "safora.haccp.v1";
+const PRP_DEFAULT = [{"id": "P01", "name": "مكافحة الآفات", "acceptance": "خلو مناطق تداول الغذاء من دلائل نشاط آفات غير مسيطر عليه؛ اكتمال خريطة المصائد والتفتيش واتخاذ إجراء عند أي مشاهدة.", "limit": "تحديد نقاط الدخول ومواقع المصائد؛ ترقيمها وتوثيق برنامج المزود؛ فحص النتائج واتجاهات النشاط؛ منع تلوث المنتج عند التطبيق.", "steps": "1. استعرض حدود المنشأة ومصادر الجذب والفجوات.\n2. جهّز خريطة مرقمة للمصائد وأجهزة الرصد، بعيدًا عن خطر تلويث الغذاء.\n3. تحقق من كفاءة الجهة المنفذة وموادها وتعليمات استخدامها.\n4. نفّذ الفحص الدوري وسجّل المكان والنتيجة والدليل.\n5. افحص اتجاهات الإصابات وحدد المواقع الساخنة.\n6. أغلق نقاط الدخول وعالج الأسباب وتحقق من الفاعلية.", "evidence": "خريطة مصائد؛ تقرير زيارات؛ سجل مواد مستخدمة؛ صور الإجراءات؛ سجل اتجاهات", "failure": "عند وجود نشاط داخل منطقة المنتج: أوقف التعرض المحتمل، قيّم الحاجة لعزل المواد أو الدفعات، عالج السبب ثم تحقق من الفاعلية.", "haccp": "مخاطر بيولوجية وتلوث فيزيائي/كيميائي؛ PRP داعم لتحليل HACCP، ويعاد تقييم الضوابط عند فشل متكرر.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "hyg", "icon": "fa-bug", "summary": "مراقبة الحشرات والقوارض والطيور", "record": "خريطة المصائد ونتائج الجولات", "checks": ["هل توجد خريطة مصائد مرقمة تتطابق مع المواقع؟", "هل وثقت زيارات المكافحة والمشاهَدات والإجراءات؟", "هل المواد المستخدمة مناسبة للاستخدام في منشأة غذائية؟"], "code": "PRP-01"}, {"id": "P02", "name": "المباني والمرافق", "acceptance": "أسطح سليمة وسهلة التنظيف؛ لا ارتداد من المصارف ولا فتحات تسمح بالتلوث أو الآفات.", "limit": "فحص الجدران والأرضيات والأسقف والمصارف والأبواب مع سجل عيوب مصنف حسب خطر التلوث.", "steps": "1. قسّم المنشأة إلى مناطق صحية محددة.\n2. افحص التشققات وتجمع المياه وتقشر الدهان والتسرب.\n3. راجع الميل والصرف وغياب الارتداد.\n4. سجّل الأعطال وصور مواقعها.\n5. عزل المنطقة أو المنتج عند احتمال التلوث.\n6. نفّذ الصيانة وتحقق من سلامة الإصلاح قبل الاستخدام.", "evidence": "خريطة مناطق؛ قائمة فحص المباني؛ أوامر صيانة؛ صور قبل/بعد", "failure": "عزل المنطقة المعرضة للتلوث وتنظيفها بعد الإصلاح وتقييم المنتجات المتأثرة.", "haccp": "خطر أحياء دقيقة/أجسام غريبة؛ PRP وقد يزيد احتمال المخاطر في خطوات HACCP.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "infra", "icon": "fa-building", "summary": "سلامة المباني والأرضيات والمصارف والنوافذ", "record": "فحص سلامة المنشأة", "checks": ["هل الأرضيات والجدران والأسقف سليمة وقابلة للتنظيف؟", "هل المصارف تعمل دون ارتداد أو تجمع مياه؟", "هل الفتحات والأبواب محكمة ضد الآفات؟"], "code": "PRP-02"}, {"id": "P03", "name": "التهوية والإضاءة", "acceptance": "لا تكاثف أو قطرات فوق المنتجات؛ إضاءة مناسبة للفحص؛ وسائل الإضاءة المحمية سليمة.", "limit": "تحديد نقاط تكاثف أو تيارات هواء أو إضاءة لا تسمح برؤية التلوث وفق تقييم نشاط الموقع.", "steps": "1. حدد المواقع الحساسة والمفتوحة.\n2. افحص التكاثف والغبار واتجاهات الهواء.\n3. افحص سلامة وحدات الإضاءة والحمايات.\n4. سجّل القياسات حيث يلزم مع طريقة القياس.\n5. اطلب الصيانة عند الانحراف.\n6. تحقق من إصلاح السبب ومنع تكراره.", "evidence": "قائمة فحص؛ سجل صيانة التهوية؛ قياسات موثقة؛ صور", "failure": "أوقف نشاطًا معرضًا لقطرات التكاثف أو الزجاج المكشوف؛ قيّم المنتج المتأثر.", "haccp": "تلوث ميكروبي/فيزيائي؛ PRP يدعم ضوابط المنتج المفتوح.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "infra", "icon": "fa-lightbulb", "summary": "مراجعة ملاءمة ظروف بيئة العمل", "record": "فحص التهوية والإضاءة", "checks": ["هل التهوية تمنع تكاثف الرطوبة وتراكم الأبخرة؟", "هل الإضاءة كافية لنشاط الفحص والتنظيف؟", "هل تجهيزات الإضاءة محمية من التكسر عند الحاجة؟"], "code": "PRP-03"}, {"id": "P04", "name": "المياه والثلج والبخار", "acceptance": "المياه الملامسة للغذاء ومخرجات الثلج/البخار المستخدم غذائيًا مطابقة لمواصفات الاستخدام المعتمدة؛ نتائج الفحص موثقة.", "limit": "خطة عينات حسب مصادر المياه ونقاط الاستخدام والخطر، وحدود التحليل من التشريع والمواصفة المختصة.", "steps": "1. حدد مصادر المياه ونقاط الاستخدام والخزانات.\n2. ضع خطة عينات تشمل نقاطًا حرجة من الشبكة.\n3. نفّذ التحاليل بمعمل مؤهل وفق خطة التحقق.\n4. راجع النتائج مقابل مواصفة الماء بحسب الاستخدام.\n5. افحص الصيانة والتنظيف ومنع الرجوع العكسي.\n6. عند عدم المطابقة أوقف الاستخدام المتأثر ثم تحقق من عودة الصلاحية.", "evidence": "خريطة الشبكة؛ نتائج المختبر؛ سجل تطهير الخزانات؛ تقارير صيانة", "failure": "توقف عن استخدام الماء/الثلج غير المطابق، حدد المنتجات منذ آخر نتيجة مقبولة وقيّم التصرف.", "haccp": "مخاطر ميكروبية/كيميائية؛ قد يقتضي تحليل HACCP تدبيرًا محددًا إذا صار الماء مصدر خطر مهم.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "infra", "icon": "fa-droplet", "summary": "التحقق من سلامة إمدادات المياه", "record": "سجل نتائج المياه", "checks": ["هل حددت نقاط أخذ عينات المياه وتكرار الفحص؟", "هل توجد نتائج تحاليل مطابقة لمعايير مياه الاستخدام؟", "هل تتم حماية خزان المياه وشبكة التوزيع ومنع الارتداد؟"], "code": "PRP-04"}, {"id": "P05", "name": "النظافة والتطهير", "acceptance": "عدم وجود بقايا مرئية؛ نتائج التحقق من فاعلية التنظيف مقبولة وفق وسيلة وفواصل التحقق المعتمدة.", "limit": "تركيز المنظف أو المطهر وزمن التلامس والحرارة وفق ملصق المنتج وطريقة تنظيف ثبتت صلاحيتها؛ لا يوجد رقم موحد لجميع الحالات.", "steps": "1. حدّد مناطق وأدوات التنظيف والمسؤوليات.\n2. أزل البقايا الجافة أو الرطبة بالطريقة المناسبة.\n3. طبّق المنظف بالتركيز والزمن المعتمدين.\n4. اشطف عند اشتراط تعليمات المادة.\n5. طبّق التطهير واتبع زمن التلامس واشتراطات الشطف.\n6. تحقّق بصريًا وبمسحات/ATP أو اختبار حساسية حسب المخاطر ثم وثّق السماح بالتشغيل.", "evidence": "SSOP؛ سجل تحضير المحاليل؛ سجل ما قبل التشغيل؛ نتائج مسحات وتحليل اتجاهات", "failure": "أعد التنظيف والتطهير؛ امنع بدء الإنتاج أو اعزل المنتج المعرض؛ راجع السبب وفاعلية الإجراء.", "haccp": "تلوث ميكروبي/مسببات حساسية؛ GHP مع رقابة مشددة عند الحاجة وقد يصنف OPRP وفق ISO 22000 بعد التحليل.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "hyg", "icon": "fa-spray-can-sparkles", "summary": "تنظيف وتطهير المعدات والأسطح", "record": "سجل التنظيف والتحقق", "checks": ["هل توجد خطة تنظيف بكل موقع ومعدة ومادة مستخدمة؟", "هل سُجل التركيز وزمن التلامس وفق تعليمات المادة؟", "هل تحقق المسؤول من فعالية التنظيف قبل التشغيل؟"], "code": "PRP-05"}, {"id": "P06", "name": "النظافة الشخصية", "acceptance": "التزام العاملين بممارسات نظافة مناسبة، وغسل الأيدي واللباس الواقي ومنع السلوكيات الملوثة.", "limit": "تحديد مواقع غسل الأيدي وسلوكيات المنع وسياسة الإبلاغ عن الأعراض وفق التقييم الصحي والنظام المطبق.", "steps": "1. عرّف اشتراطات الزي والغطاء وغسل الأيدي.\n2. درّب جميع الفئات والزوار.\n3. افحص نقاط غسل الأيدي والمواد اللازمة.\n4. راقب السلوك عند دخول منطقة الإنتاج.\n5. وثّق عدم المطابقة والتوعية الفورية.\n6. أعد تقييم الكفاءة والتزام الموظف.", "evidence": "فحص دخول؛ سجل تدريب؛ قائمة نظافة العاملين؛ سجل حالات عدم التزام", "failure": "أبعد العامل أو الزائر مؤقتًا عن الغذاء المكشوف وصحّح السلوك وقيّم التعرض.", "haccp": "تلوث بيولوجي ومسببات حساسية؛ PRP.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "people", "icon": "fa-hands-bubbles", "summary": "التحقق من التزام العاملين والزوار", "record": "جولة النظافة الشخصية", "checks": ["هل تتوافر مرافق غسل اليدين والمستلزمات؟", "هل يرتدي العاملون الزي المناسب ويطبقون ممارسات النظافة؟", "هل يوجد ضبط لدخول الزوار والمقاولين إلى الإنتاج؟"], "code": "PRP-06"}, {"id": "P07", "name": "صحة العاملين والزوار", "acceptance": "وجود سياسة للإبلاغ عن المرض والإصابة ومنع تلوث الغذاء وتطبيقها دون الإفصاح غير الضروري عن تفاصيل طبية.", "limit": "فحص ملاءمة العمل والتعامل مع الجروح والمرض وفق القواعد الصحية السارية.", "steps": "1. وضّح واجب الإبلاغ بسرية.\n2. قيّم ملاءمة التكليف عند وجود أعراض تؤثر على سلامة الغذاء.\n3. ضع حماية فعالة للجروح أو امنع التعامل المباشر عند اللزوم.\n4. طبّق تعليمات الزوار والمقاولين.\n5. وثّق قرار العمل/الإبعاد دون بيانات طبية زائدة.\n6. تحقّق قبل العودة للمهام الحساسة.", "evidence": "إقرار توعية؛ سجل السماح بالعمل؛ محضر مخالفة؛ سجل الزوار", "failure": "إيقاف مهمة التعامل مع الغذاء والتقييم الفوري للمنتج عند اشتباه تلوث.", "haccp": "تلوث ميكروبي من العنصر البشري؛ PRP.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "people", "icon": "fa-user-doctor", "summary": "إدارة الحالات المرضية والإصابات", "record": "سجل الصحة والاستبعاد", "checks": ["هل توجد آلية للإبلاغ عن الأعراض والأمراض ذات الصلة؟", "هل تنفذ قرارات الاستبعاد والعودة للعمل بحسب سياسة معتمدة؟", "هل تعالج الجروح بوسائل تمنع تلوث الغذاء؟"], "code": "PRP-07"}, {"id": "P08", "name": "التدريب والكفاءة", "acceptance": "المكلفون بالرقابة قادرون على أداء المهمة وشرح معيار القبول والتصرف عند الانحراف.", "limit": "مصفوفة مهارات وتقييم عملي للعاملين حسب الوظائف والتغييرات.", "steps": "1. حدد المهام الحرجة والمهارات المطلوبة.\n2. أنشئ خطة تدريب سنوية وتأهيلًا أوليًا.\n3. نفّذ التدريب بلغة يفهمها العامل.\n4. اختبر الكفاءة عمليًا وسجّل النتائج.\n5. أعِد التأهيل عند المخالفات أو تغيير العملية.\n6. راجع فعالية التدريب عبر اتجاهات السجلات.", "evidence": "مصفوفة كفاءات؛ سجل حضور؛ اختبار عملي؛ خطة معالجة فجوات", "failure": "إيقاف إسناد المهمة غير المتقنة لحين التأهيل والتحقق من أثر الأداء السابق.", "haccp": "جميع أنواع المخاطر؛ PRP يشمل كفاءة مراقبي CCP/OPRP.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "people", "icon": "fa-user-graduate", "summary": "تأهيل العاملين وتقييم التدريب", "record": "سجل التدريب والكفاءة", "checks": ["هل تحددت كفاءات وتدريبات الوظائف المؤثرة في السلامة؟", "هل توجد سجلات تدريب وحضور وتقييم فاعلية؟", "هل تحقق كفاءة مراقبي CCP/OPRP قبل تكليفهم؟"], "code": "PRP-08"}, {"id": "P09", "name": "الصيانة الوقائية", "acceptance": "المعدات سليمة بلا تسرب أو أجزاء مكسورة أو ملوثات صيانة محتملة؛ إغلاق أوامر الصيانة والتحقق من النظافة.", "limit": "جدولة الصيانة وفق توصيات المصنع والخطر وسجلات الأعطال الفعلية.", "steps": "1. احصر المعدات وقيم خطورة تعطلها.\n2. حدد خطط صيانة ومسؤوليات.\n3. عزل الغذاء والمعدات قبل الصيانة.\n4. استخدم قطعًا ومواد مناسبة لنطاق الاستخدام الغذائي.\n5. وثّق العمل وإزالة الأدوات والبقايا.\n6. تحقّق من النظافة والوظيفة وأعد السماح بالإنتاج.", "evidence": "سجل معدات؛ خطة صيانة؛ أمر عمل؛ إذن إعادة تشغيل", "failure": "احجز المنتج المعرض لإصلاح غير منضبط وفتش عن أجسام غريبة أو تسربات.", "haccp": "تلوث فيزيائي/كيميائي؛ PRP داعم لسلامة نقاط القياس.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "equip", "icon": "fa-screwdriver-wrench", "summary": "التحقق من الحالة الفنية للمعدات", "record": "سجل أعمال الصيانة", "checks": ["هل توجد خطة صيانة وقائية بحسب خطورة المعدات؟", "هل تفحص المعدات بعد الصيانة قبل إعادة تشغيلها؟", "هل تتبع قطع الغيار والأدوات لمنع دخول أجسام غريبة؟"], "code": "PRP-09"}, {"id": "P10", "name": "المعايرة والتحقق من القياس", "acceptance": "أجهزة مراقبة الحرارة أو الوزن أو غيرها تعمل بدقة مناسبة للمخاطر وبحالة معايرة أو تحقق محددة.", "limit": "حدود سماحية الجهاز تحدد وفق استخدامه ودقة العملية والمواصفة المرجعية، وليست قيمة موحدة.", "steps": "1. اصنع سجلًا لكل جهاز بمعرف وموقع.\n2. حدد المجال والدقة والسماحية.\n3. نفّذ المعايرة أو تحقق الأداء في موعده.\n4. ضع ملصق حالة الجهاز وتاريخ الاستحقاق.\n5. عند الفشل افحص أثر القراءات السابقة على المنتجات.\n6. صحح الجهاز وأعد التحقق وسجل إقفال الأثر.", "evidence": "سجل أجهزة؛ شهادات معايرة؛ نتائج تحقق؛ تقرير تقييم أثر", "failure": "أوقف الاعتماد على الجهاز؛ راجع الدفعات التي روقبت منذ آخر تحقق صحيح.", "haccp": "يمس صلاحية قياسات CCP/OPRP والتحقق من الحدود.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "equip", "icon": "fa-gauge-high", "summary": "متابعة أجهزة المراقبة والقياس", "record": "سجل المعايرة والتحقق", "checks": ["هل الأجهزة الحرجة مدرجة في سجل ومعرّفة؟", "هل توجد شهادات معايرة أو تحقق سارية وفق النطاق؟", "هل تم تقييم أثر أي جهاز خرج عن الدقة المطلوبة؟"], "code": "PRP-10"}, {"id": "P11", "name": "الموردون والمشتريات", "acceptance": "مواد من موردين معتمدين بمواصفات فنية معلنة وأدلة تقييم مستوى خطورتها.", "limit": "شروط قبول الشهادات والتحاليل والعينات تتحدد حسب خطر كل مادة ومواصفتها.", "steps": "1. صنف المواد حسب خطرها.\n2. قيّم المورد بالمستندات والنتائج السابقة.\n3. وثّق مواصفة المادة واشتراطات النقل.\n4. راجع مستندات الدفعة عند الاستلام.\n5. قيّم الأداء والشكاوى دوريًا.\n6. أوقف المورد أو أعد تأهيله عند التكرار.", "evidence": "قائمة موردين؛ استبيان تأهيل؛ مواصفة مواد؛ تقييم أداء", "failure": "حجز المواد غير الموثوقة وتعليق المورد لحين تحقيق وموافقة الجودة.", "haccp": "مخاطر مصدرية بيولوجية/كيميائية/حساسية؛ مدخل رئيسي لتحليل HACCP.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "supply", "icon": "fa-handshake", "summary": "تأهيل الموردين وتقييم أدائهم", "record": "سجل تقييم المورد", "checks": ["هل توجد معايير اعتماد الموردين وتقييم المخاطر؟", "هل تراجع مستندات المورد وصلاحية شهاداته ذات الصلة؟", "هل توجد آلية تعليق أو رفض المورد غير المطابق؟"], "code": "PRP-11"}, {"id": "P12", "name": "استلام المواد", "acceptance": "موافقة المواد والشحنة على الهوية وحالة العبوة ودرجة الحرارة والوثائق المناسبة.", "limit": "حدود حرارة الاستلام وغيرها تُستمد من نوع المنتج ومواصفته وتشريعات النشاط.", "steps": "1. طابق الشحنة مع الطلب والمورد.\n2. افحص المركبة والنظافة والتعبئة.\n3. قس الحرارة والظروف عند الحاجة بطريقة موثقة.\n4. افحص أرقام الدفعات وتواريخ الصلاحية.\n5. وثّق قبول/حجز/رفض كل دفعة.\n6. انقل المقبول فورًا لظروف التخزين المناسبة.", "evidence": "فحص استلام؛ سجل درجات؛ سجل دفعات؛ قرار قبول/رفض", "failure": "ضع الشحنة في الحجز؛ امنع الاستخدام قبل تقييم صاحب الصلاحية.", "haccp": "الأخطار الواردة من المورد؛ بعض نقاط الاستلام قد تحتاج رقابة مشددة حسب تحليل الخطر.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "supply", "icon": "fa-truck-ramp-box", "summary": "فحص المواد الواردة ومركبات التوريد", "record": "فحص الاستلام", "checks": ["هل يتم فحص حرارة وحالة ونظافة مركبة النقل؟", "هل تتم مراجعة سلامة العبوات والبطاقات والدفعات؟", "هل يسجل قبول أو رفض الشحنة والإجراء المتخذ؟"], "code": "PRP-12"}, {"id": "P13", "name": "التخزين وسلسلة التبريد", "acceptance": "التخزين وفق شروط المنتج مع سجل ظروف وFEFO وفصل المواد غير المتوافقة.", "limit": "الحدود تتحدد وفق تصنيف المنتج وظروف حفظه المعتمدة؛ بعض الاشتراطات النظامية قد تنطبق على أغذية معينة.", "steps": "1. قسم المخزن حسب شروط المنتجات.\n2. ضع حدود حرارة/رطوبة موثقة لكل منطقة.\n3. تحقق من جهاز الرصد والمعايرة.\n4. راقب دوريًا وسجّل الانحرافات.\n5. طبّق FEFO والفصل وتتبّع مواقع الدفعات.\n6. قيّم المنتجات عند الانقطاع أو تجاوز الحد.", "evidence": "مراقبة درجات؛ سجل مخزن؛ نقل مواقع؛ CAPA", "failure": "اعزل الدفعات المحتمل تأثرها، راجع مدة الانحراف وخصائص المنتج قبل الإفراج أو الإتلاف.", "haccp": "نمو الممرضات وتغير الجودة؛ PRP وقد يكون OPRP/CCP في عملية معينة وفق التقييم.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "supply", "icon": "fa-snowflake", "summary": "مراقبة ظروف التخزين والتداول", "record": "سجل درجات الحرارة", "checks": ["هل توجد أجهزة مراقبة مناسبة ومراجعة للقراءات؟", "هل يتم فصل المواد الخام والمنتجات الجاهزة والحساسية؟", "هل هناك إجراء لحالات تغير الحرارة وتأثر الدفعات؟"], "code": "PRP-13"}, {"id": "P14", "name": "النقل والتوزيع", "acceptance": "سلامة المركبة والنظافة والتعبئة وظروف النقل وسلسلة التبريد عند الانطباق.", "limit": "حدود النقل من مواصفات المنتج والمتطلبات المطبقة وخطة الحفاظ على الحرارة.", "steps": "1. افحص المركبة قبل التحميل.\n2. تحقق من السعة وفصل المنتجات.\n3. سجّل حرارة التحميل عند اللزوم.\n4. اربط الدفعات بالعميل ومسار الرحلة.\n5. راقب الحرارة والوقت وفق المخاطر.\n6. حقق في أي انحراف وقيّم الدفعات.", "evidence": "فحص مركبة؛ سجل إرسال؛ سجل حرارة؛ إثبات التسليم", "failure": "تعليق التسليم أو حجز المنتج المعرض وتقييم بيانات الحرارة والتوزيع.", "haccp": "التلوث ونمو الممرضات؛ صلة بالتتبع والاستدعاء.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "supply", "icon": "fa-truck", "summary": "فحص الشحنات الصادرة ومركبات النقل", "record": "فحص النقل والتوزيع", "checks": ["هل يتم فحص حرارة وحالة ونظافة مركبة النقل؟", "هل تتم مراجعة سلامة العبوات والبطاقات والدفعات؟", "هل يسجل قبول أو رفض الشحنة والإجراء المتخذ؟"], "code": "PRP-14"}, {"id": "P15", "name": "إدارة المخلفات", "acceptance": "عدم تراكم المخلفات أو رجوعها لمناطق الغذاء؛ فصلها والتخلص منها دون جذب الآفات.", "limit": "تواتر الإزالة ووسائل الاحتواء وفق حركة الإنتاج ومستوى المخاطر.", "steps": "1. حدد الحاويات والمسارات.\n2. استخدم حاويات مغلقة قابلة للتنظيف.\n3. افصل المخلفات الغذائية والكيميائية.\n4. نظّف مناطق جمع النفايات.\n5. سجّل الجولات والملاحظات.\n6. صحح مصادر الروائح والآفات.", "evidence": "جدول جمع؛ سجل تنظيف حاويات؛ فحص نقاط المخلفات", "failure": "إيقاف تراكم المخلفات، تنظيف وتعقيم الموقع وتقييم أي تلوث متبادل.", "haccp": "مخاطر آفات وميكروبات وتلوث كيميائي؛ PRP.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "infra", "icon": "fa-recycle", "summary": "التخلص الآمن من المخلفات", "record": "سجل إزالة المخلفات", "checks": ["هل توجد أوعية نفايات سليمة ومحددة؟", "هل يتم التخلص من النفايات بالتكرار الملائم؟", "هل مسار النفايات يمنع التقاطع مع الغذاء؟"], "code": "PRP-15"}, {"id": "P16", "name": "المواد الكيميائية", "acceptance": "الكيماويات محددة ومعنونة ومخزنة منفصلة؛ الاستخدام وفق تعليمات المادة وتدريب المستخدم.", "limit": "التركيز والزمن واشتراطات الشطف من الملصق ونشرة السلامة والتحقق من طريقة الاستخدام.", "steps": "1. احصر جميع الكيماويات وأغراضها.\n2. احتفظ بالملصقات وSDS.\n3. افصل التخزين عن الأغذية والتعبئة.\n4. عاير تحضير المحاليل وأدوات التوزيع عند الحاجة.\n5. سجّل الاستخدام والمستخدم.\n6. عالج الانسكاب والتلوث المحتمل حسب إجراء الطوارئ.", "evidence": "سجل كيميائيات؛ SDS؛ سجل محاليل؛ تقارير انسكاب", "failure": "عزل المنتج والمواد الملامسة؛ تقييم خطر التلوث الكيميائي والتحقق قبل إعادة التشغيل.", "haccp": "مخاطر كيميائية؛ قد يؤثر في صلاحية تنظيف الأسطح.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "hyg", "icon": "fa-flask", "summary": "فصل المواد الكيميائية وضبط استخدامها", "record": "سجل المواد الكيميائية", "checks": ["هل المواد الكيميائية معرفة ومخزنة منفصلة وآمنة؟", "هل ملفات السلامة وتعليمات الاستخدام متاحة؟", "هل يضبط صرف وتحضير وتخفيف المحاليل؟"], "code": "PRP-16"}, {"id": "P17", "name": "مسببات الحساسية", "acceptance": "تحديد مسببات الحساسية في المواد والمنتجات؛ الفصل والتحكم في إعادة العمل والملصق والتحقق من التنظيف.", "limit": "حدود/طرق تحقق بقايا مسببات الحساسية تعتمد على الخطر والطريقة التحليلية والمنتج؛ لا حد موحد لجميع المواد.", "steps": "1. اجمع معلومات الحساسية من الموردين والوصفات.\n2. كوّن مصفوفة منتج-مسبب حساسية.\n3. افصل التخزين والتداول حسب الخطر.\n4. نظم تسلسل الإنتاج وإعادة العمل.\n5. تحقق من تغيير المنتج والنظافة والملصق.\n6. حقق في أي خلط أو ملصق غير صحيح وحدد الدفعات.", "evidence": "مصفوفة حساسية؛ تحقق تغيير خط؛ سجل تنظيف؛ مراجعة بطاقة", "failure": "احجز دفعات الملصق الخاطئ أو التلوث المحتمل وقيّم التصحيح أو السحب/الاستدعاء.", "haccp": "خطر مسبب حساسية مهم؛ قد يتطلب OPRP وفق تحليل ISO 22000.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "contam", "icon": "fa-wheat-awn-circle-exclamation", "summary": "إدارة مسببات الحساسية ومنع انتقالها", "record": "فحص إدارة الحساسية", "checks": ["هل توجد مصفوفة مسببات الحساسية لكل منتج ومكون؟", "هل هناك خطة فصل وتنظيف والتحقق من ملصق المنتج؟", "هل يراجع التوسيم عند تغيير المواد والوصفات؟"], "code": "PRP-17"}, {"id": "P18", "name": "منع الأجسام الغريبة", "acceptance": "ضبط الزجاج والبلاستيك الصلب والأدوات والأجزاء المعدنية مع التفتيش عند الكسر أو الاشتباه.", "limit": "حساسية أجهزة الكشف والأحجام المرجعية تُتحقق لكل منتج وعبوة وموقع؛ لا قيمة واحدة موحدة.", "steps": "1. احصر مصادر الأجسام الغريبة.\n2. أنشئ سجل الزجاج والبلاستيك الصلب.\n3. طبّق فحص الأدوات وقبل التشغيل.\n4. اختبر أجهزة الكشف بعينات تحدٍ معتمدة عند وجودها.\n5. احجز المنتجات عند الفشل وتتبّع آخر فحص ناجح.\n6. حلّل السبب وتحقق بعد التصحيح.", "evidence": "سجل زجاج؛ فحص أدوات؛ تحقق كاشف معادن؛ حجز دفعات", "failure": "إيقاف الخط والحجز من آخر اختبار مقبول حتى الاختبار اللاحق الناجح حسب دراسة الأثر.", "haccp": "مخاطر فيزيائية؛ يمكن تصنيف الكشف CCP بحسب تحليل المخاطر.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "contam", "icon": "fa-magnet", "summary": "ضبط مخاطر الزجاج والبلاستيك والمعادن", "record": "سجل الأجسام الغريبة", "checks": ["هل يوجد سجل للأجسام الهشة وفحوص دورية؟", "هل يتم التحقق من أجهزة الفحص وفق دراسة الصلاحية؟", "هل يوجد إجراء حجز للمنتجات عند كسر أو فشل الكشف؟"], "code": "PRP-18"}, {"id": "P19", "name": "GMP والتلوث التبادلي", "acceptance": "تدفقات أفراد ومواد مناسبة؛ فصل الخام والجاهز للأكل ومنع انتقال الملوثات.", "limit": "الضوابط من تقييم تدفقات المنشأة وطبيعة المنتج وبيئة التصنيع.", "steps": "1. ارسم حركة المواد والأفراد والنفايات.\n2. حدد التقاطعات عالية الخطورة.\n3. افصل الأدوات والمناطق عند الحاجة.\n4. نظم التعامل مع الخام والجاهز للأكل.\n5. راقب نقاط العبور والنظافة.\n6. قيّم أي اختلاط غير مخطط وراجع التدفق.", "evidence": "خرائط حركة؛ مصفوفة أدوات ملونة؛ جولات GMP", "failure": "أوقف التعرض المتبادل وقيّم الدفعات والمعدات ثم أعد ضبط الفصل.", "haccp": "تلوث ميكروبي/حساسية؛ قد يحتاج ضوابط مشددة.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "contam", "icon": "fa-arrows-split-up-and-left", "summary": "الفصل بين المواد والعمليات", "record": "جولة منع التلوث", "checks": ["هل يوجد فصل بين الخام والجاهز للأكل والأدوات؟", "هل يدار تدفق العاملين والأجهزة لمنع الانتقال المتبادل؟", "هل يتم التحقق من التنظيف بين العمليات؟"], "code": "PRP-19"}, {"id": "P20", "name": "التتبع والاستدعاء", "acceptance": "إمكانية تتبع الدفعات إلى الموردين والعملاء وموازنة الكميات، ووجود فريق وخطة اختبار استدعاء.", "limit": "معيار زمن الاسترجاع ونسبة التغطية تحدده المنشأة أو متطلب ملزم إن وجد؛ يجب توثيقه والتحقق منه.", "steps": "1. ضع ترميزًا موحدًا للدفعات.\n2. اربط مدخلات الإنتاج بالمخرجات.\n3. احفظ سجلات الشحن والعملاء.\n4. درّب فريق الاستدعاء وقنوات الاتصال.\n5. نفّذ اختبار استدعاء وهمي وسوّ الكميات.\n6. صحح فجوات التتبع وحدث الخطة.", "evidence": "سجل دفعات؛ سجل توزيع؛ تقرير استدعاء وهمي؛ اتصال العملاء", "failure": "احتفظ بالدفعات وحدد النطاق بسرعة، وارفع تقييم الاستدعاء للمخول؛ لا قرار آلي بالاستدعاء.", "haccp": "إدارة آثار المخاطر غير المسيطر عليها؛ ليس بديلاً عن ضوابط HACCP.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "protect", "icon": "fa-route", "summary": "تتبع الدفعات وتنفيذ محاكاة استدعاء", "record": "اختبار التتبع والاستدعاء", "checks": ["هل تستطيع المنشأة تتبع المورد والدفعة والعملاء؟", "هل يوجد فريق وخطة استدعاء وأرقام اتصال محدثة؟", "هل يتم اختبار استدعاء وهمي وتقييم النتائج؟"], "code": "PRP-20"}, {"id": "P21", "name": "الغش الغذائي", "acceptance": "تقييم هشاشة المواد ومصدرها وتدابير مكافحة الاستبدال أو الغش الاقتصادي المؤثر على السلامة.", "limit": "مستوى التدقيق والفحص مرتبط بتاريخ المورد والمادة وقابلية الغش.", "steps": "1. صنف المواد عالية القابلية للغش.\n2. استعرض مؤشرات السوق وتاريخ المورد.\n3. حدد تدابير التحقق من الأصالة.\n4. راجع الشهادات والتحاليل عند الحاجة.\n5. حقق في النتائج الشاذة أو اختلاف السعر والجودة.\n6. حدّث التقييم بعد الحالات الجديدة.", "evidence": "تقييم هشاشة؛ مواصفات مواد؛ نتائج أصالة؛ خطة تخفيف", "failure": "احجز المواد المشتبه بها وأعد تقييم المورد وتأثيرها على المنتجات.", "haccp": "مخاطر كيميائية أو حساسية ناجمة عن الاستبدال؛ تقييم منفصل يتقاطع مع HACCP.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "protect", "icon": "fa-user-secret", "summary": "تقييم قابلية الغش في سلسلة التوريد", "record": "سجل تقييم قابلية الغش", "checks": ["هل تم تقييم قابلية تعرض المواد للغش؟", "هل توجد اختبارات هوية أو ضمانات مناسبة للمواد عالية المخاطر؟", "هل تتم مراجعة إنذارات الموردين والسوق دوريًا؟"], "code": "PRP-21"}, {"id": "P22", "name": "الدفاع الغذائي", "acceptance": "تحديد التهديدات المتعمدة والتحكم في الوصول للمناطق الحساسة والمواد والخزانات.", "limit": "ضوابط الحراسة والوصول تُختار حسب تقييم التهديدات وليس بحد رقمي موحد.", "steps": "1. حدد الأصول والمناطق الحساسة.\n2. قيّم التهديدات ونقاط الضعف.\n3. طبّق التحكم في الدخول والتصاريح.\n4. امنع العبث بالمكونات والخزانات.\n5. درّب الفرق على البلاغات والاستجابة.\n6. اختبر الخطة وعدّلها عند تغير التهديدات.", "evidence": "تقييم تهديدات؛ سجل دخول؛ حوادث أمن الغذاء؛ اختبار استجابة", "failure": "اعزل موقع الاشتباه والدفعات المتأثرة وابدأ التحقيق وفق الخطة.", "haccp": "تهديد متعمد؛ مكمل لبرنامج سلامة الغذاء وليس تصنيف CCP تلقائيًا.", "responsible": "مدير الجودة / المسؤول المحدد في خطة المنشأة", "frequency": "يحدد بحسب مخاطر النشاط وخطة الرقابة", "group": "protect", "icon": "fa-shield-halved", "summary": "تقييم تهديدات العبث المتعمد", "record": "سجل تقييم الدفاع الغذائي", "checks": ["هل قيمت نقاط الدخول والمواد عالية الحساسية للعبث؟", "هل توجد إجراءات تحكم بالدخول والزوار؟", "هل توجد آلية للإبلاغ عن أي نشاط مريب والتحقيق؟"], "code": "PRP-22"}];
+const PRP_GENERIC = [["مطابقة البرنامج المعتمد", "وجود إجراء حديث ومراجعة وتوزيع موثقين"], ["تطبيق التعليمات ميدانيًا", "التحقق من التنفيذ بأدلة وسجلات حديثة"], ["التحقق من معايير القبول", "نتائج فحص موثقة مقارنة بحدود صالحة للمنتج"], ["معالجة الانحرافات", "تسجيل الإخفاقات وحجز المنتج عند الضرورة والتحقق من فاعلية التصحيح"], ["الكفاءة والمسؤوليات", "تحديد المسؤول والتكرار والتدريب المناسب"]];
+const PRP_GROUPS = [
+  { key:"infra", label:"البنية التحتية والمرافق", icon:"fa-building" },
+  { key:"hyg", label:"النظافة والآفات والكيماويات", icon:"fa-spray-can-sparkles" },
+  { key:"people", label:"العاملون", icon:"fa-people-group" },
+  { key:"equip", label:"المعدات والقياس", icon:"fa-gears" },
+  { key:"supply", label:"سلسلة الإمداد", icon:"fa-truck-field" },
+  { key:"contam", label:"منع التلوث", icon:"fa-shield-virus" },
+  { key:"protect", label:"التتبع والحماية", icon:"fa-shield-halved" },
+];
+/* ═══ بنية النماذج = نفس نظام استوديو النماذج (2_FormBuilder.html) لكلا المعيارين: layoutType + config ═══
+   الأنواع: simple · dated_grid · matrix_month · audit_sections · report_entry · reference_table · tag_card · site_map · trend_report · eib_log
+   layoutToFields() تحوّل البنية إلى أعمدة سجل رقمي (سطر لكل إدخال) لبوابة العميل. */
+function layoutToFields(f){
+  const c = (f && f.config) || {}, out = [];
+  const T = t => ({ check:"passfail", signature:"sign", temp:"number", photo:"text" }[t] || t || "text");
+  const skipMeta = ["اليوم", "التاريخ", "الصفحة", "الشهر"];
+  const addDate = (label = "تاريخ السجل") => out.push({ k:"date", label:c.dateLabel || label, type:"date", req:true });
+  const addMeta = list => (list || []).filter(m => !skipMeta.includes(String(m).trim())).forEach((m, i) => out.push({ k:"m_" + (i + 1), label:m, type:"text", req:true }));
+  switch (f && f.layoutType){
+    case "simple":
+      addDate();
+      (c.fields || []).forEach(x => out.push({ k:x.id, label:x.label + (x.type === "photo" ? " (وصف / رابط الصورة)" : ""), type:T(x.type), req:!!x.required, ...(x.type === "temp" ? { unit:"°C" } : {}),
+        ...(x.type === "select" ? { options:(x.options && x.options.length) ? x.options.slice() : ["أخرى"] } : {}), ...(x.unit ? { unit:x.unit } : {}) }));
+      break;
+    case "dated_grid": {
+      addDate(); addMeta(c.metaFields);
+      if (c.multiSection && (c.sections || []).length) out.push({ k:"section", label:"البند", type:"select", options:c.sections.slice(), req:true });
+      const cols = c.columns || [], ok = cols.find(x => x.type === "check" && x.label.trim() === "مطابق"), nok = cols.find(x => x.type === "check" && x.label.trim() === "غير مطابق");
+      cols.forEach(x => {
+        if (ok && nok && (x === ok || x === nok)){ if (x === ok) out.push({ k:"result", label:"نتيجة التشييك", type:"passfail", req:true }); return; }
+        out.push({ k:x.id, label:x.label, type:T(x.type), req:x.type === "check" || x.type === "signature" });
+      });
+      break; }
+    case "matrix_month":
+      addDate();
+      out.push({ k:"item", label:"الفئة — البند", type:"select", options:(c.categories || []).flatMap(cat => (cat.items || []).map(it => cat.name + " — " + it)), req:true });
+      out.push({ k:"done", label:"منفّذ", type:"passfail", req:true }, { k:"notes", label:"ملاحظات", type:"text", req:false }, { k:"by", label:"القائم بالعمل", type:"sign", req:false });
+      break;
+    case "audit_sections":
+      addDate(); addMeta(c.metaFields);
+      (c.sections || []).forEach((sec, si) => (sec.criteria || []).forEach((cr, ci) => out.push({ k:"a" + (si + 1) + "_" + (ci + 1), label:cr, section:sec.title, type:"passfail", req:false })));
+      out.push({ k:"notes", label:c.notesLabel || "ملاحظات وإجراءات تصحيحية", type:"textarea", req:false }, { k:"by", label:"القائم بالتقييم", type:"sign", req:true });
+      break;
+    case "report_entry":
+      if (!(c.fields || []).some(x => x.id === "date")) addDate();
+      if (c.hasTime) out.push({ k:"time", label:"الوقت", type:"time", req:false });
+      (c.fields || []).forEach(x => out.push({ k:x.id, label:x.label, type:T(x.type), req:x.required === undefined ? true : !!x.required,
+        ...(x.type === "select" ? { options:(x.options && x.options.length) ? x.options.slice() : ["أخرى"] } : {}), ...(x.unit ? { unit:x.unit } : {}) }));
+      if (c.hasSignature) out.push({ k:"sign", label:"توقيع المسؤول", type:"sign", req:true });
+      break;
+    case "tag_card":
+      addDate("تاريخ الزيارة");
+      (c.fixedFields || []).forEach((m, i) => out.push({ k:"m_" + (i + 1), label:m, type:"text", req:true }));
+      (c.columns || []).forEach(x => out.push({ k:x.id, label:x.label, type:T(x.type), req:x.required === undefined ? true : !!x.required,
+        ...(x.type === "select" ? { options:(x.options && x.options.length) ? x.options.slice() : ["أخرى"] } : {}) }));
+      break;
+    case "site_map":
+      addDate("تاريخ الإصدار");
+      out.push({ k:"rev", label:"رقم التعديل (Revision No)", type:"text", req:true }, { k:"change", label:"وصف التعديل / المواقع المضافة أو المنقولة", type:"textarea", req:false },
+        { k:"file", label:"مرجع ملف الخريطة المعتمدة", type:"text", req:false });
+      (c.legend || []).forEach((l, i) => out.push({ k:"n" + (i + 1), label:"عدد: " + l.label, type:"number", req:false }));
+      out.push({ k:"approver", label:"توقيع اعتماد مدير الجودة", type:"sign", req:true });
+      break;
+    case "trend_report":
+      addDate("تاريخ التقرير");
+      out.push({ k:"period", label:"نوع الفترة", type:"select", options:(c.periods && c.periods.length) ? c.periods.slice() : ["شهري", "ربع سنوي", "سنوي"], req:true },
+        { k:"label", label:"الفترة المشمولة (مثال: أكتوبر 2026 / الربع الثالث)", type:"text", req:true });
+      (c.areas || []).forEach((a, ai) => (c.pests || []).forEach((p, pi) => out.push({ k:"x" + (ai + 1) + "_" + (pi + 1), label:a + " — " + p, area:a, pest:p, type:"number", req:false })));
+      out.push({ k:"eval", label:"التقييم وتحليل الأسباب عند ارتفاع المؤشرات", type:"textarea", req:false }, { k:"plan", label:"الخطة الوقائية للفترة القادمة", type:"textarea", req:false },
+        { k:"by", label:"المُعِد", type:"sign", req:true });
+      break;
+    case "eib_log":   // سجل تشغيلي EIB: تاريخ التنفيذ + أعمدة النموذج كما في ملف Excel
+      addDate("تاريخ التنفيذ");
+      (c.columns || []).forEach(x => out.push({ k:x.id, label:x.label, type:T(x.type), req:!!x.required,
+        ...(x.type === "select" ? { options:(x.options && x.options.length) ? x.options.slice() : ["أخرى"] } : {}) }));
+      break;
+    case "reference_table":
+      (c.columns || []).forEach((col, i) => out.push({ k:"r" + (i + 1), label:col, type:"text", req:i === 0 }));
+      break;
+  }
+  return out;
+}
+/* صفوف تُعبّأ مسبقاً للعميل (الجدول المرجعي) */
+function layoutSeed(f){ if (!f || f.layoutType !== "reference_table") return null; const c = f.config || {}; return (c.rows || []).filter(r => r.some(x => String(x).trim())).map(r => Object.fromEntries((c.columns || []).map((col, i) => ["r" + (i + 1), r[i] || ""]))); }
+function layoutFreq(f){ return (f && (f.freq || (f.config || {}).frequency)) || ""; }
+
+/* نماذج PRPs المعتمدة من EIB (03…06_EIB_PRP_Forms_P01–P22.xlsx): 22 برنامجاً × 8 نماذج = 176 نموذجاً.
+   لكل نموذج: «تاريخ التنفيذ» + 9 أعمدة تخصصية + مرجع الدليل + النتيجة (مطابق/غير مطابق/لا ينطبق/قيد التحقق) + رقم CAPA، و30 صفاً للطباعة. */
+const EIB_NOTE = "لا تعتمد نتائج السجل دون إثبات فعلي. عند نتيجة «غير مطابق» حدد المنتج المتأثر واربط رقم CAPA وتحقق من الإغلاق.";
+const EIB_PRP_FORMS = {"P01": {"acc": "خلو مناطق تداول الغذاء من دلائل نشاط آفات غير مسيطر عليه؛ اكتمال خريطة المصائد والتفتيش واتخاذ إجراء عند أي مشاهدة.", "forms": [["خريطة المصائد ونقاط الرصد", ["رقم المصيدة", "نوع المصيدة", "المنطقة", "الإحداثي/الموقع", "خطر تلوث الغذاء", "الحالة", "تاريخ التركيب", "تاريخ التحديث"]], ["جولات فحص المصائد", ["رقم المصيدة", "نوع النشاط/الآفة", "عدد المشاهدات", "حالة المصيدة", "ملاحظة المصيدة", "المعالجة الفورية", "المسؤول", "تاريخ المتابعة"]], ["اتجاه نشاط الآفات", ["الآفة", "المنطقة", "الفترة", "عدد المشاهدات", "الفترة المقارنة", "اتجاه التغير", "مستوى التدخل المعتمد", "قرار المراجعة"]], ["زيارات شركة المكافحة", ["اسم المزود", "رقم العقد", "الزيارة المخططة", "الزيارة الفعلية", "اسم الفني", "نطاق الزيارة", "تقرير المزود", "نتائج الزيارة"]], ["المبيدات المستخدمة", ["اسم المستحضر", "الرقم المرجعي", "الاستخدام المقصود", "موقع الاستخدام", "توافق منطقة الغذاء", "التركيز المعتمد", "الفني", "مرجع SDS"]], ["إغلاق نقاط دخول الآفات", ["الفتحة/الفجوة", "الموقع", "سبب الدخول المحتمل", "تقدير الخطورة", "التصحيح المطلوب", "تاريخ الإغلاق", "التحقق الميداني", "مرجع CAPA"]], ["فحص الآفات عند الاستلام", ["المورد", "المادة", "الدفعة", "مركبة النقل", "أثر قضم/فضلات", "قرار القبول/الحجز", "إجراء المورد", "الدليل"]], ["بلاغ نشاط آفات بالمناطق الحرجة", ["نوع النشاط", "المنطقة المتأثرة", "منتجات محتملة التأثر", "دفعات محجوزة", "تقييم سلامة الغذاء", "التصحيح", "التحقق", "قرار الإفراج"]]]}, "P02": {"acc": "أسطح سليمة وسهلة التنظيف؛ لا ارتداد من المصارف ولا فتحات تسمح بالتلوث أو الآفات.", "forms": [["فحص سلامة المباني", ["العنصر الإنشائي", "المنطقة", "وصف الحالة", "قابلية التنظيف", "تأثير سلامة الغذاء", "إجراء الصيانة", "الأولوية", "تاريخ الإقفال"]], ["الأرضيات والجدران والأسقف", ["الموقع", "السطح", "شقوق/تلف", "تكاثف/تقشر", "مستوى التعرض", "التصحيح المطلوب", "صورة/دليل", "قرار إعادة الفحص"]], ["المصارف وأنظمة الصرف", ["رمز المصرف", "المنطقة", "تدفق/انسداد", "رجوع مياه", "رائحة/آفات", "آخر تنظيف", "المعالجة", "نتيجة إعادة الفحص"]], ["الأبواب والنوافذ والحواجز", ["رقم الباب", "المنطقة", "حالة الإغلاق", "شبك الوقاية", "اتجاه الحركة", "فجوات/نقاط دخول", "الإجراء", "موعد الصيانة"]], ["مخطط تقسيم المناطق الصحية", ["اسم المنطقة", "درجة النظافة", "مواد مسموحة", "مداخل/مخارج", "الفصل المطلوب", "مسار العاملين", "مراجعة المخطط", "قرار الاعتماد"]], ["فحص المرافق الصحية", ["المرفق", "الموقع", "مغسلة/صرف", "صابون/تجفيف", "نظافة", "حماية منطقة الغذاء", "الإجراء", "التحقق"]], ["الملاحظات الإنشائية والإغلاق", ["رقم الملاحظة", "نوع المرفق", "الخطورة", "الصور قبل", "وصف المعالجة", "الصور بعد", "مسؤول الاستلام", "تاريخ الاعتماد"]], ["مراجعة تغيير تخطيط المصنع", ["رقم التغيير", "المنطقة", "وصف التعديل", "أثر تدفق الغذاء", "مخاطر التلوث", "مراجعة HACCP", "اختبار القبول", "الاعتماد"]]]}, "P03": {"acc": "لا تكاثف أو قطرات فوق المنتجات؛ إضاءة مناسبة للفحص؛ وسائل الإضاءة المحمية سليمة.", "forms": [["قياس شدة الإضاءة", ["الموقع", "مهمة العمل", "جهاز القياس", "القراءة لوكس", "المعيار المعتمد لوكس", "حالة الغطاء الواقي", "الإجراء", "التحقق"]], ["مراجعة توزيع الهواء", ["الغرفة", "نوع المنطقة", "اتجاه الهواء", "مصدر سحب الهواء", "مخاطر انتقال ملوثات", "الضابط", "تاريخ فحص", "نتيجة المراجعة"]], ["صيانة وحدات التهوية", ["رقم الوحدة", "الموقع", "نوع الفلتر", "الجدول", "حالة المرشح", "تنظيف/استبدال", "رقم أمر العمل", "التحقق"]], ["مراقبة الرطوبة والتكاثف", ["الموقع", "الرطوبة المقاسة", "المعيار المعتمد", "علامات تكاثف", "المنتج المتأثر", "المعالجة", "تاريخ الإغلاق", "المراجعة"]], ["فحص واقيات المصابيح", ["رقم المصباح", "المنطقة", "نوع الوقاية", "غطاء سليم", "نظافة", "خطر سقوط شظايا", "تصحيح", "إطلاق المنطقة"]], ["التحقق من ضغط الغرف", ["الغرفة الأولى", "الغرفة الثانية", "فرق الضغط", "الوحدة", "المعيار المعتمد", "جهاز القياس", "الإجراء", "نتيجة التحقق"]], ["فحص فتحات الهواء", ["الفتحة", "الموقع", "تلوث/غبار", "حالة الشبك", "سجل التنظيف", "المسؤول", "إجراء", "توقيع التحقق"]], ["التعامل مع انقطاع التهوية", ["الحدث", "المنطقة", "مدة الانقطاع", "منتج معرض", "خطر التكاثف", "الإجراء المؤقت", "قرار الإنتاج", "التحقق"]]]}, "P04": {"acc": "المياه الملامسة للغذاء ومخرجات الثلج/البخار المستخدم غذائيًا مطابقة لمواصفات الاستخدام المعتمدة؛ نتائج الفحص موثقة.", "forms": [["خطة أخذ عينات المياه", ["رمز نقطة العينة", "المصدر", "الغرض من الاستخدام", "المعامل المطلوبة", "الدورية المعتمدة", "المختبر", "طريقة أخذ العينة", "المسؤول"]], ["سجل سحب وتحليل المياه", ["رمز العينة", "نقطة السحب", "تاريخ ووقت السحب", "الاختبار", "النتيجة", "الوحدة", "الحد المعتمد", "مرجع تقرير المختبر"]], ["فحص خزانات المياه", ["رمز الخزان", "الحالة الإنشائية", "غطاء وإحكام", "ترسبات", "تاريخ آخر تنظيف", "تاريخ الفحص", "الإجراء المطلوب", "التحقق"]], ["التنظيف والتطهير للخزانات", ["رمز الخزان", "تاريخ التفريغ", "منظف/مطهر", "التركيز المعتمد", "زمن التلامس", "الشطف", "نتيجة الفحص", "إعادة الخدمة"]], ["ضبط وحدات المعالجة UV/أوزون", ["رقم الوحدة", "طريقة المعالجة", "المؤشر التشغيلي", "القراءة", "الحد المعتمد", "حالة الإنذار", "تصرف الانحراف", "اعتماد التشغيل"]], ["فحص الثلج الملامس للغذاء", ["موقع صناعة الثلج", "مصدر الماء", "نظافة الماكينة", "رقم عينة الثلج", "تقرير التحليل", "تاريخ التنظيف", "الإجراء", "قرار المطابقة"]], ["التحقق من البخار الملامس", ["مصدر البخار", "نقطة التلامس", "نوع المواد المضافة", "تقييم خطورة", "حالة الشبكة", "الفحص/التحليل", "الإجراء", "المراجعة"]], ["نتائج مياه غير مطابقة", ["العينة", "البند غير المطابق", "الحد المعتمد", "النتيجة الفعلية", "منتجات متأثرة", "الحجز", "إعادة الاختبار", "قرار إعادة التشغيل"]]]}, "P05": {"acc": "عدم وجود بقايا مرئية؛ نتائج التحقق من فاعلية التنظيف مقبولة وفق وسيلة وفواصل التحقق المعتمدة.", "forms": [["الخطة الرئيسية للتنظيف SSOP", ["المنطقة/المعدة", "السطح", "المنظف المعتمد", "المطهر المعتمد", "طريقة التنظيف", "التكرار", "المسؤول", "آلية التحقق"]], ["تنفيذ تنظيف المعدات", ["رقم المعدة", "آخر منتج", "نوع التنظيف", "وقت البدء", "وقت الانتهاء", "المادة المستخدمة", "اسم المنفذ", "توقيع المشرف"]], ["تحضير محاليل التنظيف", ["اسم المادة", "رقم التشغيلة", "التركيز المستهدف", "حجم المحلول", "التركيز المحقق", "طريقة القياس", "المستخدم", "وقت التحضير"]], ["فحص ما قبل التشغيل", ["الخط/المعدة", "بقايا مرئية", "نظافة التلامس", "سلامة الأدوات", "نتيجة المسح", "مرجع اختبار", "القرار بالتشغيل", "المعتمد"]], ["التحقق ATP والمسحات", ["نقطة المسح", "نوع الاختبار", "القيمة/النتيجة", "وحدة القياس", "حد القبول المعتمد", "رقم العينة", "قرار المعالجة", "إعادة المسح"]], ["التحقق من مسببات الحساسية", ["الخط", "منتج سابق", "منتج لاحق", "مسبب الحساسية", "طريقة التحقق", "نتيجة الاختبار", "حد القبول", "إطلاق الخط"]], ["فحص أدوات التنظيف وألوانها", ["رقم الأداة", "اللون/المنطقة", "الحالة", "تخصيص الاستخدام", "مكان التخزين", "تلف/استبدال", "المسؤول", "الدليل"]], ["انحرافات التنظيف وإعادة التنفيذ", ["المعدة", "الانحراف", "خطر المنتج", "قرار الحجز", "سبب القصور", "إعادة التنظيف", "نتيجة التحقق", "مرجع CAPA"]]]}, "P06": {"acc": "التزام العاملين بممارسات نظافة مناسبة، وغسل الأيدي واللباس الواقي ومنع السلوكيات الملوثة.", "forms": [["فحص مغاسل الأيدي", ["رقم المغسلة", "الموقع", "ماء متاح", "صابون متاح", "وسيلة تجفيف", "حالة النظافة", "الإجراء", "توقيع التحقق"]], ["التفتيش على الزي الوقائي", ["الموظف/القسم", "نوع الزي", "غطاء الرأس", "الأحذية", "القفازات عند اللزوم", "حالة النظافة", "ملاحظة", "قرار التصحيح"]], ["مراقبة غسل الأيدي", ["القسم", "الفترة", "موقف يستوجب الغسل", "عدد مشاهدات صحيحة", "عدد مشاهدات تحتاج تصحيح", "إجراء التوعية", "المراقب", "تاريخ إعادة التحقق"]], ["تفتيش الحلي والأغراض الشخصية", ["الموظف/المنطقة", "الحلي/الأغراض", "الامتثال", "خطر سقوط جسم غريب", "الإجراء", "توعية", "تاريخ تحقق", "المسؤول"]], ["تصريح دخول الزوار", ["اسم الزائر", "الجهة", "سبب الزيارة", "منطقة الدخول", "تعليمات النظافة", "إقرار الحالة الصحية", "المرافق", "وقت المغادرة"]], ["التعامل مع سلوك غير صحي", ["رقم الملاحظة", "الموقع", "نوع السلوك", "احتمال التلوث", "التصحيح الفوري", "تدريب", "تقييم المنتج", "المراجعة"]], ["فحص مناطق تبديل الملابس", ["المرفق", "نظافة الخزائن", "فصل الملابس", "تخزين الأطعمة", "مستلزمات النظافة", "ملاحظة", "إجراء", "التحقق"]], ["برنامج التثقيف السلوكي", ["السلوك المستهدف", "الفئة", "المادة التوعوية", "عدد المتدربين", "الملاحظة السابقة", "التغير بعد التدريب", "تاريخ التقييم", "الإجراء"]]]}, "P07": {"acc": "وجود سياسة للإبلاغ عن المرض والإصابة ومنع تلوث الغذاء وتطبيقها دون الإفصاح غير الضروري عن تفاصيل طبية.", "forms": [["سجل الإبلاغ عن أعراض مرضية", ["رمز الموظف", "المنطقة", "نوع العرض المبلغ", "وقت البلاغ", "تقييم المخاطر", "قرار إبعاد عن الغذاء", "الجهة المختصة", "سجل المتابعة"]], ["الإصابات والجروح والإسعافات", ["رمز الموظف", "نوع الإصابة", "المنطقة", "وسيلة الحماية", "احتمال تلوث المنتج", "الإجراء الوقائي", "قرار استئناف العمل", "التحقق"]], ["قيود الاستبعاد والعودة للعمل", ["رمز الموظف", "سبب الاستبعاد", "بداية الاستبعاد", "المهام المقيدة", "إثبات الملاءمة وفق السياسة", "تاريخ العودة", "معتمد القرار", "ملاحظات"]], ["التعامل مع العاملين المؤقتين", ["اسم العامل/الرمز", "الجهة المتعاقدة", "تقييم اللياقة وفق السياسة", "النظافة والتدريب", "القسم", "المشرف", "تاريخ الإدخال", "الحالة"]], ["صحة زوار مناطق الإنتاج", ["اسم الزائر", "الأعراض المصرح بها", "مخاطر الدخول", "معدات الوقاية", "إذن الدخول", "المرافق", "وقت الانتهاء", "الملاحظة"]], ["إبلاغ عن جسم غريب من إصابة", ["رقم الحادث", "الموقع", "نوع الضمادة", "مناطق العمل", "منتج متأثر", "إجراء الحجز", "تأكيد عدم الفقد", "تقرير التحقق"]], ["التوعية بالصحة المهنية", ["موضوع التوعية", "الفئة", "تاريخ التنفيذ", "عدد المستفيدين", "اختبار الفهم", "جهة التدريب", "إجراءات متابعة", "الإثبات"]], ["تقييم أثر حادث صحي على المنتج", ["رمز الحادث", "خط الإنتاج", "الفترة المتأثرة", "الدفعات المتأثرة", "التقييم", "قرار الحجز/الإفراج", "التحقق", "قرار الإغلاق"]]]}, "P08": {"acc": "المكلفون بالرقابة قادرون على أداء المهمة وشرح معيار القبول والتصرف عند الانحراف.", "forms": [["مصفوفة المهارات والكفاءة", ["المسمى الوظيفي", "المهارة المطلوبة", "مستوى الكفاءة المطلوب", "اسم/رمز الموظف", "المستوى الحالي", "الفجوة", "الإجراء التدريبي", "تاريخ التحقق"]], ["الخطة السنوية للتدريب", ["عنوان البرنامج", "الهدف التشغيلي", "الفئة المستهدفة", "المدرب", "الأولوية", "التاريخ المخطط", "المدة", "الميزانية التقديرية"]], ["سجل حضور التدريب", ["رقم الدورة", "اسم الدورة", "التاريخ", "المشارك", "وظيفته", "ساعات التدريب", "الحضور", "توقيع المشارك"]], ["تقييم فعالية التدريب", ["الدورة", "معيار الكفاءة", "الاختبار القبلي", "الاختبار البعدي", "الملاحظة في العمل", "درجة التقييم", "فجوة متبقية", "قرار الكفاءة"]], ["ترخيص مشغلي CCP/OPRP", ["الموظف", "نقطة التحكم", "التدريب المطلوب", "الاختبار العملي", "التفويض", "صلاحية التفويض", "اسم المقيم", "إعادة التقييم"]], ["تدريب المقاولين والزوار", ["الجهة", "المهمة", "خطر سلامة الغذاء", "تعليمات الموقع", "تاريخ الإحاطة", "الحاضرون", "نتيجة التحقق", "المصرح بالدخول"]], ["تقييم المدربين والمواد", ["المدرب", "المؤهل", "المادة", "التحديث المرجعي", "طريقة العرض", "رضا المشاركين", "نتائج التعلم", "إجراء التحسين"]], ["سجل إعادة التدريب بعد CAPA", ["رمز CAPA", "المخالفة", "الموظفون المعنيون", "الموضوع", "تاريخ التنفيذ", "طريقة التقييم", "نتيجة الفاعلية", "اعتماد الإغلاق"]]]}, "P09": {"acc": "المعدات سليمة بلا تسرب أو أجزاء مكسورة أو ملوثات صيانة محتملة؛ إغلاق أوامر الصيانة والتحقق من النظافة.", "forms": [["سجل المعدات والترقيم", ["رقم الأصل", "اسم المعدة", "الموقع", "وظيفة سلامة الغذاء", "الأجزاء الملامسة", "الحرجية", "دليل المصنع", "الحالة"]], ["خطة الصيانة الوقائية", ["رقم الأصل", "نشاط الصيانة", "التكرار", "موعد الاستحقاق", "مسؤول التنفيذ", "قطع الغيار", "تعليمات المصنع", "اعتماد الجدول"]], ["أمر عمل صيانة", ["رقم الطلب", "المعدة", "وصف العطل", "وقت الإيقاف", "وقت الإصلاح", "القطع المستبدلة", "الفني", "توثيق العمل"]], ["إفراج ما بعد الصيانة", ["رقم أمر العمل", "المعدة", "أدوات مفقودة", "بقايا زيوت/برادة", "تنظيف بعد الإصلاح", "اختبار التشغيل", "قرار إعادة الإنتاج", "معتمد الإفراج"]], ["ضبط الزيوت والشحوم", ["اسم الزيت", "رقم المادة", "ملاءمة الاستخدام الغذائي", "المعدة", "موضع التطبيق", "تاريخ الاستخدام", "المنفذ", "المراجعة"]], ["سجل الأعطال والتوقف", ["رمز العطل", "المعدة", "مدة التوقف", "سبب متكرر", "المنتج أثناء التوقف", "الإجراء", "موعد الصيانة", "التحقق"]], ["فحص أدوات الفنيين", ["الفني", "الموقع", "عدة الدخول", "عدة الخروج", "مسمار/شظايا مفقودة", "التنظيف", "إجراء التصحيح", "توقيع المراجعة"]], ["تقييم أثر الأعطال على المنتج", ["العطل", "خط الإنتاج", "الفترة المتأثرة", "الدفعات", "نوع الخطر", "قرار الحجز", "نتيجة التحقيق", "اعتماد الإفراج"]]]}, "P10": {"acc": "أجهزة مراقبة الحرارة أو الوزن أو غيرها تعمل بدقة مناسبة للمخاطر وبحالة معايرة أو تحقق محددة.", "forms": [["قائمة أجهزة القياس", ["رمز الجهاز", "نوع الجهاز", "الموقع", "نطاق القياس", "دقة مطلوبة", "استخدام سلامة الغذاء", "موعد المعايرة", "حالة الجهاز"]], ["خطة المعايرة السنوية", ["رمز الجهاز", "معيار القبول", "طريقة المعايرة", "المختبر", "المرجع", "الدورية", "الموعد القادم", "المسؤول"]], ["فحوص التحقق بين المعايرات", ["رمز الجهاز", "المعيار المرجعي", "القراءة المرجعية", "قراءة الجهاز", "الفرق", "التسامح المعتمد", "الإجراء", "حالة التحقق"]], ["نتائج شهادات المعايرة", ["رمز الجهاز", "رقم الشهادة", "تاريخ المعايرة", "النتيجة", "الانحراف", "عدم اليقين", "حد التسامح", "قرار الملاءمة"]], ["تقييم الجهاز خارج المعايرة", ["رمز الجهاز", "متى اكتشف", "فترة التأثر", "دفعات سبق قياسها", "الانحراف", "تقييم الأثر", "قرار المنتج", "إجراء الإصلاح"]], ["تتبع المعايير المرجعية", ["المعيار", "رقم الشهادة", "الجهة", "تاريخ الصلاحية", "مرجع التتبع", "نطاق الاستخدام", "شروط الحفظ", "المراجعة"]], ["التحقق من الترمومترات", ["رمز المسبار", "طريقة المقارنة", "مرجع القياس", "قراءة مرجع", "قراءة الجهاز", "الفرق", "حد القبول", "قرار استخدام"]], ["تسجيل إصلاح واستبدال الأجهزة", ["رمز الجهاز", "نوع التدخل", "المورد", "تاريخ الإصلاح", "إعادة المعايرة", "تقييم بيانات سابقة", "المصرح به", "التحقق"]]]}, "P11": {"acc": "مواد من موردين معتمدين بمواصفات فنية معلنة وأدلة تقييم مستوى خطورتها.", "forms": [["السجل المعتمد للموردين", ["اسم المورد", "رقم المورد", "السلع/الخدمات", "بلد المنشأ", "المستندات المطلوبة", "مخاطر التوريد", "حالة الاعتماد", "تاريخ المراجعة"]], ["تقييم مخاطر المورد", ["المورد", "المادة", "تأثيرها على المنتج", "غش/حساسية", "سجل المخالفات", "درجة الخطورة", "خطة التحقق", "قرار الاعتماد"]], ["تقييم أداء المورد الدوري", ["المورد", "الفترة", "عدد الشحنات", "شحنات مرفوضة", "شكاوى", "التزام الوثائق", "الإجراء", "قرار استمرار الاعتماد"]], ["توثيق شهادات وتصاريح المورد", ["اسم المورد", "نوع الوثيقة", "الرقم", "الجهة المصدرة", "تاريخ الإصدار", "تاريخ الانتهاء", "تحقق الأصالة", "قرار القبول"]], ["مراجعة شهادات التحليل COA", ["المورد", "المادة", "الدفعة", "رقم COA", "الاختبارات", "حد المواصفة", "نتيجة المورد", "قرار المراجعة"]], ["تقييم مقدمي الخدمات المتعاقدة", ["مقدم الخدمة", "نوع الخدمة", "الوصول لمناطق غذاء", "متطلبات السلامة", "تقييم الكفاءة", "مراجعة العقد", "عدم المطابقة", "القرار"]], ["زيارة تدقيق المورد", ["المورد", "التاريخ", "نطاق الزيارة", "بنود PRP", "الملاحظات", "الإجراءات", "موعد المتابعة", "قرار المدقق"]], ["طلب إجراء تصحيحي للمورد", ["المورد", "رقم الشحنة", "المشكلة", "الأدلة", "السبب الجذري المقدم", "الإجراء التصحيحي", "الموعد", "فاعلية الإغلاق"]]]}, "P12": {"acc": "موافقة المواد والشحنة على الهوية وحالة العبوة ودرجة الحرارة والوثائق المناسبة.", "forms": [["فحص استلام المواد الغذائية", ["المورد", "المادة", "الدفعة", "الكمية", "سلامة التغليف", "حرارة الاستلام إن لزم", "مطابقة المواصفة", "قرار القبول"]], ["فحص مركبة الاستلام", ["لوحة المركبة", "شركة النقل", "النظافة", "آثار آفات", "درجة حرارة الحيز", "سلامة الفصل", "سلامة الأختام", "قرار التفريغ"]], ["سجل حجز الوارد", ["الدفعة", "المادة", "المورد", "سبب الحجز", "الموقع", "كمية الحجز", "رقم NCR", "قرار التصرف"]], ["مراجعة تواريخ الصلاحية", ["المادة", "الدفعة", "الإنتاج", "الانتهاء", "العمر المتبقي", "المعيار المعتمد", "قرار الاستلام", "التوقيع"]], ["اختبار استلام عينات مخبرية", ["العينة", "المادة", "رقم الدفعة", "نوع التحليل", "خطة السحب", "المختبر", "النتيجة", "قرار تحرير الشحنة"]], ["حالة التعبئة والأختام", ["المورد", "رقم العبوة", "الغطاء/الختم", "تلف/تسرب", "تلوث ظاهري", "فرز الكميات", "الإجراء", "التصوير"]], ["سجل رفض وإرجاع الشحنات", ["رقم الشحنة", "السبب", "كمية مرفوضة", "بلاغ المورد", "رقم إذن إرجاع", "طريقة الإتلاف/الإرجاع", "موعد الإنجاز", "إثبات"]], ["التعامل مع انحراف حرارة الوارد", ["الشحنة", "المادة", "حد القبول", "القراءة", "المدة المحتملة", "تقييم المخاطر", "الحجز", "قرار المسؤول"]]]}, "P13": {"acc": "التخزين وفق شروط المنتج مع سجل ظروف وFEFO وفصل المواد غير المتوافقة.", "forms": [["درجات حرارة غرف التخزين", ["رمز الغرفة", "نوع المنتج", "نقطة القياس", "درجة الحرارة", "الحد المعتمد", "الجهاز", "قرار الانحراف", "اسم القارئ"]], ["متابعة الرطوبة في المخازن", ["الغرفة", "فئة المنتج", "قراءة الرطوبة", "الحد المعتمد", "المدة", "الملاحظة", "الإجراء", "التحقق"]], ["فحص ترتيب المخزون FEFO", ["المادة", "الدفعة", "تاريخ الانتهاء", "الموقع", "حالة FEFO", "تلف العبوة", "قرار التدوير", "التوقيع"]], ["مراقبة تجميد الأغذية", ["المجمد", "رمز الدفعة", "القراءة", "الحد المعتمد", "حالة إزالة الثلج", "انقطاع/إنذار", "إجراء فوري", "المراجعة"]], ["التحقق من أجهزة الإنذار", ["رقم الإنذار", "الغرفة", "نقطة الضبط", "اختبار الإنذار", "زمن الاستجابة", "النتيجة", "الإجراء", "التوقيع"]], ["فصل التخزين بحسب الحساسية", ["الموقع", "المادة", "المسبب", "قرب غذاء آخر", "وسيلة الفصل", "منع الانسكاب", "القرار", "التحقق"]], ["تقييم انقطاع سلسلة التبريد", ["الغرفة", "البدء", "الانتهاء", "أقصى قراءة", "دفعات متأثرة", "تقييم زمني حراري", "قرار الحجز", "الإفراج"]], ["جولات النظافة بالمستودع", ["المنطقة", "الأرفف", "الفواصل الأرضية", "وجود آفات", "تسربات", "مخلفات", "تصحيح", "توقيع"]]]}, "P14": {"acc": "سلامة المركبة والنظافة والتعبئة وظروف النقل وسلسلة التبريد عند الانطباق.", "forms": [["فحص مركبات النقل قبل التحميل", ["لوحة المركبة", "رقم الرحلة", "نظافة الحيز", "رائحة/آفات", "تبريد مسبق", "سلامة الأختام", "قرار السماح", "المفتش"]], ["مراقبة حرارة الرحلات", ["رقم الرحلة", "تاريخ الانطلاق", "نقطة القياس", "القراءة", "حد المنتج", "توقيت القياس", "إنذار", "إجراء السائق"]], ["وثيقة التسليم والاستلام", ["رقم الطلب", "العميل", "الدفعة", "الكمية", "وقت الشحن", "وقت التسليم", "حالة المنتج", "مستلم الشحنة"]], ["مراجعة جهاز تسجيل الحرارة", ["المركبة", "معرف المسجل", "معايرة سارية", "بدء التسجيل", "إنذارات", "الحد المعتمد", "مكان ملف البيانات", "المراجعة"]], ["حادث كسر سلسلة التبريد", ["رقم الرحلة", "وقت الانحراف", "الحد المعتمد", "أقصى قراءة", "المدة", "الدفعات المتأثرة", "الحجز", "قرار التخلص/الإفراج"]], ["تنظيف وتعقيم وسائل النقل", ["لوحة المركبة", "آخر حمولة", "نوع التنظيف", "المادة", "زمن التلامس المعتمد", "المسؤول", "التحقق", "تاريخ السماح"]], ["فحص نظافة السائقين", ["السائق", "معدات الوقاية", "حالة النظافة", "تدريب سلامة الغذاء", "أعراض مبلغة", "إجراء", "مراقب", "التاريخ"]], ["مراجعة شحن المنتجات المختلطة", ["رقم الرحلة", "المنتج الأول", "المنتج الثاني", "تقييم التوافق", "الفصل", "المسببات/الروائح", "قرار التحميل", "المراجعة"]]]}, "P15": {"acc": "عدم تراكم المخلفات أو رجوعها لمناطق الغذاء؛ فصلها والتخلص منها دون جذب الآفات.", "forms": [["تصنيف مصادر النفايات", ["نوع المخلف", "منطقة النشوء", "وعاء الحفظ", "خطر جذب الآفات", "إعادة تدوير ممكنة", "مسار الإخراج", "الجهة المسؤولة", "المراجعة"]], ["سجل إخراج النفايات", ["تاريخ ووقت", "المنطقة", "نوع النفايات", "الكمية", "طريقة القياس", "الناقل", "نقطة التجميع", "إثبات التسليم"]], ["فحص الحاويات والأغطية", ["رقم الحاوية", "موقعها", "نظافة", "غطاء سليم", "تسرب", "التصحيح", "المسؤول", "التحقق"]], ["تنظيف منطقة تجميع المخلفات", ["المنطقة", "تاريخ التنفيذ", "المنظف", "المطهر", "آثار آفات", "إعادة الفحص", "المنفذ", "اعتماد المشرف"]], ["سجل مقاول التخلص", ["المزود", "نوع النفايات", "تصريح/عقد إن لزم", "موعد النقل", "وزن مستلم", "مستند التخلص", "ملاحظات", "المراجعة"]], ["بلاغ تسرب المخلفات", ["رمز البلاغ", "الموقع", "نوع السائل/النفاية", "منتج معرض", "احتواء فوري", "التطهير", "قرار المنتج", "التحقق"]], ["متابعة فرز النفايات", ["المنطقة", "نوع المخلف", "وعاء مخصص", "فصل صحيح", "كمية تقريبية", "التوعية", "تصحيح", "التحقق"]], ["مؤشرات المخلفات والتحسين", ["الفترة", "إجمالي المخلفات", "وحدة القياس", "مخلفات غذائية", "نسبة الفاقد", "سبب رئيسي", "مشروع تحسين", "المسؤول"]]]}, "P16": {"acc": "الكيماويات محددة ومعنونة ومخزنة منفصلة؛ الاستخدام وفق تعليمات المادة وتدريب المستخدم.", "forms": [["سجل حصر الكيماويات", ["رمز المادة", "اسم المادة", "الغرض", "التصنيف الخطري", "المورد", "مكان التخزين", "SDS متاح", "صلاحية الاستخدام"]], ["مراجعة بطاقات ونشرات SDS", ["اسم المادة", "إصدار SDS", "تاريخ المراجعة", "اللغة المناسبة", "تعليمات تخزين", "تعليمات إسعاف", "القائم بالمراجعة", "ملاحظة"]], ["سجل تحضير التخفيفات", ["المنظف/المطهر", "دفعة المادة", "التركيز المطلوب", "كمية الأصل", "حجم المحلول", "القياس المحقق", "المستخدم", "الانتهاء"]], ["فحص خزانات المواد الكيميائية", ["موقع التخزين", "العبوة", "تسمية واضحة", "فصل عن الغذاء", "تهوية/احتواء", "صلاحية", "تصحيح", "التحقق"]], ["سجل صرف واستهلاك الكيماويات", ["رقم المادة", "كمية الصرف", "الوحدة", "المستخدم", "القسم", "غرض الاستخدام", "الرصيد التقديري", "اعتماد الصرف"]], ["بلاغ انسكاب كيميائي", ["موقع الحادث", "اسم المادة", "الكمية", "خطر التعرض للغذاء", "طريقة الاحتواء", "مستلزمات PPE", "قرار المنتج", "إغلاق الحادث"]], ["موافقة استخدام مادة جديدة", ["اسم المادة", "الاستخدام", "تقييم مخاطر", "توافق السطح", "تعليمات الشطف", "SDS", "تجربة تحقق", "قرار الاعتماد"]], ["مراقبة نقاط توزيع الكيماويات", ["نقطة التوزيع", "نوع المادة", "منع التوصيل العكسي", "وسيلة التمييز", "فحص الصمام", "نتيجة التركيز", "إجراء", "التحقق"]]]}, "P17": {"acc": "تحديد مسببات الحساسية في المواد والمنتجات؛ الفصل والتحكم في إعادة العمل والملصق والتحقق من التنظيف.", "forms": [["مصفوفة مسببات الحساسية للمنتجات", ["المنتج", "رمز الصنف", "المكونات الحساسة", "مسببات محتملة عرضية", "مورد حساس", "خط الإنتاج", "البيان المطبوع", "الاعتماد"]], ["مسببات الحساسية بالمواد الخام", ["المادة", "المورد", "وثيقة التركيب", "المسبب المؤكد", "التلوث العرضي المبلغ", "تقييم المورد", "تحديث الوثيقة", "المراجعة"]], ["تغيير خط بين منتجات حساسة", ["الخط", "المنتج السابق", "المنتج التالي", "مسبب الحساسية", "وسيلة الفصل", "إجراء التنظيف", "اختبار التحقق", "قرار بدء التشغيل"]], ["مراجعة مطابقة الملصق", ["المنتج", "نسخة بطاقة البيان", "المكونات", "مسببات الحساسية", "مطابقة العبوة", "اعتماد قانوني", "الدفعة", "توقيع المدقق"]], ["التحكم في إعادة التشغيل Rework", ["رمز منتج الراجع", "سبب الإرجاع", "المكونات الحساسة", "المنتج المستهدف", "تقييم التوافق", "كمية الإضافة", "الدفعة", "قرار الاستخدام"]], ["اختبار تنظيف مسببات الحساسية", ["رقم المسحة", "السطح", "المسبب المختبر", "طريقة الاختبار", "الحد المعتمد", "النتيجة", "إعادة تنظيف", "قرار الإفراج"]], ["التحقق من أدوات الفصل اللوني", ["الأداة", "اللون", "المنتج/المسبب", "مكان التخزين", "توافق الاستخدام", "حالة التنظيف", "ملاحظة", "التحقق"]], ["إدارة تغيير وصفة وحساسية", ["رقم التغيير", "منتج", "مكون جديد", "مسبب جديد", "مراجعة المورد", "تعديل البيان", "تدريب العاملين", "إطلاق النسخة"]]]}, "P18": {"acc": "ضبط الزجاج والبلاستيك الصلب والأدوات والأجزاء المعدنية مع التفتيش عند الكسر أو الاشتباه.", "forms": [["سجل الزجاج والبلاستيك الهش", ["رقم العنصر", "المادة", "الموقع", "العدد", "الحماية", "دورية الفحص", "نتيجة الفحص", "إجراء الصيانة"]], ["فحص الأدوات القابلة للكسر", ["الخط", "اسم الأداة", "العدد قبل", "العدد بعد", "تلف/كسر", "حصر شظايا", "قرار الحجز", "التحقق"]], ["حادث كسر جسم هش", ["موقع الكسر", "تاريخ ووقت", "نوع المادة", "نطاق العزل", "دفعات محتملة", "طريقة جمع الشظايا", "فحص إعادة التشغيل", "قرار الإطلاق"]], ["اختبار كاشف المعادن", ["الجهاز", "المنتج", "معيار الاختبار المعتمد", "حالات Fe/NonFe/SS", "نتيجة النجاح", "الرفض الآلي", "الإجراء", "المصرح بالتشغيل"]], ["تأكيد كفاءة فحص الأشعة X-Ray", ["الجهاز", "المنتج", "جسم الاختبار", "حساسية معتمدة", "نتيجة الفحص", "آلية الرفض", "الانحراف", "القرار"]], ["فحص الغرابيل والمناخل", ["رقم المنخل", "مقاس الفتحة", "سلامة الشبكة", "تاريخ التنظيف", "مواد محجوزة", "تلف", "الإجراء", "توقيع التحقق"]], ["جرد السكاكين والشفرات", ["رقم الشفرة", "المعدة", "العدد المصروف", "العدد المعاد", "حالة الشفرة", "فقد جزء", "حجز المنتج", "التحقق"]], ["مراجعة المغناطيس والفلاتر", ["رمز الفلتر/المغناطيس", "الموقع", "القوة/الخاصية المعتمدة", "نتيجة الاختبار", "جسم محجوز", "الصيانة", "إجراء", "نتيجة التحقق"]]]}, "P19": {"acc": "تدفقات أفراد ومواد مناسبة؛ فصل الخام والجاهز للأكل ومنع انتقال الملوثات.", "forms": [["فصل الخام والجاهز للأكل", ["الموقع", "المادة الخام", "المنتج الجاهز", "الفاصل المكاني/الزمني", "المعدات المشتركة", "نقطة تعرض", "التصحيح", "المراجعة"]], ["خريطة مسارات العاملين والمواد", ["نقطة البداية", "نقطة النهاية", "فئة الحركة", "تقاطع مع منطقة نظيفة", "وسيلة التحكم", "مراجعة التدفق", "الإجراء", "الاعتماد"]], ["رقابة أدوات الفصل اللوني", ["رقم الأداة", "اللون", "المنطقة المعتمدة", "المنطقة الفعلية", "حالة النظافة", "سوء استخدام", "الإجراء", "التحقق"]], ["تغيير ملابس المناطق الصحية", ["رقم الموظف", "المنطقة السابقة", "المنطقة التالية", "تغيير الزي", "غسل الأيدي", "دخول مصرح", "ملاحظة", "المشرف"]], ["فحص تماس الغذاء مع المعدات", ["خط الإنتاج", "المعدة", "تقييم سطح تلامس", "تلف السطح", "بقايا مسببة للحساسية", "التحقق", "الإجراء", "إطلاق الخط"]], ["التحقق من بيئة تصنيع الجاهز", ["المنطقة", "موقع العينة", "نوع المراقبة", "النتيجة", "الحد المقبول", "اتجاه النتائج", "الإجراء", "التحقق"]], ["سجل منع التلوث أثناء الصيانة", ["رقم أمر العمل", "مكان الإصلاح", "المنتجات المكشوفة", "الستائر/الحواجز", "الأدوات", "تنظيف ما بعد العمل", "التحقق", "قرار استئناف"]], ["مراجعة استلام وتداول إعادة التشغيل", ["الصنف الراجع", "مصدره", "نظافته", "اختلاف المسببات", "العمر المتبقي", "الملاءمة", "قرار الاستخدام", "توقيع الجودة"]]]}, "P20": {"acc": "إمكانية تتبع الدفعات إلى الموردين والعملاء وموازنة الكميات، ووجود فريق وخطة اختبار استدعاء.", "forms": [["سجل ترميز دفعات الإنتاج", ["رقم الدفعة", "اسم المنتج", "تاريخ الإنتاج", "الكمية المنتجة", "الوحدة", "موقع التشغيل", "أمر التصنيع", "مسؤول الترميز"]], ["ربط الدفعات بالمواد الخام", ["دفعة المنتج النهائي", "المادة الخام", "دفعة المورد", "كمية الاستهلاك", "الوحدة", "المورد", "السجل المرجعي", "المراجعة"]], ["حركة توزيع الدفعات", ["الدفعة النهائية", "العميل", "رقم الفاتورة", "تاريخ التوزيع", "الكمية المشحونة", "الوحدة", "وسيلة النقل", "تأكيد الاستلام"]], ["اختبار تتبع خطوة للخلف", ["رقم الاختبار", "الدفعة المختبرة", "الموردون المحددون", "دفعات المواد المحددة", "وقت البدء", "وقت الانتهاء", "نواقص الربط", "قرار الاختبار"]], ["اختبار تتبع خطوة للأمام", ["الدفعة المختبرة", "عدد العملاء", "عملاء حُددوا", "كمية شحنت", "الكمية محددة الموقع", "مدة التتبع", "الفجوات", "قرار التحقق"]], ["موازنة كميات الاستدعاء الوهمي", ["رقم الاختبار", "دفعة المنتج", "كمية منتجة", "كمية بالمخزن", "كمية لدى العملاء", "كمية تالفة/مرتجعة", "فرق الموازنة", "نسبة التحديد"]], ["اتصالات فريق الاستدعاء", ["رقم الاختبار", "الجهة", "نوع الاتصال", "وقت الإرسال", "المستجيب", "الكمية لديه", "تأكيد الاستلام", "الملاحظات"]], ["تقرير تمرين استدعاء وهمي", ["رقم التمرين", "سيناريو الخطر", "الدفعة", "مدة التنفيذ", "نسبة تحديد الموقع", "الفجوات", "الإجراءات المطلوبة", "اعتماد التقرير"]]]}, "P21": {"acc": "تقييم هشاشة المواد ومصدرها وتدابير مكافحة الاستبدال أو الغش الاقتصادي المؤثر على السلامة.", "forms": [["تقييم قابلية الغش الغذائي", ["المادة", "المصدر", "الحافز الاقتصادي", "سهولة الاستبدال", "صعوبة الكشف", "سجل الحوادث", "درجة القابلية", "قرار التحكم"]], ["مراقبة المواد عالية التعرض", ["المادة", "المورد", "نوع الغش المحتمل", "أداة الفحص", "نتيجة التحقق", "شهادة الأصالة", "تكرار الاختبار", "المراجعة"]], ["التحقق من أصالة المورد", ["المورد", "اسم الشركة المسجل", "الموقع", "المستند", "تاريخ التحقق", "نتيجة الفحص", "مؤشر تلاعب", "قرار الاعتماد"]], ["فحص ادعاءات ووسم المنشأ", ["المنتج", "الادعاء", "بيانات المصدر", "شهادة داعمة", "التتبع", "تضارب", "الإجراء", "الاعتماد"]], ["تحليل نتائج مختبر مكافحة الغش", ["العينة", "المنتج", "الاختبار", "مرجع الطريقة", "النتيجة", "معيار القرار", "الإجراء", "نتيجة التحقيق"]], ["بلاغ شبهة مادة مغشوشة", ["الدفعة", "المادة", "العلامات", "العينة المحتفظة", "قرار الحجز", "التحقيق", "التبليغ المعتمد", "القرار النهائي"]], ["خطة تخفيف مخاطر الغش", ["المادة", "التهديد", "مستوى الخطر", "ضابط المورد", "اختبار مختبر", "تكرار مراجعة", "مسؤول", "فاعلية"]], ["مراجعة حوادث السوق والتنبيهات", ["مصدر التنبيه", "تاريخ النشر", "المادة/المنتج", "درجة الصلة", "الموردون المعنيون", "الإجراء", "حالة المتابعة", "المراجعة"]]]}, "P22": {"acc": "تحديد التهديدات المتعمدة والتحكم في الوصول للمناطق الحساسة والمواد والخزانات.", "forms": [["تحليل تهديدات الدفاع الغذائي", ["المنطقة", "العملية", "نقطة الوصول", "دافع/فرصة العبث", "شدة الأثر", "قابلية الوصول", "مستوى التهديد", "التخفيف"]], ["سجل تصاريح دخول المناطق الحساسة", ["الاسم/الرقم", "الجهة", "المنطقة", "سبب الدخول", "التصريح", "وقت الدخول", "وقت الخروج", "المرافق"]], ["مراقبة أختام وحواجز العبث", ["الموقع/الشحنة", "رقم الختم", "تاريخ التركيب", "سلامة الختم", "مؤشرات تغيير", "قرار الحجز", "الإجراء", "التحقق"]], ["جولات نقاط الضعف الأمنية", ["الموقع", "الأبواب", "المراقبة", "حماية المواد", "حالة الخزانات", "سلوك غير معتاد", "التصحيح", "توقيع المراقب"]], ["بلاغ العبث المتعمد", ["رقم البلاغ", "نوع الشبهة", "مكان الحادث", "وقت الاكتشاف", "دفعات متأثرة", "قرار عزل", "جهة التصعيد", "قرار التحقيق"]], ["فحص زوار ومقاولي المناطق الحرجة", ["الزائر/المقاول", "هوية وتفويض", "الغرض", "الأدوات المصاحبة", "التوجيه", "المرافق", "فحص الخروج", "الملاحظة"]], ["مراجعة كاميرات ومفاتيح الوصول", ["النقطة", "نوع النظام", "صلاحية الوصول", "آخر اختبار", "مدة حفظ التسجيل المعتمدة", "تعطل", "الإجراء", "المسؤول"]], ["اختبار محاكاة حادث دفاع غذائي", ["السيناريو", "وقت بدء البلاغ", "مسؤول الاستجابة", "مناطق تم عزلها", "أدلة محفوظة", "القرار", "دروس مستفادة", "اعتماد التقرير"]]]}};
+const EIB_RESULT = ["مطابق", "غير مطابق", "لا ينطبق", "قيد التحقق"];
+function eibColType(l){ return /تاريخ/.test(l) && !/وقت/.test(l) ? "date" : /^(عدد|زمن|درجة|نسبة|الكمية|كمية|القراءة|قراءة)/.test(l) ? "number" : /توقيع/.test(l) ? "signature" : "text"; }
+function eibForms(p){
+  const d = EIB_PRP_FORMS[p.id]; if (!d) return null;
+  return d.forms.map(([title, cols], i) => {
+    const code = (p.code || p.id.replace("P", "PRP-")) + "-F" + String(i + 1).padStart(2, "0");
+    const seen = {};
+    return { code, eib:p.id + "-F" + String(i + 1).padStart(2, "0"), proc:p.id, titleAr:title, titleEn:"", freq:"", status:"Active", updated:"", layoutType:"eib_log",
+      config:{ version:"01", dateLabel:"تاريخ التنفيذ", rows:30, purpose:title, acceptance:d.acc, note:EIB_NOTE,
+        columns:[ ...cols.map((l, ci) => { const base = l === "النتيجة" ? "نتيجة الفحص" : l, lab = seen[base] ? base + " (" + (++seen[base]) + ")" : (seen[base] = 1, base); return { id:"c" + (ci + 1), label:lab, type:eibColType(l), required:ci === 0 }; }),
+          { id:"evidence", label:"مرجع الدليل", type:"text", required:false },
+          { id:"result", label:"النتيجة", type:"select", options:EIB_RESULT.slice(), required:true },
+          { id:"capa", label:"رقم CAPA", type:"text", required:false } ] } };
+  });
+}
+/* (قديم) نماذج إضافية لمكافحة الآفات — استُبدلت بنماذج EIB؛ تبقى للبرامج التي لا تملك نماذج EIB فقط */
+const HACCP_EXTRA_FORMS = { P01:[
+  { code:"PRP-01-F03", proc:"P01", titleAr:"قائمة فحص مكافحة الآفات", titleEn:"Pest Control Checklist", freq:"يومي أو أسبوعي", status:"Active", updated:"", layoutType:"audit_sections",
+    config:{ scale:"compliance", dateLabel:"تاريخ التفتيش", metaFields:["اسم المفتش", "القسم المفحوص"],
+      notesLabel:"الملاحظات والإجراء المطلوب (أي بند «غير مطابق» يُنقل فوراً إلى نموذج عدم المطابقة F02)",
+      sections:[{ title:"العزل والحماية المنعية (Pest Proofing)", criteria:[
+        "إحكام إغلاق الأبواب والنوافذ والستائر الهوائية (Air Curtains)", "نظافة وتغطية فتحات الصرف الصحي (Drains)", "خلو مناطق القمامة والمخلفات من تجمعات الآفات",
+        "سلامة الستائر البلاستيكية وشبك حماية النوافذ", "خلو خطوط الإنتاج والمخازن من بؤر التناسل أو الاختباء" ] }] } },
+  { code:"PRP-01-F04", proc:"P01", titleAr:"سجل استلام واستخدام المبيدات والكيماويات", titleEn:"Chemical Inventory & Usage Log", freq:"عند كل استلام أو استخدام / رش", status:"Active", updated:"", layoutType:"report_entry",
+    config:{ dateLabel:"تاريخ الحركة", hasTime:false, hasSignature:false, blankRows:10, fields:[
+      { id:"move", label:"نوع الحركة", type:"select", options:["استلام للمخزن", "استخدام / رش"], required:true },
+      { id:"trade", label:"الاسم التجاري للمبيد", type:"text", required:true }, { id:"active", label:"المادة الفعالة", type:"text", required:true },
+      { id:"batch", label:"رقم التشغيلة (Batch No)", type:"text", required:false }, { id:"expiry", label:"تاريخ الانتهاء", type:"date", required:false },
+      { id:"qtyIn", label:"الكمية الموردة", type:"number", required:false }, { id:"supplier", label:"اسم المورد", type:"text", required:false },
+      { id:"sprayDate", label:"تاريخ الرش", type:"date", required:false }, { id:"qtyOut", label:"الكمية المسحوبة", type:"number", required:false },
+      { id:"dilution", label:"طريقة التخفيف / التركيز", type:"text", required:false }, { id:"area", label:"المنطقة المستهدفة بالرش", type:"text", required:false },
+      { id:"tech", label:"اسم الفني المنفذ", type:"text", required:false }, { id:"phi", label:"تاريخ انتهاء فترة الأمان (Safety Interval / PHI)", type:"date", required:false } ] } },
+  { code:"PRP-01-F05", proc:"P01", titleAr:"بطاقة المتابعة الميدانية على المصيدة", titleEn:"Pest Trap Service Tag / Label", freq:"عند كل زيارة (أسبوعي / شهري)", status:"Active", updated:"", layoutType:"tag_card",
+    config:{ dateLabel:"تاريخ الزيارة", rows:12, fixedFields:["رقم المصيدة", "نوع المصيدة", "المنطقة"], columns:[
+      { id:"state", label:"حالة المصيدة / الطعم", type:"select", options:["سليم", "تم التغيير"], required:true },
+      { id:"initials", label:"الأحرف الأولى لتوقيع الفني", type:"text", required:true } ] } },
+  { code:"PRP-01-F06", proc:"P01", titleAr:"تقرير زيارة شركة مكافحة الآفات الخارجية", titleEn:"External Pest Control Service Report", freq:"بعد كل زيارة دورية (أسبوعي / شهري)", status:"Active", updated:"", layoutType:"simple",
+    config:{ dateLabel:"تاريخ الزيارة", fields:[
+      { id:"company", label:"اسم شركة المكافحة", type:"text", required:true }, { id:"tech", label:"اسم الفني المسؤول", type:"text", required:true },
+      { id:"time", label:"وقت الزيارة", type:"time", required:true },
+      { id:"traps", label:"صيانة المصائد", type:"select", options:["تم", "لم يتم", "لا ينطبق"], required:true },
+      { id:"inspect", label:"التفتيش الداخلي والخارجي", type:"select", options:["تم", "لم يتم", "لا ينطبق"], required:true },
+      { id:"chem", label:"الكيماويات المستخدمة (إن وجدت)", type:"textarea", required:false },
+      { id:"recs", label:"التوصيات الهندسية والتشغيلية للمنشأة", type:"textarea", required:false },
+      { id:"extSign", label:"توقيع فني الشركة الخارجية", type:"signature", required:true }, { id:"qaSign", label:"توقيع مدير الجودة / المسؤول بالمنشأة", type:"signature", required:true } ] } },
+  { code:"PRP-01-F07", proc:"P01", titleAr:"خطة ورسم مواقع المصائد", titleEn:"Pest Control Map / Layout", freq:"ثابت — يُحدّث سنوياً أو عند تعديل موقع مصيدة", status:"Active", updated:"", layoutType:"site_map",
+    config:{ image:"", legend:[
+      { shape:"triangle", color:"#E11D48", label:"طعم قوارض خارجي" }, { shape:"circle", color:"#0E86B4", label:"مصيدة ضوئية داخلية (حشرات طائرة)" },
+      { shape:"square", color:"#0FA968", label:"مصيدة ميكانيكية / لاصقة داخلية للقوارض" }, { shape:"diamond", color:"#C58B00", label:"مصيدة حشرات زاحفة" } ] } },
+  { code:"PRP-01-F08", proc:"P01", titleAr:"سجل تحليل اتجاهات الآفات", titleEn:"Pest Trend Analysis Report", freq:"شهري / ربع سنوي / سنوي", status:"Active", updated:"", layoutType:"trend_report",
+    config:{ periods:["شهري", "ربع سنوي", "سنوي"], areas:["منطقة الإنتاج", "المخازن", "منطقة الاستلام والتحميل", "المحيط الخارجي"], pests:["ذباب", "صراصير", "قوارض"] } },
+] };
+const HACCP_SEED_VERSION = 4;
+function haccpDefaultForms(lib){
+  return lib.flatMap(p => eibForms(p) || [
+    { code:p.code + "-F01", proc:p.id, titleAr:"بطاقة التحقق — " + p.record, titleEn:"PRP verification checklist", freq:"حسب خطة البرنامج", status:"Active", updated:"", layoutType:"audit_sections",
+      config:{ metaFields:["الموقع / القسم", "الدفعة أو المرجع"], sections:[
+        { title:"بنود خاصة بالبرنامج", criteria:(p.checks || []).slice() },
+        { title:"بنود عامة لكل PRPs", criteria:PRP_GENERIC.map(q => q[0]) } ] } },
+    { code:p.code + "-F02", proc:p.id, titleAr:"عدم المطابقة والتصحيح", titleEn:"Nonconformity & correction", freq:"عند الحدوث", status:"Active", updated:"", layoutType:"report_entry",
+      config:{ hasTime:false, hasSignature:true, blankRows:6, fields:[
+        { id:"location", label:"الموقع / القسم", type:"text", required:false }, { id:"deviation", label:"وصف عدم المطابقة", type:"text", required:true },
+        { id:"ref", label:"الدفعة / المواد المتأثرة", type:"text", required:false }, { id:"correction", label:"التصحيح الفوري وحماية المنتج", type:"text", required:false },
+        { id:"rootCause", label:"السبب الجذري", type:"text", required:false }, { id:"corrective", label:"الإجراء التصحيحي", type:"text", required:false },
+        { id:"disposition", label:"التصرف في المنتج", type:"select", options:["لا يوجد منتج متأثر","حجز","إعادة معالجة","إتلاف","إفراج بعد تقييم"], required:false },
+        { id:"effective", label:"التحقق من الفاعلية", type:"check", required:false }, { id:"status", label:"الحالة", type:"select", options:["مفتوح","مغلق"], required:true } ] } },
+  ]);
+}
+function haccpLoad(){
+  let db = null;
+  try { db = JSON.parse(localStorage.getItem(HACCP_KEY) || "null"); } catch (e) { db = null; }
+  if (!db || !Array.isArray(db.procedures) || !Array.isArray(db.forms)){
+    const procedures = JSON.parse(JSON.stringify(PRP_DEFAULT)).map(p => ({ ...p, status:"Active", updated:"" }));
+    return { version:2, seed:HACCP_SEED_VERSION, procedures, forms:haccpDefaultForms(procedures) };
+  }
+  // ترحيل من الإصدار السابق (حقول مباشرة بدون layoutType) إلى بنية استوديو النماذج
+  if (db.forms.some(f => !f.layoutType)){
+    const defs = haccpDefaultForms(db.procedures);
+    db.forms = db.forms.map(f => {
+      if (f.layoutType) return f;
+      const d = defs.find(x => x.code === f.code); if (d && !f.updated) return { ...d, status:f.status || d.status };
+      return { code:f.code, proc:f.proc, titleAr:f.titleAr, titleEn:f.titleEn || "", freq:f.freq || "", status:f.status || "Draft", updated:f.updated || "", layoutType:"report_entry",
+        config:{ hasTime:false, hasSignature:false, blankRows:6, fields:(f.fields || []).map(x => ({ id:x.k, label:x.label, type:({ passfail:"check", sign:"signature" }[x.type] || x.type), required:!!x.req, ...(x.options ? { options:x.options } : {}), ...(x.unit ? { unit:x.unit } : {}) })) } };
+    });
+    db.version = 2; try { localStorage.setItem(HACCP_KEY, JSON.stringify(db)); } catch (e) {}
+  }
+  // إضافة النماذج القياسية الجديدة مرة واحدة (لا تُعاد لو حذفها الأدمن)
+  // الإصدار 4: استبدال كل نماذج PRPs بنماذج EIB المعتمدة (8 لكل برنامج). البرامج المضافة يدوياً تحتفظ بنماذجها.
+  if ((db.seed || 0) < 4){
+    const eibProcs = db.procedures.filter(p => EIB_PRP_FORMS[p.id]);
+    db.forms = [...db.forms.filter(f => !EIB_PRP_FORMS[f.proc]), ...eibProcs.flatMap(p => eibForms(p))];
+    db.seed = HACCP_SEED_VERSION; try { localStorage.setItem(HACCP_KEY, JSON.stringify(db)); } catch (e) {}
+  }
+  return db;
+}
+function haccpSave(db){ try { localStorage.setItem(HACCP_KEY, JSON.stringify(db)); return true; } catch (e) { return false; } }
+
+/* ═══ جداول ISO 22000 (منفصلة عن الهاسب): localStorage["safora.iso.forms.v1"] = [نماذج بنفس بنية الاستوديو + proc] ═══ */
+const ISO_STORE_KEY = "safora.iso.forms.v1";
+const ISO_PROCEDURES = [{"code":"P-01","title":"استلام المواد الخام"},{"code":"P-02","title":"التخزين والمناولة"},{"code":"P-03","title":"مراقبة درجات الحرارة"},{"code":"P-04","title":"تحديد نقاط التحكم الحرجة"},{"code":"P-05","title":"معايرة الأجهزة"},{"code":"P-06","title":"تتبع المنتج"},{"code":"P-07","title":"سحب واسترجاع المنتج"},{"code":"P-08","title":"إدارة الموردين"},{"code":"P-09","title":"التدريب والتأهيل"},{"code":"P-10","title":"الصيانة الوقائية"},{"code":"P-11","title":"مكافحة مسببات الحساسية"},{"code":"P-12","title":"إدارة شكاوى العملاء"},{"code":"P-13","title":"مراقبة التغليف"},{"code":"P-14","title":"النقل والتوزيع"},{"code":"P-15","title":"إدارة حالات الطوارئ"},{"code":"P-16","title":"التحقق من نظام الهاسب"},{"code":"P-17","title":"مراجعة الإدارة"},{"code":"P-18","title":"الرقابة على مياه التصنيع"},{"code":"P-19","title":"النظافة ومكافحة الآفات"},{"code":"P-20","title":"إدارة المخلفات الصناعية"},{"code":"P-21","title":"التحكم في الأجسام الغريبة"},{"code":"P-22","title":"اعتماد الموردين الجدد"},{"code":"P-23","title":"مراقبة الوزن والقياس"},{"code":"P-24","title":"اختبار المنتج النهائي"},{"code":"P-25","title":"إدارة الوثائق والسجلات"},{"code":"P-26","title":"تقييم المخاطر"},{"code":"P-27","title":"خطة الاستدعاء والسحب"},{"code":"P-28","title":"التدقيق الداخلي"}];
+const ISO_SEED = [{"code":"P-01-F01","proc":"P-01","titleAr":"سجل استلام المواد الخام","titleEn":"Raw material receiving log","freq":"كل شحنة","status":"Active","updated":"2026-08-30","layoutType":"report_entry","config":{"hasTime":false,"hasSignature":false,"blankRows":8,"fields":[{"id":"date","label":"تاريخ الاستلام","type":"date","required":true},{"id":"time","label":"الوقت","type":"time","required":false},{"id":"supplier","label":"المورد","type":"text","required":true},{"id":"material","label":"المادة / المنتج","type":"text","required":true},{"id":"batch","label":"رقم التشغيلة (Lot)","type":"text","required":true},{"id":"qty","label":"الكمية","type":"number","required":true},{"id":"temp","label":"درجة الحرارة عند الاستلام","type":"number","required":false,"unit":"°C"},{"id":"pack","label":"سلامة التغليف والملصق","type":"check","required":true},{"id":"expiry","label":"تاريخ انتهاء المادة","type":"date","required":false},{"id":"decision","label":"القرار","type":"select","required":true,"options":["مقبول","مقبول بشرط","مرفوض"]},{"id":"receiver","label":"المستلم","type":"signature","required":true}]}},{"code":"P-03-F01","proc":"P-03","titleAr":"سجل درجات الحرارة اليومي","titleEn":"Daily temperature log","freq":"كل وردية","status":"Active","updated":"2026-08-30","layoutType":"report_entry","config":{"hasTime":false,"hasSignature":false,"blankRows":8,"fields":[{"id":"date","label":"التاريخ","type":"date","required":true},{"id":"shift","label":"الوردية","type":"select","required":true,"options":["صباحية","مسائية","ليلية"]},{"id":"time","label":"وقت القراءة","type":"time","required":true},{"id":"unit","label":"الجهاز / الموقع","type":"text","required":true},{"id":"reading","label":"القراءة","type":"number","required":true,"unit":"°C"},{"id":"ok","label":"ضمن الحد المعتمد","type":"check","required":true},{"id":"action","label":"الإجراء عند الخروج عن الحد","type":"textarea","required":false},{"id":"by","label":"المسجِّل","type":"signature","required":true}]}},{"code":"P-04-F01","proc":"P-04","titleAr":"سجل مراقبة نقطة التحكم الحرجة (CCP)","titleEn":"CCP monitoring record","freq":"حسب خطة الهاسب","status":"Active","updated":"2026-08-30","layoutType":"report_entry","config":{"hasTime":false,"hasSignature":false,"blankRows":8,"fields":[{"id":"date","label":"التاريخ","type":"date","required":true},{"id":"time","label":"الوقت","type":"time","required":true},{"id":"ccp","label":"رمز النقطة (مثل CCP-01)","type":"text","required":true},{"id":"batch","label":"رقم التشغيلة","type":"text","required":false},{"id":"value","label":"القيمة المقاسة","type":"number","required":true},{"id":"unitv","label":"الوحدة","type":"select","required":true,"options":["°C","pH","ث","د","aw","ppm"]},{"id":"ok","label":"ضمن الحد الحرج","type":"check","required":true},{"id":"action","label":"الإجراء التصحيحي","type":"textarea","required":false},{"id":"by","label":"المراقِب","type":"signature","required":true},{"id":"verifier","label":"المراجِع","type":"signature","required":false}]}},{"code":"P-05-F01","proc":"P-05","titleAr":"سجل معايرة الأجهزة","titleEn":"Instrument calibration record","freq":"حسب الجدول","status":"Active","updated":"2026-08-30","layoutType":"report_entry","config":{"hasTime":false,"hasSignature":false,"blankRows":8,"fields":[{"id":"date","label":"تاريخ المعايرة","type":"date","required":true},{"id":"device","label":"رقم الجهاز / الوصف","type":"text","required":true},{"id":"ref","label":"القيمة المرجعية","type":"number","required":true},{"id":"reading","label":"قراءة الجهاز","type":"number","required":true},{"id":"ok","label":"النتيجة ضمن السماح","type":"check","required":true},{"id":"next","label":"موعد المعايرة القادمة","type":"date","required":false},{"id":"by","label":"القائم بالمعايرة","type":"signature","required":true}]}},{"code":"P-09-F01","proc":"P-09","titleAr":"سجل حضور التدريب","titleEn":"Training attendance record","freq":"لكل جلسة","status":"Active","updated":"2026-08-30","layoutType":"report_entry","config":{"hasTime":false,"hasSignature":false,"blankRows":8,"fields":[{"id":"date","label":"التاريخ","type":"date","required":true},{"id":"topic","label":"موضوع التدريب","type":"text","required":true},{"id":"trainer","label":"المدرب","type":"text","required":true},{"id":"count","label":"عدد الحضور","type":"number","required":true},{"id":"names","label":"أسماء الحضور","type":"textarea","required":false},{"id":"ok","label":"تقييم الفاعلية مقبول","type":"check","required":false}]}},{"code":"P-12-F01","proc":"P-12","titleAr":"سجل شكاوى العملاء","titleEn":"Customer complaints log","freq":"عند الحدوث","status":"Active","updated":"2026-08-30","layoutType":"report_entry","config":{"hasTime":false,"hasSignature":false,"blankRows":8,"fields":[{"id":"date","label":"تاريخ الشكوى","type":"date","required":true},{"id":"customer","label":"اسم العميل / الجهة","type":"text","required":true},{"id":"product","label":"المنتج","type":"text","required":true},{"id":"batch","label":"رقم التشغيلة","type":"text","required":false},{"id":"type","label":"نوع الشكوى","type":"select","required":true,"options":["جسم غريب","طعم/رائحة","تغليف","حساسية","صحية/مرض","أخرى"]},{"id":"desc","label":"وصف الشكوى","type":"textarea","required":true},{"id":"action","label":"الإجراء المتخذ","type":"textarea","required":false}]}},{"code":"P-19-F01","titleAr":"تنظيف وإدارة المخلفات","titleEn":"Cleaning & waste management records","status":"Active","updated":"2026-08-20","layoutType":"dated_grid","config":{"frequency":"يومي","rowCount":31,"multiSection":false,"sections":[],"metaFields":["اسم الخط","اليوم","التاريخ","الصفحة"],"columns":[{"id":"c1","label":"اسم المعدة/الماكينة","type":"text"},{"id":"c2","label":"طريقة التنظيف","type":"text"},{"id":"c3","label":"وقت التنظيف","type":"text"},{"id":"c4","label":"كفاءة التنظيف","type":"check"},{"id":"c5","label":"ملاحظات","type":"text"}]},"proc":"P-19","freq":"يومي"},{"code":"P-19-F02","titleAr":"تفقد النظافة العامة ومكافحة الحشرات والقوارض","titleEn":"General cleaning, sanitation, pest & rodent checklist","status":"Active","updated":"2026-08-18","layoutType":"dated_grid","config":{"frequency":"شهري","rowCount":31,"multiSection":false,"sections":[],"metaFields":["التاريخ"],"columns":[{"id":"c1","label":"الأبواب","type":"check"},{"id":"c2","label":"الأرض والجدران","type":"check"},{"id":"c3","label":"الماكينات","type":"check"},{"id":"c4","label":"الشبابيك والمناخل","type":"check"},{"id":"c5","label":"سلة المهملات","type":"check"},{"id":"c6","label":"خلو من الحشرات","type":"check"},{"id":"c7","label":"مصايد الحشرات","type":"check"},{"id":"c8","label":"مصائد القوارض","type":"check"}]},"proc":"P-19","freq":"شهري"},{"code":"P-19-F03","titleAr":"خطة مكافحة الحشرات","titleEn":"Pest control plan","status":"Active","updated":"2026-08-12","layoutType":"reference_table","config":{"columns":["نوع الحشرة","المادة المستخدمة","التركيز","طريقة الاستخدام","معدل التغيير","القائم بالأمر"],"rows":[["طائرة (ذباب، ناموس)","","","","",""],["زاحفة (صراصير، نمل)","","","","",""],["قوارض (فئران)","","","","",""],["أخرى","","","","",""]]},"proc":"P-19","freq":""},{"code":"P-19-F04","titleAr":"بلاغ عن وجود إصابة بالآفات","titleEn":"Pest infestation report","status":"Active","updated":"2026-08-25","layoutType":"report_entry","config":{"fields":[{"id":"f1","label":"العدد التقريبي","type":"number","required":true},{"id":"f2","label":"توقيت رؤيتها","type":"text","required":true},{"id":"f3","label":"الآفة","type":"select","required":true,"options":["قوارض","حشرات زاحفة","حشرات طائرة","طيور","أخرى"]},{"id":"f4","label":"الموقع","type":"text","required":true}],"blankRows":8,"hasSignature":true,"hasTime":true},"proc":"P-19","freq":"عند الحدوث"},{"code":"P-19-F05","titleAr":"سجل أسبوعي لنشاط الآفات","titleEn":"Weekly pest activity log","status":"Active","updated":"2026-08-24","layoutType":"dated_grid","config":{"frequency":"أسبوعي","rowCount":31,"multiSection":false,"sections":[],"metaFields":["المحطات"],"columns":[{"id":"c1","label":"المصائد","type":"check"},{"id":"c2","label":"حشرات طائرة","type":"check"},{"id":"c3","label":"حشرات زاحفة","type":"check"},{"id":"c4","label":"قوارض أو آثارها","type":"check"},{"id":"c5","label":"طيور","type":"check"},{"id":"c6","label":"القائم بالعمل","type":"signature"},{"id":"c7","label":"ملاحظات","type":"text"}]},"proc":"P-19","freq":"أسبوعي"},{"code":"P-19-F06","titleAr":"سجل شهري لنشاط الآفات","titleEn":"Monthly pest activity log","status":"Active","updated":"2026-08-01","layoutType":"dated_grid","config":{"frequency":"شهري","rowCount":9,"multiSection":false,"sections":[],"metaFields":["المحطات"],"columns":[{"id":"c1","label":"الجهة المبلغة","type":"text"},{"id":"c2","label":"إجمالي","type":"number"}]},"proc":"P-19","freq":"شهري"},{"code":"P-19-F07","titleAr":"متابعة أعمال النظافة","titleEn":"Cleaning work follow-up form","status":"Active","updated":"2026-08-27","layoutType":"audit_sections","config":{"sections":[{"title":"1- شؤون صحة العاملين","criteria":["توافر الشهادات الصحية المجددة","الحالة الصحية والعامة للعاملين","تمييز أربطة الجروح إن وجدت","قص الأظافر","نظافة أيدي العاملين قبل العمل","توافر مطهرات الأيدي","ارتداء غطاء الرأس","الزي المصرح به"]},{"title":"2- النظافة والتطهير","criteria":["إزالة الشحومات المتبقية","النظافة بالماء الساخن والمطهرات","التخلص من المخلفات والقاذورات","نظافة وتطهير الأرضيات والحوائط"]},{"title":"3- المخازن","criteria":["النظافة العامة للمكان","التنظيم الجيد للمخزن","ظروف التخزين (جاف بارد)","سهولة الحركة داخل المخزن"]},{"title":"4- مكافحة الحشرات الطائرة والزاحفة والقوارض","criteria":["وجود ستائر الهواء بالمدخل","وجود صواعق الحشرات الطائرة","عدم وجود حشرات طائرة أو زاحفة","توافر مصائد حول المباني"]}]},"proc":"P-19","freq":""},{"code":"P-19-F08","titleAr":"خطة النظافة والتعقيم الشهرية","titleEn":"Monthly cleaning & sanitizing plan","status":"Active","updated":"2026-08-28","layoutType":"matrix_month","config":{"categories":[{"name":"العاملين","items":["النظافة الشخصية للعاملين","نظافة الأيدي","ارتداء غطاء الرأس","الزي المصرح به"]},{"name":"الأجهزة والأسطح","items":["نظافة وتطهير الأجهزة والأسطح"]},{"name":"صالة الإنتاج والأرضيات","items":["صالة الإنتاج","الأرضيات","التخلص من المخلفات","الحوائط والشبابيك"]},{"name":"المرافق","items":["دورات المياه والمرافق","التنظيف والتطهير","منظفات ومطهرات","ماء ساخن"]},{"name":"المخازن","items":["النظافة العامة","التنظيم داخل المخزن","تقرير المخزون","سهولة الحركة داخل المخزن"]}]},"proc":"P-19","freq":""},{"code":"P-19-F09","titleAr":"سجل متابعة النظافة اليومية","titleEn":"Daily hygiene follow-up record","status":"Active","updated":"2026-08-30","layoutType":"dated_grid","config":{"frequency":"يومي","rowCount":31,"multiSection":false,"sections":[],"metaFields":["المعدة/المكان","الشهر"],"columns":[{"id":"c1","label":"نظافة بواسطة (صباحي)","type":"signature"},{"id":"c2","label":"تحقق بواسطة (صباحي)","type":"signature"},{"id":"c3","label":"نظافة بواسطة (مسائي)","type":"signature"},{"id":"c4","label":"تحقق بواسطة (مسائي)","type":"signature"}]},"proc":"P-19","freq":"يومي"},{"code":"P-19-F10","titleAr":"سجل متابعة النظافة الأسبوعية","titleEn":"Weekly hygiene follow-up record","status":"Active","updated":"2026-08-21","layoutType":"dated_grid","config":{"frequency":"أسبوعي","rowCount":18,"multiSection":false,"sections":[],"metaFields":["الشهر"],"columns":[{"id":"c1","label":"المعدة/المكان","type":"text"},{"id":"c2","label":"الحالة","type":"check"}]},"proc":"P-19","freq":"أسبوعي"},{"code":"P-19-F11","titleAr":"خطة النظافة والتعقيم الشهرية (متابعة)","titleEn":"Monthly sanitizing plan — follow-up","status":"Draft","updated":"2026-07-30","layoutType":"matrix_month","config":{"categories":[{"name":"العاملين","items":["النظافة الشخصية للعاملين","نظافة الأيدي"]},{"name":"المخازن","items":["النظافة العامة","التنظيم داخل المخزن"]}]},"proc":"P-19","freq":""},{"code":"P-19-F12","titleAr":"التشييك اليومي على العاملين","titleEn":"Daily workers check","status":"Active","updated":"2026-08-30","layoutType":"dated_grid","config":{"frequency":"يومي","rowCount":31,"multiSection":false,"sections":[],"metaFields":[],"columns":[{"id":"c1","label":"مطابق","type":"check"},{"id":"c2","label":"غير مطابق","type":"check"},{"id":"c3","label":"الإجراء عند عدم المطابقة","type":"text"},{"id":"c4","label":"توقيع المسؤول","type":"signature"}]},"proc":"P-19","freq":"يومي"},{"code":"P-19-F13","titleAr":"تقرير زيارات شركة الصرف الصحي","titleEn":"Sewage company visit report","status":"Draft","updated":"2026-07-30","layoutType":"report_entry","config":{"fields":[{"id":"f1","label":"نوع الزيارة","type":"text","required":true},{"id":"f2","label":"الملاحظات","type":"text","required":true}],"blankRows":8,"hasSignature":true,"hasTime":true},"proc":"P-19","freq":"عند الحدوث"},{"code":"P-19-F14","titleAr":"توزيع مسؤولية نظافة أقسام المصنع","titleEn":"Cleaning responsibility distribution schedule","status":"Active","updated":"2026-08-01","layoutType":"reference_table","config":{"columns":["الموقع","العامل المسؤول","التوقيت"],"rows":[["صالة الإنتاج","عامل التشغيل لكل ماكينة","نهاية الشفت"],["صالة التحلية","عمال النظافة","نهاية الشفت"],["المختبرات","عمال النظافة","نهاية الشفت"],["مستودع المنتج النهائي","عمال النظافة","نهاية الشفت"],["مستودع الخامات","عمال النظافة","نهاية الشفت"],["دورة مياه العمال","عمال النظافة","نهاية الشفت"],["المسجد","عمال النظافة","نهاية الشفت"],["موقف السيارات","عمال النظافة","نهاية الشفت"],["السور الخارجي","عمال النظافة","نهاية الشفت"]]},"proc":"P-19","freq":""},{"code":"P-19-F15","titleAr":"سجل تنظيف الفلاتر والخزانات","titleEn":"Filter & tank cleaning log","status":"Active","updated":"2026-08-29","layoutType":"dated_grid","config":{"frequency":"شهري","rowCount":10,"multiSection":true,"sections":["خزان المياه الخام","الفلتر الرملي","الفلتر الكربوني","الفلتر الميكروني (1)","الفلتر الميكروني (2)"],"metaFields":[],"columns":[{"id":"c1","label":"غسيل الفلتر","type":"check"},{"id":"c2","label":"الصيانة","type":"text"},{"id":"c3","label":"المسؤول (توقيع)","type":"signature"}]},"proc":"P-19","freq":"شهري"},{"code":"P-19-F16","titleAr":"سجل زيارات شركة المخلفات الصناعية","titleEn":"Industrial waste company visit log","status":"Draft","updated":"2026-07-15","layoutType":"report_entry","config":{"fields":[{"id":"f1","label":"نوع الزيارة","type":"text","required":true},{"id":"f2","label":"الملاحظات","type":"text","required":true}],"blankRows":8,"hasSignature":true,"hasTime":true},"proc":"P-19","freq":"عند الحدوث"},{"code":"P-19-F17","titleAr":"سجل زيارات شركة مكافحة الحشرات","titleEn":"Pest control company visit log","status":"Active","updated":"2026-08-27","layoutType":"report_entry","config":{"fields":[{"id":"f1","label":"نوع الزيارة","type":"text","required":true},{"id":"f2","label":"الملاحظات","type":"text","required":true}],"blankRows":8,"hasSignature":true,"hasTime":true},"proc":"P-19","freq":"عند الحدوث"}];
+function isoLoad(){ try { const a = JSON.parse(localStorage.getItem(ISO_STORE_KEY) || "null"); if (Array.isArray(a)) return a; } catch (e) {} return JSON.parse(JSON.stringify(ISO_SEED)); }
+function isoSave(forms){ try { localStorage.setItem(ISO_STORE_KEY, JSON.stringify(forms)); return true; } catch (e) { return false; } }
+
+function formStudio(){
+  return {
+    std: 'iso',          // iso | haccp — كل معيار له جدوله
+    proc: 'all',         // الإجراء/البرنامج المختار في المكتبة
+    hdb: null,           // جدول الهاسب (procedures + forms)
+    mode: 'library', // library | typePicker | builder | preview
+
+    init(){
+      const q = new URLSearchParams(location.search);
+      this.std = q.get('std') === 'haccp' ? 'haccp' : 'iso';
+      this.ret = q.get('return') || '';
+      this.load();
+      const pr = q.get('proc');
+      if (pr && this.procs.some(p => p.key === pr || p.code === pr)) this.proc = (this.procs.find(p => p.key === pr || p.code === pr)).key;
+      else if (this.std === 'iso' && !pr) this.proc = 'P-19';
+      const fc = q.get('form'); const f = fc && this.forms.find(x => x.code === fc);
+      if (f){ this.proc = f.proc; this.editForm(f); }
+      else if (q.get('new')) this.mode = 'typePicker';
+      if (!this.forms.length && this.std === 'iso') this.persist();
+      window.addEventListener('storage', e => { if ((e.key === ISO_STORE_KEY || e.key === HACCP_KEY) && this.mode === 'library') this.load(); });
+    },
+    load(){
+      if (this.std === 'haccp'){ this.hdb = haccpLoad(); this.forms = this.hdb.forms; if (!localStorage.getItem(HACCP_KEY)) haccpSave(this.hdb); }
+      else { this.forms = isoLoad(); if (!localStorage.getItem(ISO_STORE_KEY)) isoSave(this.forms); }
+    },
+    persist(){
+      const ok = this.std === 'haccp' ? haccpSave({ ...this.hdb, forms:this.forms }) : isoSave(this.forms);
+      if (this.std === 'haccp') this.hdb.forms = this.forms;
+      if (!ok) this.toast('تعذّر الحفظ في المتصفح', 'error');
+      return ok;
+    },
+    ret: '',
+    /* الرجوع بعد الحفظ أو الإلغاء: لو فُتح الاستوديو من مركز الهاسب يرجع له على نفس البرنامج */
+    exitBuilder(procKey){
+      if (this.ret === 'hc'){ location.href = '0_HACCPCenter.html?prp=' + encodeURIComponent(procKey || (this.draft && this.draft.proc) || this.proc) + '#prp'; return; }
+      this.mode = 'library';
+    },
+    get stdLabel(){ return this.std === 'haccp' ? 'الهاسب · PRPs' : 'ISO 22000:2018'; },
+    get backHref(){ return this.std === 'haccp' ? '0_HACCPCenter.html' : '1_Dashboard.html'; },
+    get backLabel(){ return this.std === 'haccp' ? 'مركز قيادة الهاسب' : 'مركز قيادة ISO'; },
+    get procs(){ return this.std === 'haccp' ? (this.hdb ? this.hdb.procedures : []).map(p => ({ key:p.id, code:p.code, title:p.name })) : ISO_PROCEDURES.map(p => ({ key:p.code, code:p.code, title:p.title })); },
+    procOf(key){ return this.procs.find(p => p.key === key) || { key, code:key, title:'' }; },
+    procLabel(key){ const p = this.procOf(key); return p.code + (p.title ? ' — ' + p.title : ''); },
+    countOf(key){ return this.forms.filter(f => f.proc === key).length; },
+    nextCode(key){ const base = this.procOf(key).code + '-F'; const n = Math.max(0, ...this.forms.filter(f => f.code.startsWith(base)).map(f => +f.code.slice(base.length) || 0)) + 1; return base + String(n).padStart(2, '0'); },
+    newFromLibrary(){ if (this.proc === 'all') this.proc = (this.procs[0] || {}).key; this.mode = 'typePicker'; },
+    searchQ: '', filterType: '',
+    confirmDeleteCode: null,
+    draft: null,
+    editingOriginalCode: null,
+    previewTarget: null,
+    toasts: [],
+
+    toast(message, type='success'){
+      const id = Date.now()+Math.random();
+      this.toasts.push({id,message,type});
+      setTimeout(()=>{ this.toasts = this.toasts.filter(t=>t.id!==id); }, 3000);
+    },
+    todayStr(){ return new Date().toISOString().slice(0,10); },
+
+    // =====================================================================
+    // LAYOUT ARCHETYPES
+    // =====================================================================
+    layoutTypes: [
+      { key:'simple', label:'نموذج حقول بسيط', icon:'fa-solid fa-list-check', chipBg:'bg-black/5', chipText:'text-ink/70',
+        examples:'إدخال فردي عام',
+        desc:'قائمة حقول حرة (نص، حرارة، مطابق/غير مطابق، صورة) لإدخال واحد لكل عملية تعبئة — مناسب للنماذج التي لا تتبع شكل جدول متكرر.',
+        sketch:'<div class="space-y-1"><div class="h-2 w-full bg-black/10 rounded"></div><div class="h-2 w-3/4 bg-black/10 rounded"></div><div class="h-2 w-5/6 bg-black/10 rounded"></div></div>' },
+      { key:'dated_grid', label:'سجل بتواريخ (يومي/أسبوعي/شهري)', icon:'fa-solid fa-table-list', chipBg:'bg-emerald-soft', chipText:'text-emerald-deep',
+        examples:'مثل P-19-F02, F05, F09, F12',
+        desc:'جدول صفوفه تواريخ/أيام وأعمدته بنود تفتيش أو قراءات متكررة، مع دعم أقسام متعددة متكررة (مثل عدة فلاتر أو خزانات كما في F15).',
+        sketch:'<div class="grid grid-cols-6 gap-0.5">'+Array(18).fill('<div class="sketch-cell bg-black/10 rounded-sm"></div>').join('')+'</div>' },
+      { key:'matrix_month', label:'مصفوفة شهرية (فئات × 31 يوم)', icon:'fa-solid fa-table-cells', chipBg:'bg-teal-soft', chipText:'text-teal-deep',
+        examples:'مثل P-19-F08, F11',
+        desc:'فئات رئيسية تحتوي عناصر فرعية، وكل عنصر له 31 خانة يومية — مطابقة لشكل خطة النظافة والتعقيم الشهرية.',
+        sketch:'<div class="grid grid-cols-10 gap-0.5">'+Array(30).fill('<div class="sketch-cell bg-black/10 rounded-sm"></div>').join('')+'</div>' },
+      { key:'audit_sections', label:'قائمة تفتيش مقسّمة بأقسام', icon:'fa-solid fa-clipboard-check', chipBg:'bg-rose-soft', chipText:'text-rose-deep',
+        examples:'مثل P-19-F07',
+        desc:'أقسام تدقيق (شؤون العاملين، النظافة، المخازن...) كل قسم يحتوي بنود تقييم تُقيَّم كـ منفّذ / غير منفّذ / لا ينطبق.',
+        sketch:'<div class="space-y-1"><div class="h-2 w-1/2 bg-teal/40 rounded"></div><div class="h-1.5 w-full bg-black/10 rounded"></div><div class="h-1.5 w-full bg-black/10 rounded"></div><div class="h-2 w-1/2 bg-teal/40 rounded mt-1"></div><div class="h-1.5 w-full bg-black/10 rounded"></div></div>' },
+      { key:'report_entry', label:'نموذج بلاغ / إدخال حر متكرر', icon:'fa-solid fa-file-pen', chipBg:'bg-amber-soft', chipText:'text-amber-deep',
+        examples:'مثل P-19-F04, F13, F16, F17',
+        desc:'جدول بسيط الأعمدة مع عدة صفوف فارغة قابلة للتكرار لتسجيل بلاغات أو زيارات متعددة، مع تذييل اختياري لتوقيع المُبلّغ.',
+        sketch:'<div class="grid grid-cols-4 gap-0.5">'+Array(12).fill('<div class="sketch-cell bg-black/10 rounded-sm"></div>').join('')+'</div>' },
+      { key:'eib_log', label:'سجل تشغيلي EIB', icon:'fa-solid fa-table-list', chipBg:'bg-ink/10', chipText:'text-ink',
+        examples:'نماذج PRPs المعتمدة P01–P22 (176 نموذجاً)',
+        desc:'نفس شكل نماذج EIB: ترويسة (الرمز، الإصدار، المنشأة، الفرع، البرنامج، المسؤول، حالة الاعتماد)، غرض السجل ومعيار القبول، جدول مرقّم بتاريخ التنفيذ وأعمدة تخصصية ثم مرجع الدليل والنتيجة ورقم CAPA، وتذييل الاعتماد.',
+        sketch:'<div class="space-y-0.5"><div class="h-2 w-full bg-ink/70 rounded"></div><div class="grid grid-cols-4 gap-0.5">'+Array(4).fill('<div class="h-1.5 bg-black/10 rounded-sm"></div>').join('')+'</div><div class="h-1 bg-teal/30 rounded"></div><div class="grid grid-cols-6 gap-0.5">'+Array(18).fill('<div class="sketch-cell bg-black/10 rounded-sm"></div>').join('')+'</div></div>' },
+      { key:'tag_card', label:'بطاقة ميدانية (مصيدة / ملصق)', icon:'fa-solid fa-tag', chipBg:'bg-brand-soft', chipText:'text-brand-deep',
+        examples:'مثل بطاقة خدمة المصيدة PRP-01-F05',
+        desc:'كارت صغير يُثبَّت على المعدة أو المصيدة: بيانات ثابتة في الأعلى (الرقم، النوع، المنطقة) وجدول زيارات قصير (التاريخ، الحالة، توقيع الفني).',
+        sketch:'<div class="mx-auto w-2/3 space-y-0.5"><div class="h-2 w-full bg-brand/40 rounded"></div><div class="grid grid-cols-3 gap-0.5">'+Array(9).fill('<div class="sketch-cell bg-black/10 rounded-sm"></div>').join('')+'</div></div>' },
+      { key:'site_map', label:'خريطة مواقع / مخطط معتمد', icon:'fa-solid fa-map-location-dot', chipBg:'bg-teal-soft', chipText:'text-teal-deep',
+        examples:'مثل خطة ورسم مواقع المصائد PRP-01-F07',
+        desc:'رسم هندسي للمنشأة (صورة مرفقة) مع دليل رموز ملوّن لأنواع المصائد أو المعدات، وبيانات الاعتماد: تاريخ الإصدار ورقم التعديل وتوقيع مدير الجودة.',
+        sketch:'<div class="grid grid-cols-3 gap-1"><div class="col-span-2 h-10 rounded border border-dashed border-black/20"></div><div class="space-y-1"><div class="h-1.5 bg-rose/50 rounded"></div><div class="h-1.5 bg-teal/50 rounded"></div><div class="h-1.5 bg-emerald/50 rounded"></div></div></div>' },
+      { key:'trend_report', label:'تقرير اتجاهات وتحليل بيانات', icon:'fa-solid fa-chart-line', chipBg:'bg-emerald-soft', chipText:'text-emerald-deep',
+        examples:'مثل تحليل اتجاهات الآفات PRP-01-F08',
+        desc:'جدول تجميعي (المناطق × الأنواع) لفترة شهرية أو ربع سنوية أو سنوية، مع رسم بياني للاتجاه مقارنة بالفترات السابقة، ثم التقييم والخطة الوقائية.',
+        sketch:'<svg viewBox="0 0 100 30" class="w-full h-8"><polyline points="0,25 20,18 40,22 60,10 80,14 100,6" fill="none" stroke="#0FA968" stroke-width="2"/><polyline points="0,20 20,24 40,15 60,18 80,8 100,12" fill="none" stroke="#E11D48" stroke-width="2"/></svg>' },
+      { key:'reference_table', label:'جدول مرجعي ثابت', icon:'fa-solid fa-table', chipBg:'bg-black/5', chipText:'text-ink/70',
+        examples:'مثل P-19-F03, F14',
+        desc:'جدول تُدخَل فيه القيم المرجعية الفعلية مباشرة (أسماء المواقع، الجهات المسؤولة...) وليس سجلاً يومياً — يُطبع جاهزاً كمرجع ثابت.',
+        sketch:'<div class="space-y-0.5"><div class="h-2 w-full bg-ink/20 rounded"></div><div class="h-2 w-full bg-black/10 rounded"></div><div class="h-2 w-full bg-black/10 rounded"></div></div>' },
+    ],
+    typeMeta(key){ return this.layoutTypes.find(t=>t.key===key) || this.layoutTypes[0]; },
+    shapeSvg(shape, color, size=16){ const c = color || '#071A2A', h = size/2;
+      const body = { triangle:'<polygon points="'+h+',1 '+(size-1)+','+(size-1)+' 1,'+(size-1)+'" fill="'+c+'"/>', circle:'<circle cx="'+h+'" cy="'+h+'" r="'+(h-1)+'" fill="'+c+'"/>',
+        square:'<rect x="1.5" y="1.5" width="'+(size-3)+'" height="'+(size-3)+'" fill="'+c+'"/>', diamond:'<polygon points="'+h+',1 '+(size-1)+','+h+' '+h+','+(size-1)+' 1,'+h+'" fill="'+c+'"/>' }[shape] || '';
+      return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'" style="display:inline-block;vertical-align:middle">'+body+'</svg>'; },
+    attachMap(ev){ const file = ev.target.files && ev.target.files[0]; ev.target.value = ''; if (!file) return;
+      if (!/^image\//.test(file.type)) { this.toast('اختر ملف صورة (PNG / JPG)', 'error'); return; }
+      if (file.size > 1.5 * 1024 * 1024) { this.toast('حجم الصورة أكبر من 1.5 ميجابايت', 'error'); return; }
+      const r = new FileReader(); r.onload = () => { this.draft.config.image = r.result; }; r.readAsDataURL(file); },
+    simpleIcon(type){ return {text:'fa-solid fa-font', temp:'fa-solid fa-temperature-half', passfail:'fa-solid fa-toggle-on', photo:'fa-solid fa-camera', textarea:'fa-solid fa-align-right', date:'fa-regular fa-calendar', time:'fa-regular fa-clock', number:'fa-solid fa-hashtag', select:'fa-solid fa-list', signature:'fa-solid fa-signature'}[type] || 'fa-solid fa-circle'; },
+
+    // =====================================================================
+    // GENERIC LIST HELPERS
+    // =====================================================================
+    removeAt(arr,i){ arr.splice(i,1); },
+    moveItem(arr,i,dir){ const j=i+dir; if(j<0||j>=arr.length) return; const t=arr[i]; arr[i]=arr[j]; arr[j]=t; },
+
+    addSimpleField(type){
+      const labels = {text:'حقل نصي جديد', temp:'قراءة درجة حرارة', passfail:'بند مطابق/غير مطابق', photo:'إثبات مصور', textarea:'ملاحظات', date:'تاريخ', time:'الوقت', number:'قيمة رقمية', select:'اختيار', signature:'توقيع'};
+      const f = {id:'f'+Date.now().toString(36)+Math.floor(Math.random()*1000), type, label:labels[type], required:false, min:2, max:5};
+      if (type === 'select') f.options = ['خيار 1','خيار 2'];
+      this.draft.config.fields.push(f);
+    },
+    addColumnRef(){
+      this.draft.config.columns.push('عمود جديد');
+      this.draft.config.rows.forEach(r=>r.push(''));
+    },
+    removeColumnRef(i){
+      this.draft.config.columns.splice(i,1);
+      this.draft.config.rows.forEach(r=>r.splice(i,1));
+    },
+    addRowRef(){
+      this.draft.config.rows.push(this.draft.config.columns.map(()=>''));
+    },
+
+    // =====================================================================
+    // DEFAULT CONFIG PER TYPE
+    // =====================================================================
+    defaultConfig(key){
+      switch(key){
+        case 'simple': return { fields: [] };
+        case 'dated_grid': return { frequency:'يومي', rowCount:31, multiSection:false, sections:[], metaFields:['المكان','الشهر'], columns:[{id:'c1',label:'ملاحظات',type:'text'}] };
+        case 'matrix_month': return { categories: [ {name:'فئة جديدة', items:['عنصر 1']} ] };
+        case 'audit_sections': return { scale:'compliance', metaFields: [], sections: [ {title:'قسم جديد', criteria:['بند تقييم 1']} ] };
+        case 'eib_log': return { version:'01', dateLabel:'تاريخ التنفيذ', rows:30, purpose:'', acceptance:'', note:EIB_NOTE, columns:[
+          {id:'c1',label:'البند',type:'text',required:true}, {id:'evidence',label:'مرجع الدليل',type:'text',required:false},
+          {id:'result',label:'النتيجة',type:'select',options:EIB_RESULT.slice(),required:true}, {id:'capa',label:'رقم CAPA',type:'text',required:false} ] };
+        case 'tag_card': return { dateLabel:'تاريخ الزيارة', rows:12, fixedFields:['الرقم','النوع','المنطقة'], columns:[{id:'c1',label:'الحالة',type:'select',options:['سليم','تم التغيير'],required:true},{id:'c2',label:'الأحرف الأولى للفني',type:'text',required:true}] };
+        case 'site_map': return { image:'', legend:[{shape:'triangle',color:'#E11D48',label:'نوع 1'},{shape:'circle',color:'#0E86B4',label:'نوع 2'}] };
+        case 'trend_report': return { periods:['شهري','ربع سنوي','سنوي'], areas:['منطقة 1','منطقة 2'], pests:['نوع 1','نوع 2'] };
+        case 'report_entry': return { fields: [ {id:'f1', label:'الملاحظات', type:'text', required:true} ], blankRows:6, hasSignature:true, hasTime:false };
+        case 'reference_table': return { columns:['العمود الأول','العمود الثاني'], rows:[['','']] };
+        default: return {};
+      }
+    },
+
+    // =====================================================================
+    // FORMS LIBRARY (seed data — P-19-F01 → F17)
+    // =====================================================================
+    forms: [],
+
+    get filteredForms(){
+      const q = this.searchQ.trim().toLowerCase();
+      return this.forms.filter(f=>{
+        const matchQ = !q || f.code.toLowerCase().includes(q) || f.titleAr.includes(q) || f.titleEn.toLowerCase().includes(q);
+        const matchType = !this.filterType || f.layoutType===this.filterType;
+        const matchProc = this.proc === 'all' || f.proc === this.proc;
+        return matchQ && matchType && matchProc;
+      });
+    },
+
+    // =====================================================================
+    // LIBRARY ACTIONS
+    // =====================================================================
+    startNewForm(typeKey){
+      const key = this.proc === 'all' ? (this.procs[0] || {}).key : this.proc;
+      this.draft = {
+        code: this.nextCode(key), proc: key, freq: '',
+        titleAr: '', titleEn: '',
+        status: 'Draft', updated: this.todayStr(),
+        layoutType: typeKey,
+        config: this.defaultConfig(typeKey)
+      };
+      this.editingOriginalCode = null;
+      this.mode = 'builder';
+    },
+    editForm(f){
+      this.draft = JSON.parse(JSON.stringify(f));
+      this.editingOriginalCode = f.code;
+      this.mode = 'builder';
+    },
+    duplicateForm(f){
+      const clone = JSON.parse(JSON.stringify(f));
+      clone.code = this.nextCode(f.proc);
+      clone.titleAr = f.titleAr + ' (نسخة)';
+      clone.status = 'Draft';
+      clone.updated = this.todayStr();
+      this.forms.push(clone); this.persist();
+      this.toast('تم النسخ إلى ' + clone.code, 'success');
+    },
+    deleteForm(code){
+      this.forms = this.forms.filter(f=>f.code!==code); this.persist();
+      this.confirmDeleteCode = null;
+      this.toast('تم حذف النموذج', 'success');
+    },
+    saveDraft(){
+      if(!this.draft.code || !this.draft.titleAr){
+        this.toast('يرجى إدخال كود وعنوان النموذج', 'error');
+        return;
+      }
+      if(!this.draft.proc){ this.toast('اختر الإجراء / البرنامج', 'error'); return; }
+      if(!this.editingOriginalCode && this.forms.some(f => f.code === this.draft.code)){ this.toast('الكود ' + this.draft.code + ' مستخدم بالفعل', 'error'); return; }
+      if(this.draft.layoutType === 'report_entry' && this.draft.config.fields.some(x => x.type === 'select' && !(x.options || []).length)){ this.toast('أضف خيارات لكل حقل «اختيار»', 'error'); return; }
+      this.draft.updated = this.todayStr();
+      if(this.editingOriginalCode){
+        const idx = this.forms.findIndex(f=>f.code===this.editingOriginalCode);
+        if(idx>-1) this.forms[idx] = JSON.parse(JSON.stringify(this.draft));
+      } else {
+        this.forms.push(JSON.parse(JSON.stringify(this.draft)));
+      }
+      this.persist(); this.proc = this.draft.proc;
+      this.toast('تم حفظ النموذج بنجاح', 'success');
+      if (this.ret === 'hc') setTimeout(() => this.exitBuilder(this.draft.proc), 450); else this.mode = 'library';
+    },
+
+    // =====================================================================
+    // PREVIEW / PRINT
+    // =====================================================================
+    previewForm(f){
+      this.previewTarget = f;
+      this.mode = 'preview';
+    },
+    previewFromBuilder(){
+      this.previewTarget = this.draft;
+      this.mode = 'preview';
+    },
+    printNow(){ window.print(); },
+
+    // =====================================================================
+    // FORM RENDERER — builds an HTML string representation for a given
+    // form definition. Used for both the live builder preview and the
+    // full printable page. `printable=true` renders empty manual-fill cells.
+    // =====================================================================
+    renderFormHTML(form, printable){
+      if(!form) return '';
+      const esc = (s)=> (s===undefined||s===null) ? '' : String(s).replace(/</g,'&lt;');
+      const th = 'style="border:1px solid #d4d4d4;background:#F3F5F8;padding:6px 8px;font-size:11px;font-weight:700;text-align:right;white-space:nowrap;"';
+      const td = 'style="border:1px solid #e2e2e2;padding:6px 8px;font-size:11px;height:26px;text-align:right;"';
+      const tdc = 'style="border:1px solid #e2e2e2;padding:6px 8px;font-size:11px;height:26px;text-align:center;width:34px;"';
+      let out = '';
+
+      switch(form.layoutType){
+
+        case 'simple': {
+          out += '<div style="display:flex;flex-direction:column;gap:10px;">';
+          out += '<div><div style="font-size:11px;font-weight:700;margin-bottom:4px;">'+esc(form.config.dateLabel || 'التاريخ')+' *</div><div style="border-bottom:1px solid #ccc;height:20px;width:180px;"></div></div>';
+          form.config.fields.forEach(f=>{
+            out += '<div><div style="font-size:11px;font-weight:700;margin-bottom:4px;">'+esc(f.label)+(f.required?' *':'')+'</div>';
+            if(f.type==='passfail'){
+              out += '<div style="display:flex;gap:8px;"><span style="border:1px solid #ccc;border-radius:6px;padding:4px 10px;font-size:11px;">مطابق</span><span style="border:1px solid #ccc;border-radius:6px;padding:4px 10px;font-size:11px;">غير مطابق</span></div>';
+            } else if(f.type==='temp'){
+              out += '<div style="border:1px solid #ccc;border-radius:6px;padding:6px 10px;font-size:11px;color:#999;width:160px;">____ °م  (نطاق '+f.min+'—'+f.max+'°م)</div>';
+            } else if(f.type==='select'){
+              out += '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+(f.options||[]).map(o=>'<span style="border:1px solid #ccc;border-radius:6px;padding:4px 10px;font-size:11px;">'+esc(o)+'</span>').join('')+'</div>';
+            } else if(f.type==='textarea'){
+              out += '<div style="border:1px solid #ccc;border-radius:6px;height:64px;"></div>';
+            } else if(f.type==='signature'){
+              out += '<div style="border-bottom:1px solid #999;height:34px;width:220px;"></div>';
+            } else if(f.type==='photo'){
+              out += '<div style="border:2px dashed #ccc;border-radius:8px;height:60px;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:11px;">مساحة إرفاق صورة</div>';
+            } else {
+              out += '<div style="border-bottom:1px solid #ccc;height:20px;width:100%;"></div>';
+            }
+            out += '</div>';
+          });
+          if(form.config.fields.length===0) out += '<p style="font-size:11px;color:#bbb;">لا توجد حقول بعد</p>';
+          out += '</div>';
+          break;
+        }
+
+        case 'dated_grid': {
+          if(form.config.metaFields && form.config.metaFields.length){
+            out += '<div style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:10px;">';
+            form.config.metaFields.forEach(m=>{
+              out += '<div style="font-size:11px;">'+esc(m)+': <span style="display:inline-block;border-bottom:1px solid #ccc;width:110px;">&nbsp;</span></div>';
+            });
+            out += '</div>';
+          }
+          const sectionsToRender = (form.config.multiSection && form.config.sections.length) ? form.config.sections : [null];
+          sectionsToRender.forEach(secName=>{
+            if(secName) out += '<p style="font-size:12px;font-weight:800;margin:10px 0 4px;color:#0A5F80;">'+esc(secName)+'</p>';
+            out += '<table style="border-collapse:collapse;width:100%;margin-bottom:10px;"><thead><tr>';
+            out += '<th '+th+'>اليوم / التاريخ</th>';
+            form.config.columns.forEach(c=>{ out += '<th '+th+'>'+esc(c.label)+'</th>'; });
+            out += '</tr></thead><tbody>';
+            const rc = Math.min(Math.max(form.config.rowCount||31,1),31);
+            for(let i=1;i<=(printable?rc:Math.min(rc,8));i++){
+              out += '<tr><td '+tdc+'>'+i+'</td>';
+              form.config.columns.forEach(c=>{
+                if(c.type==='check') out += '<td '+tdc+'><span style="display:inline-block;width:12px;height:12px;border:1px solid #bbb;"></span></td>';
+                else out += '<td '+td+'></td>';
+              });
+              out += '</tr>';
+            }
+            out += '</tbody></table>';
+            if(!printable && rc>8) out += '<p style="font-size:10px;color:#bbb;margin-top:-6px;">… ويستمر حتى '+rc+' صف في وضع الطباعة الكامل</p>';
+          });
+          break;
+        }
+
+        case 'matrix_month': {
+          out += '<table style="border-collapse:collapse;width:100%;font-size:9px;"><thead><tr>';
+          out += '<th '+th+' style="min-width:150px;">البند</th>';
+          const dayCount = printable ? 31 : 12;
+          for(let d=1; d<=dayCount; d++){ out += '<th '+th+' style="text-align:center;padding:4px 3px;">'+d+'</th>'; }
+          out += '</tr></thead><tbody>';
+          form.config.categories.forEach(cat=>{
+            cat.items.forEach((it,ii)=>{
+              out += '<tr>';
+              out += '<td style="border:1px solid #e2e2e2;padding:4px 6px;font-size:10px;'+(ii===0?'font-weight:800;background:#F3F5F8;':'')+'">'+(ii===0?esc(cat.name)+' — ':'')+esc(it)+'</td>';
+              for(let d=1; d<=dayCount; d++){ out += '<td style="border:1px solid #eee;width:16px;height:16px;"></td>'; }
+              out += '</tr>';
+            });
+          });
+          out += '</tbody></table>';
+          if(!printable && dayCount<31) out += '<p style="font-size:10px;color:#bbb;margin-top:6px;">… المصفوفة الكاملة تغطي 31 يوماً عند الطباعة</p>';
+          break;
+        }
+
+        case 'eib_log': {
+          const cfg = form.config, cols = cfg.columns || [], proc = this.procOf(form.proc);
+          const cell = 'style="border:1px solid #cfd6de;padding:5px 7px;font-size:10.5px;"', lab = 'style="border:1px solid #cfd6de;padding:5px 7px;font-size:10.5px;background:#EEF2F6;font-weight:700;width:14%;"';
+          out += '<div style="background:#071A2A;color:#fff;padding:8px 10px;border-radius:6px 6px 0 0;font-weight:800;font-size:13px;">'+esc(form.code)+' | '+esc(form.titleAr)+'</div>';
+          out += '<div style="background:#FD8118;color:#071A2A;padding:3px 10px;font-size:10px;font-weight:700;">EIB SAFORA  |  سجل قابل للتعبئة  |  يراجع ويعتمد داخل المنشأة</div>';
+          out += '<table style="border-collapse:collapse;width:100%;margin-top:6px;">'
+            + '<tr><td '+lab+'>رمز النموذج</td><td '+cell+'>'+esc(form.code)+'</td><td '+lab+'>الإصدار</td><td '+cell+'>'+esc(cfg.version||'01')+'</td></tr>'
+            + '<tr><td '+lab+'>المنشأة</td><td '+cell+'></td><td '+lab+'>الفرع / المنطقة</td><td '+cell+'></td></tr>'
+            + '<tr><td '+lab+'>البرنامج</td><td '+cell+'>'+esc(proc.title||'')+'</td><td '+lab+'>موعد المراجعة</td><td '+cell+'>يحدد عند الاعتماد</td></tr>'
+            + '<tr><td '+lab+'>مسؤول السجل</td><td '+cell+'></td><td '+lab+'>حالة الاعتماد</td><td '+cell+'>'+(form.status==='Active'?'معتمد للاستخدام':'مسودة للتخصيص')+'</td></tr></table>';
+          out += '<p style="margin-top:6px;padding:5px 8px;background:#E7F6FB;font-size:10.5px;font-weight:700;">غرض السجل: '+esc(cfg.purpose||form.titleAr)+'  •  المرجع الداخلي: '+esc(proc.title||'')+' ('+esc(proc.code||'')+')</p>';
+          if (cfg.acceptance) out += '<p style="padding:5px 8px;background:#FFF6E5;font-size:10.5px;">معيار القبول المرجعي للمراجعة: '+esc(cfg.acceptance)+'</p>';
+          out += '<table style="border-collapse:collapse;width:100%;margin-top:6px;"><thead><tr><th '+th+' style="width:28px;text-align:center;">م</th><th '+th+'>'+esc(cfg.dateLabel||'تاريخ التنفيذ')+'</th>';
+          cols.forEach(c=>{ out += '<th '+th+'>'+esc(c.label)+(c.type==='select' ? '<br><span style="font-weight:400;color:#888;font-size:8.5px;">'+esc((c.options||[]).join(' / '))+'</span>' : '')+'</th>'; });
+          out += '</tr></thead><tbody>';
+          const n = printable ? (cfg.rows||30) : Math.min(cfg.rows||30, 6);
+          for(let i=0;i<n;i++){ out += '<tr><td '+td+' style="text-align:center;color:#999;">'+(i+1)+'</td><td '+td+'></td>'; cols.forEach(()=>{ out += '<td '+td+'></td>'; }); out += '</tr>'; }
+          out += '</tbody></table>';
+          if (!printable && (cfg.rows||30) > n) out += '<p style="font-size:10px;color:#999;margin-top:4px;">… ويستمر حتى '+(cfg.rows||30)+' صفاً في الطباعة</p>';
+          if (cfg.note) out += '<p style="margin-top:8px;padding:5px 8px;border-inline-start:3px solid #E11D48;background:#FFF1F2;font-size:10.5px;">'+esc(cfg.note)+'</p>';
+          out += '<p style="margin-top:10px;font-size:10.5px;color:#444;">أُعد بواسطة: __________ | روجع بواسطة: __________ | اعتُمد بواسطة: __________ | تاريخ الاعتماد: __________</p>';
+          break;
+        }
+
+        case 'tag_card': {
+          const cfg = form.config;
+          out += '<div style="max-width:380px;margin:auto;border:2px solid #071A2A;border-radius:12px;padding:12px;">';
+          out += '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #FD8118;padding-bottom:6px;margin-bottom:8px;"><b style="font-size:12px;">'+esc(form.titleAr||'بطاقة ميدانية')+'</b><span style="font-size:9px;color:#888;">'+esc(form.code)+'</span></div>';
+          (cfg.fixedFields||[]).forEach(m=>{ out += '<div style="font-size:11px;margin-bottom:5px;">'+esc(m)+': <span style="display:inline-block;border-bottom:1px solid #bbb;width:170px;">&nbsp;</span></div>'; });
+          out += '<table style="border-collapse:collapse;width:100%;margin-top:6px;"><thead><tr><th '+th+'>'+esc(cfg.dateLabel||'التاريخ')+'</th>';
+          (cfg.columns||[]).forEach(c=>{ out += '<th '+th+'>'+esc(c.label)+(c.type==='select' && (c.options||[]).length ? '<br><span style="font-weight:400;color:#888;font-size:9px;">'+esc(c.options.join(' / '))+'</span>' : '')+'</th>'; });
+          out += '</tr></thead><tbody>';
+          const n = printable ? (cfg.rows||12) : Math.min(cfg.rows||12, 5);
+          for(let i=0;i<n;i++){ out += '<tr><td '+td+'></td>'; (cfg.columns||[]).forEach(()=>{ out += '<td '+td+'></td>'; }); out += '</tr>'; }
+          out += '</tbody></table><p style="font-size:9px;color:#999;margin-top:6px;">كارت مقاوم للماء يُثبَّت على المصيدة مباشرة كدليل ميداني على إتمام التفتيش.</p></div>';
+          break;
+        }
+
+        case 'site_map': {
+          const cfg = form.config;
+          out += '<div style="display:grid;grid-template-columns:2.2fr 1fr;gap:14px;">';
+          out += cfg.image ? '<div style="border:1px solid #ddd;border-radius:8px;padding:4px;"><img src="'+cfg.image+'" style="width:100%;display:block;border-radius:6px;"></div>'
+                           : '<div style="border:2px dashed #ccc;border-radius:8px;min-height:'+(printable?'420px':'220px')+';display:flex;align-items:center;justify-content:center;color:#aaa;font-size:11px;text-align:center;padding:10px;">مساحة الرسم الهندسي للمبنى (Layout)<br>الداخلي والخارجي مع ترقيم مواقع المصائد</div>';
+          out += '<div><p style="font-size:12px;font-weight:800;margin-bottom:6px;">دليل الرموز (Legend)</p><table style="border-collapse:collapse;width:100%;">';
+          (cfg.legend||[]).forEach(l=>{ out += '<tr><td style="border-bottom:1px dashed #e2e2e2;padding:5px 2px;width:24px;">'+this.shapeSvg(l.shape,l.color,16)+'</td><td style="border-bottom:1px dashed #e2e2e2;padding:5px 4px;font-size:10.5px;">'+esc(l.label)+'</td><td style="border-bottom:1px dashed #e2e2e2;padding:5px 2px;font-size:9px;color:#999;width:52px;">العدد: ___</td></tr>'; });
+          out += '</table></div></div>';
+          out += '<div style="display:flex;flex-wrap:wrap;gap:22px;margin-top:14px;font-size:11px;border-top:1px solid #e2e2e2;padding-top:10px;">';
+          ['تاريخ الإصدار','رقم التعديل (Revision No)','اعتماد مدير الجودة (توقيع)'].forEach(m=>{ out += '<div>'+m+': <span style="display:inline-block;border-bottom:1px solid #ccc;width:120px;">&nbsp;</span></div>'; });
+          out += '</div>';
+          break;
+        }
+
+        case 'trend_report': {
+          const cfg = form.config, pests = cfg.pests||[], areas = cfg.areas||[];
+          const palette = ['#E11D48','#0E86B4','#0FA968','#C58B00','#7C3AED','#FD8118'];
+          out += '<div style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:10px;font-size:11px;"><div>الفترة: '+(cfg.periods||[]).map(p=>'( ) '+esc(p)).join(' &nbsp; ')+'</div><div>الفترة المشمولة: <span style="display:inline-block;border-bottom:1px solid #ccc;width:130px;">&nbsp;</span></div></div>';
+          out += '<table style="border-collapse:collapse;width:100%;"><thead><tr><th '+th+'>المنطقة</th>';
+          pests.forEach(p=>{ out += '<th '+th+' style="text-align:center;">'+esc(p)+'</th>'; }); out += '<th '+th+'>الإجمالي</th></tr></thead><tbody>';
+          areas.forEach(a=>{ out += '<tr><td '+td+'>'+esc(a)+'</td>'; pests.forEach(()=>{ out += '<td '+td+'></td>'; }); out += '<td '+td+'></td></tr>'; });
+          out += '<tr><td '+td+' style="font-weight:800;">الإجمالي</td>'; pests.forEach(()=>{ out += '<td '+td+'></td>'; }); out += '<td '+td+'></td></tr></tbody></table>';
+          // chart frame (12 months) with legend
+          const W=640,H=170,L=34,B=24; let svg = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;margin-top:12px;border:1px solid #eee;border-radius:8px;">';
+          for(let i=0;i<=4;i++){ const y = 10 + i*(H-B-10)/4; svg += '<line x1="'+L+'" x2="'+(W-8)+'" y1="'+y+'" y2="'+y+'" stroke="#eee"/>'; }
+          const months=['1','2','3','4','5','6','7','8','9','10','11','12'];
+          months.forEach((m,i)=>{ const x = L + i*(W-L-16)/11; svg += '<text x="'+x+'" y="'+(H-8)+'" font-size="9" fill="#999" text-anchor="middle">'+m+'</text>'; });
+          svg += '<text x="6" y="14" font-size="9" fill="#999">العدد</text></svg>';
+          out += svg + '<div style="display:flex;gap:14px;font-size:10px;margin-top:4px;">'+pests.map((p,i)=>'<span><span style="display:inline-block;width:14px;height:3px;background:'+palette[i%palette.length]+';vertical-align:middle;"></span> '+esc(p)+'</span>').join('')+'<span style="color:#999;">— منحنى الاتجاه مقارنة بالفترات السابقة (يُرسم تلقائياً في بوابة العميل)</span></div>';
+          out += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;"><div><p style="font-size:11px;font-weight:700;">التقييم وتحليل الأسباب</p><div style="border:1px solid #ccc;border-radius:6px;height:60px;"></div></div><div><p style="font-size:11px;font-weight:700;">الخطة الوقائية للفترة القادمة</p><div style="border:1px solid #ccc;border-radius:6px;height:60px;"></div></div></div>';
+          break;
+        }
+
+        case 'audit_sections': {
+          if((form.config.metaFields && form.config.metaFields.length) || form.config.dateLabel){
+            out += '<div style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:10px;">';
+            [form.config.dateLabel || 'التاريخ', ...(form.config.metaFields||[])].forEach(m=>{ out += '<div style="font-size:11px;">'+esc(m)+': <span style="display:inline-block;border-bottom:1px solid #ccc;width:110px;">&nbsp;</span></div>'; });
+            out += '</div>';
+          }
+          out += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">';
+          form.config.sections.forEach(sec=>{
+            out += '<div><p style="font-size:12px;font-weight:800;background:#F3F5F8;padding:5px 8px;border-radius:6px;">'+esc(sec.title)+'</p>';
+            out += '<table style="width:100%;border-collapse:collapse;margin-top:4px;">';
+            sec.criteria.forEach(c=>{
+              out += '<tr><td style="border-bottom:1px dashed #e2e2e2;padding:4px 2px;font-size:10.5px;">'+esc(c)+'</td><td style="border-bottom:1px dashed #e2e2e2;padding:4px 2px;width:60px;text-align:center;font-size:9px;color:#bbb;">( &nbsp; )</td></tr>';
+            });
+            out += '</table></div>';
+          });
+          out += '</div>';
+          out += form.config.scale==='compliance' ? '<p style="font-size:10px;color:#888;margin-top:12px;">بنود التقييم: مطابق ( ) &nbsp;&nbsp; غير مطابق ( ) &nbsp;&nbsp; لا ينطبق ( - )</p>' : '<p style="font-size:10px;color:#888;margin-top:12px;">بنود التقييم: منفّذ ( ) &nbsp;&nbsp; غير منفّذ ( ) &nbsp;&nbsp; لا ينطبق ( - )</p>';
+          if (form.config.notesLabel) out += '<p style="font-size:11px;font-weight:700;margin-top:10px;">'+esc(form.config.notesLabel)+'</p><div style="border:1px solid #ccc;border-radius:6px;height:56px;"></div>';
+          break;
+        }
+
+        case 'report_entry': {
+          out += '<table style="border-collapse:collapse;width:100%;"><thead><tr>';
+          if(form.config.hasTime) out += '<th '+th+'>الوقت</th>';
+          form.config.fields.forEach(f=>{ out += '<th '+th+'>'+esc(f.label)+'</th>'; });
+          out += '</tr></thead><tbody>';
+          const rows = printable ? (form.config.blankRows||6) : Math.min(form.config.blankRows||6,4);
+          for(let i=0;i<rows;i++){
+            out += '<tr>';
+            if(form.config.hasTime) out += '<td '+td+'></td>';
+            form.config.fields.forEach(()=>{ out += '<td '+td+'></td>'; });
+            out += '</tr>';
+          }
+          out += '</tbody></table>';
+          if(form.config.hasSignature){
+            out += '<div style="display:flex;gap:24px;margin-top:14px;font-size:11px;">';
+            out += '<div>القائم بالتبليغ: <span style="display:inline-block;border-bottom:1px solid #ccc;width:120px;">&nbsp;</span></div>';
+            out += '<div>التوقيع: <span style="display:inline-block;border-bottom:1px solid #ccc;width:120px;">&nbsp;</span></div>';
+            out += '</div>';
+          }
+          break;
+        }
+
+        case 'reference_table': {
+          out += '<table style="border-collapse:collapse;width:100%;"><thead><tr>';
+          form.config.columns.forEach(c=>{ out += '<th '+th+'>'+esc(c)+'</th>'; });
+          out += '</tr></thead><tbody>';
+          form.config.rows.forEach(row=>{
+            out += '<tr>';
+            row.forEach(cell=>{ out += '<td '+td+'>'+esc(cell)+'</td>'; });
+            out += '</tr>';
+          });
+          out += '</tbody></table>';
+          break;
+        }
+      }
+
+      if(printable){
+        out += '<div style="display:flex;justify-content:space-between;margin-top:28px;padding-top:14px;border-top:1px solid #e2e2e2;font-size:10px;color:#999;">';
+        out += '<span>'+esc(form.code)+' · SAFORA</span><span>تاريخ الطباعة: '+this.todayStr()+'</span>';
+        out += '</div>';
+      }
+      return out;
+    }
+  }
+}
+</script>
+</body>
+</html>
