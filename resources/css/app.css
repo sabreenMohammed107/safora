@@ -1,9 +1,186 @@
 @import 'tailwindcss';
+@import '@fortawesome/fontawesome-free/css/all.min.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../../app/Enums/*.php';
 
+/* SAFORA design tokens, taken from the prototype's tailwind.config (docs/html-assets). */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: var(--font-cairo), 'Cairo', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, monospace;
+
+    --color-ink: #071a2a;
+    --color-ink-elev: #0e2a40;
+    --color-ink-border: #1a3a55;
+    --color-ink-soft: #11304a;
+    --color-ink-mist: #9fb2bf;
+    --color-canvas: #f3f5f8;
+
+    --color-brand: #fd8118;
+    --color-brand-deep: #b8560a;
+    --color-brand-soft: #fff1e3;
+    --color-brand-red: #f02b18;
+    --color-brand-cream: #f6f2e8;
+
+    --color-emerald: #0fa968;
+    --color-emerald-deep: #066b41;
+    --color-emerald-soft: #e4f6ed;
+
+    --color-rose: #e11d48;
+    --color-rose-deep: #9f1239;
+    --color-rose-soft: #fdecef;
+
+    --color-amber: #c58b00;
+    --color-amber-deep: #7a5700;
+    --color-amber-soft: #fbf3d6;
+
+    --color-teal: #0e86b4;
+    --color-teal-deep: #0a5f80;
+    --color-teal-soft: #e2f2f9;
+
+    --shadow-card: 0 1px 2px rgba(7, 26, 42, 0.06), 0 8px 24px -12px rgba(7, 26, 42, 0.12);
+}
+
+@layer base {
+    html[lang='en'] body {
+        font-family: var(--font-inter), 'Inter', var(--font-cairo), 'Cairo', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    ::selection {
+        background: #ffe2c4;
+        color: var(--color-ink);
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
+
+    :is(button, a, input, select, textarea, summary):focus-visible {
+        outline: 2px solid var(--color-teal);
+        outline-offset: 2px;
+    }
+
+    /* Slim light scrollbars (prototype). WebKit/Blink use the pseudo-elements; Firefox the standard properties. */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #d3dae3;
+        border-radius: 999px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: #b5c0cc;
+    }
+
+    ::-webkit-scrollbar-button,
+    ::-webkit-scrollbar-corner {
+        display: none;
+        background: transparent;
+    }
+
+    @supports not selector(::-webkit-scrollbar) {
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #d3dae3 transparent;
+        }
+    }
+}
+
+@layer components {
+    .wordmark {
+        font-family: var(--font-montserrat), 'Montserrat', var(--font-cairo), sans-serif;
+        font-weight: 800;
+        letter-spacing: 0.015em;
+    }
+
+    .card {
+        @apply rounded-2xl border border-black/5 bg-white shadow-card;
+    }
+
+    .lbl {
+        @apply text-xs font-bold text-ink/60;
+    }
+
+    .fld {
+        @apply mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2.5 text-[13.5px] outline-none focus:border-teal focus:ring-4 focus:ring-teal/10;
+    }
+
+    .fld-error {
+        @apply mt-1 text-xs font-bold text-rose-deep;
+    }
+
+    :is(.btn-primary, .btn-dark, .btn-ghost, .btn-danger) {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    .btn-primary {
+        @apply bg-brand text-ink hover:bg-brand-deep hover:text-white;
+    }
+
+    .btn-dark {
+        @apply bg-ink text-white hover:bg-ink-elev;
+    }
+
+    .btn-ghost {
+        @apply border border-black/10 bg-white text-ink/80 hover:bg-canvas;
+    }
+
+    .btn-danger {
+        @apply bg-rose text-white hover:bg-rose-deep;
+    }
+
+    .nav-link {
+        @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold text-white/70 transition hover:bg-white/[0.06] hover:text-white;
+    }
+
+    .nav-link[aria-current='page'] {
+        @apply bg-white/[0.08] text-white;
+    }
+
+    .nav-link[aria-disabled='true'] {
+        @apply cursor-not-allowed text-white/35 hover:bg-transparent hover:text-white/35;
+    }
+
+    /* Dark-sidebar scrollbar: hairline, hidden until the menu is hovered or focused. */
+    .scrollbar-dark::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .scrollbar-dark::-webkit-scrollbar-thumb {
+        background-color: transparent;
+        border: 0;
+        transition: background-color 0.2s;
+    }
+
+    .scrollbar-dark:is(:hover, :focus-within)::-webkit-scrollbar-thumb {
+        background-color: rgb(255 255 255 / 0.16);
+    }
+
+    .scrollbar-dark::-webkit-scrollbar-thumb:hover {
+        background-color: rgb(255 255 255 / 0.3);
+    }
+
+    @supports not selector(::-webkit-scrollbar) {
+        .scrollbar-dark {
+            scrollbar-color: transparent transparent;
+        }
+
+        .scrollbar-dark:is(:hover, :focus-within) {
+            scrollbar-color: rgb(255 255 255 / 0.2) transparent;
+        }
+    }
+
+    .pill {
+        @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-extrabold;
+    }
 }

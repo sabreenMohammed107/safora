@@ -8,12 +8,10 @@ use Tests\TestCase;
 class ExampleTest extends TestCase
 {
     /**
-     * A basic test example.
+     * The root URL sends visitors to the client portal.
      */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_the_root_url_redirects_to_the_portal(): void
     {
-        $response = $this->get('/');
-
-        $response->assertStatus(200);
+        $this->get('/')->assertRedirect('/portal');
     }
 }

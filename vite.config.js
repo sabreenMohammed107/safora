@@ -9,8 +9,20 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
             fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
+                bunny('Cairo', {
+                    weights: [400, 500, 600, 700, 800],
+                    subsets: ['arabic', 'latin'],
+                }),
+                bunny('Inter', {
+                    weights: [400, 500, 600, 700, 800],
+                }),
+                bunny('Montserrat', {
+                    weights: [800],
+                    preload: false,
+                }),
+                bunny('JetBrains Mono', {
+                    weights: [400, 600],
+                    preload: false,
                 }),
             ],
         }),
